@@ -1,0 +1,9 @@
+[
+    {
+        "maintenance_id": 1,
+        "cottage_id": 1,
+        "maintenance_date": "2024-10-05",
+        "request_description": "Repair broken window",
+        "status": "in_progress"
+    }
+]
