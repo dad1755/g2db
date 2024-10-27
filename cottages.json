@@ -1,0 +1,10 @@
+[
+    {
+        "cottage_id": 1,
+        "name": "Sunset Cottage",
+        "description": "A cozy lakeside cottage.",
+        "status": "available",
+        "last_maintenance_date": "2024-01-01",
+        "last_housekeeping_date": "2024-01-02"
+    }
+]
