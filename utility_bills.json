@@ -1,0 +1,9 @@
+[
+    {
+        "bill_id": 1,
+        "cottage_id": 1,
+        "bill_date": "2024-09-01",
+        "amount": 150.00,
+        "status": "unpaid"
+    }
+]
