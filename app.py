@@ -14,14 +14,14 @@ def save_data(filename, data):
 
 # Paths to JSON files
 DATA_PATH = Path("data")
-CUSTOMERS_FILE = DATA_PATH / "customers.json"
-COTTAGES_FILE = DATA_PATH / "cottages.json"
-RESERVATIONS_FILE = DATA_PATH / "reservations.json"
-PAYMENTS_FILE = DATA_PATH / "payments.json"
-MAINTENANCE_FILE = DATA_PATH / "maintenance.json"
-INVENTORY_FILE = DATA_PATH / "inventory.json"
-UTILITY_BILLS_FILE = DATA_PATH / "utility_bills.json"
-HOUSEKEEPING_FILE = DATA_PATH / "housekeeping.json"
+CUSTOMERS_FILE = "customers.json"
+COTTAGES_FILE = "cottages.json"
+RESERVATIONS_FILE = "reservations.json"
+PAYMENTS_FILE = "payments.json"
+MAINTENANCE_FILE = "maintenance.json"
+INVENTORY_FILE = "inventory.json"
+UTILITY_BILLS_FILE = "utility_bills.json"
+HOUSEKEEPING_FILE = "housekeeping.json"
 
 # Load data
 customers = load_data(CUSTOMERS_FILE)
