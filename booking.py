@@ -9,8 +9,8 @@ def calculate_total_price(cottage_price, check_in, check_out):
 def reservation_section():
     st.header("Cottage Reservation")
 
-    # Load customers with names and emails
-    customers = load_data("SELECT cust_id, cust_name, cust_email FROM Customer")
+    # Load customers with names, emails, and phone numbers
+    customers = load_data("SELECT cust_id, cust_name, cust_email, cust_phone FROM Customer")
     customer_options = {c['cust_email']: c['cust_name'] for c in customers}
 
     # Customer selection with name displayed
@@ -18,7 +18,7 @@ def reservation_section():
     customer = next((c for c in customers if c['cust_email'] == customer_email), None)
 
     # Cottage selection and availability check
-    cottages = load_data("SELECT cottage_id, cottage_name, cottage_price FROM Cottage WHERE cottage_status = 'available'")
+    cottages = load_data("SELECT cottage_id, cottage_name, cottage_price, cottage_description FROM Cottage WHERE cottage_status = 'available'")
     cottage_name = st.selectbox("Cottage", [c['cottage_name'] for c in cottages])
     cottage = next((c for c in cottages if c['cottage_name'] == cottage_name), None)
 
@@ -29,14 +29,19 @@ def reservation_section():
         if cottage and customer:
             total_price = calculate_total_price(cottage['cottage_price'], check_in, check_out)
             if total_price > 0:  # Ensure total price is valid
+                # Retrieve applicable discounts if any
+                discounts = load_data("SELECT discount_id FROM Discount WHERE cottage_id = :cottage_id", {"cottage_id": cottage['cottage_id']})
+                selected_discount_id = discounts[0]['discount_id'] if discounts else None
+
                 new_reservation_query = """
-                    INSERT INTO Reservation (cust_id, cottage_id, reserve_date, check_in_date, check_out_date, payment_status, person_check_in, total_price)
-                    VALUES (:cust_id, :cottage_id, :reserve_date, :check_in_date, :check_out_date, :payment_status, :person_check_in, :total_price)
+                    INSERT INTO Reservation (cust_id, cottage_id, reserve_date, discount_id, check_in_date, check_out_date, payment_status, person_check_in, total_price)
+                    VALUES (:cust_id, :cottage_id, :reserve_date, :discount_id, :check_in_date, :check_out_date, :payment_status, :person_check_in, :total_price)
                 """
                 parameters = {
                     "cust_id": customer['cust_id'],
                     "cottage_id": cottage['cottage_id'],
                     "reserve_date": str(datetime.now().date()),
+                    "discount_id": selected_discount_id,
                     "check_in_date": str(check_in),
                     "check_out_date": str(check_out),
                     "payment_status": "pending",
@@ -60,7 +65,7 @@ def view_bookings():
 
     if customer:
         reservations = load_data("""
-            SELECT r.reserve_id, c.cottage_name, r.check_in_date, r.check_out_date, r.total_price
+            SELECT r.reserve_id, c.cottage_name, r.check_in_date, r.check_out_date, r.total_price, r.payment_status, r.reserve_date
             FROM Reservation r
             JOIN Cottage c ON r.cottage_id = c.cottage_id
             WHERE r.cust_id = :cust_id
@@ -68,7 +73,10 @@ def view_bookings():
 
         if reservations:
             for reservation in reservations:
-                st.write(f"Reservation ID: {reservation['reserve_id']}, Cottage: {reservation['cottage_name']}, Check-in: {reservation['check_in_date']}, Check-out: {reservation['check_out_date']}, Total Price: {reservation['total_price']}")
+                st.write(f"Reservation ID: {reservation['reserve_id']}, Cottage: {reservation['cottage_name']}, "
+                         f"Check-in: {reservation['check_in_date']}, Check-out: {reservation['check_out_date']}, "
+                         f"Total Price: {reservation['total_price']}, Payment Status: {reservation['payment_status']}, "
+                         f"Reservation Date: {reservation['reserve_date']}")
         else:
             st.write("No bookings found.")
 
@@ -80,6 +88,7 @@ def notify_booking_confirmation():
 def review_past_orders():
     st.header("Review Past Orders")
     st.write("Implement logic to fetch and display past orders for the customer.")
+    # Logic to fetch and display past orders can be added here.
 
 def main():
     reservation_section()
