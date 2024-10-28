@@ -111,6 +111,12 @@ def finance_section():
                 "staff_email": staff_email
             })
             st.success("Staff added successfully.")
+            
+            # Debugging: Check if the staff member has been added
+            st.write("Debug: Checking staff members after addition...")
+            staff_members = load_data("SELECT * FROM Staff")
+            st.write(staff_members)  # This will show you the current staff members
+
         except Exception as e:
             st.error(f"Error adding staff: {e}")
 
@@ -171,7 +177,7 @@ def update_staff(staff):
             update_query = """
                 UPDATE Staff 
                 SET staff_name = :staff_name, 
-                    role_id = (SELECT role_id FROM Role WHERE role_name = :role_name),
+                    role_id = (SELECT role_id FROM Role WHERE role_name = :role_name), 
                     staff_phone = :staff_phone, 
                     staff_email = :staff_email 
                 WHERE staff_id = :staff_id
