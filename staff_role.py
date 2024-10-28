@@ -22,7 +22,7 @@ def manage_roles():
         if new_role_name:
             save_data("INSERT INTO Role (role_name) VALUES (:role_name)", {"role_name": new_role_name})
             st.success("Role added successfully.")
-            st.experimental_rerun()  # Refresh to display new role
+            st.rerun()  # Refresh to display new role
 
     # Update/Delete Roles
     for role in roles:
@@ -37,12 +37,12 @@ def manage_roles():
                 save_data("UPDATE Role SET role_name = :new_name WHERE role_id = :role_id", 
                           {"new_name": new_name, "role_id": role_id})
                 st.success("Role updated.")
-                st.experimental_rerun()
+                st.rerun()
         with col3:
             if st.button("Delete", key=f"delete_role_{role_id}"):
                 save_data("DELETE FROM Role WHERE role_id = :role_id", {"role_id": role_id})
                 st.success("Role deleted.")
-                st.experimental_rerun()
+                st.rerun()
 
 # Staff Management
 def manage_staff():
@@ -69,7 +69,7 @@ def manage_staff():
                 VALUES (:name, :phone, :email, :role_id)
             """, {"name": new_staff_name, "phone": new_staff_phone, "email": new_staff_email, "role_id": new_staff_role_id})
             st.success("Staff added successfully.")
-            st.experimental_rerun()
+            st.rerun()
 
     # Update/Delete Staff
     for staff in staff_members:
@@ -94,9 +94,9 @@ def manage_staff():
                     UPDATE Staff SET staff_name = :name, staff_phone = :phone, role_id = :role_id WHERE staff_id = :staff_id
                 """, {"name": new_name, "phone": new_phone, "role_id": new_role_id, "staff_id": staff_id})
                 st.success("Staff updated.")
-                st.experimental_rerun()
+                st.rerun()
         
             if st.button("Delete", key=f"delete_staff_{staff_id}"):
                 save_data("DELETE FROM Staff WHERE staff_id = :staff_id", {"staff_id": staff_id})
                 st.success("Staff deleted.")
-                st.experimental_rerun()
+                st.rerun()
