@@ -1,22 +1,40 @@
 import streamlit as st
-from db import load_data, save_data
+from sqlalchemy import create_engine, text
 
-def management_section():
-    st.header("Cottage Maintenance and Housekeeping")
+# Database connection setup
+DATABASE_URL = "mysql+mysqlconnector://sql12741294:Lvu9cg9kGm@sql12.freemysqlhosting.net:3306/sql12741294"
+engine = create_engine(DATABASE_URL)
 
-    # Maintenance requests
-    maintenance_requests = load_data("SELECT maintenance_id FROM Maintenance WHERE status = 'requested'")
-    maintenance_request = st.selectbox("Maintenance", [m['maintenance_id'] for m in maintenance_requests])
-    if st.button("Mark Maintenance as Completed"):
-        update_maintenance_query = "UPDATE Maintenance SET status = 'completed' WHERE maintenance_id = :maintenance_id"
-        save_data(update_maintenance_query, {"maintenance_id": maintenance_request})
-        st.success("Maintenance completed.")
+# Load data from MySQL
+def load_data(query, parameters=None):
+    with engine.connect() as connection:
+        result = connection.execute(text(query), parameters or {})
+        return [dict(row) for row in result]
 
-    # Housekeeping requests
-    housekeeping_requests = load_data("SELECT hk_id FROM Housekeeping WHERE status = 'pending'")
-    housekeeping_request = st.selectbox("Housekeeping", [h['hk_id'] for h in housekeeping_requests])
-    if st.button("Mark Housekeeping as Completed"):
-        update_housekeeping_query = "UPDATE Housekeeping SET status = 'completed' WHERE hk_id = :hk_id"
-        save_data(update_housekeeping_query, {"hk_id": housekeeping_request})
-        st.success("Housekeeping completed.")
+def save_data(query, parameters=None):
+    with engine.connect() as connection:
+        connection.execute(text(query), parameters or {})
 
+# Housekeeping Section
+def housekeeping_section():
+    st.header("Housekeeping Management")
+    
+    # View housekeeping requests
+    housekeeping_requests = load_data("SELECT hk_id, cottage_id, status FROM Housekeeping")
+    for request in housekeeping_requests:
+        st.write(f"Housekeeping ID: {request['hk_id']}, Cottage ID: {request['cottage_id']}, Status: {request['status']}")
+
+    # Manual update of status
+    cottage_id = st.selectbox("Select Cottage ID for Housekeeping", [request['cottage_id'] for request in housekeeping_requests])
+    staff_id = st.text_input("Enter Staff ID")
+    if st.button("Mark as Available"):
+        update_status_query = "UPDATE Housekeeping SET status = 'available' WHERE cottage_id = :cottage_id AND staff_id = :staff_id"
+        save_data(update_status_query, {"cottage_id": cottage_id, "staff_id": staff_id})
+        st.success("Cottage status updated to available.")
+
+# Sidebar navigation
+st.sidebar.title("Navigation")
+page = st.sidebar.selectbox("Go to", ["Housekeeping"])
+
+if page == "Housekeeping":
+    housekeeping_section()
