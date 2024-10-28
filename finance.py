@@ -58,10 +58,3 @@ def finance_section():
         add_staff_query = "INSERT INTO Staff (name, role) VALUES (:name, :role)"
         save_data(add_staff_query, {"name": staff_name, "role": staff_role})
         st.success("Staff added successfully.")
-
-# Sidebar navigation
-st.sidebar.title("Navigation")
-page = st.sidebar.selectbox("Go to", ["Finance"])
-
-if page == "Finance":
-    finance_section()
