@@ -159,4 +159,4 @@ def management_system():
         st.write("No staff members found.")
 
 if __name__ == "__main__":
-    management_system()
+    main()
