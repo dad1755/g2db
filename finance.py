@@ -187,17 +187,12 @@ def staff_management_section():
 
 # Main app function
 def main():
-    st.sidebar.title("Management System")
-    page = st.sidebar.radio("Select Page", ("Finance", "Cottages", "Roles", "Staff"))
+    st.title("Management System")
 
-    if page == "Finance":
-        finance_section()
-    elif page == "Cottages":
-        cottage_management_section()
-    elif page == "Roles":
-        role_management_section()
-    elif page == "Staff":
-        staff_management_section()
+    finance_section()
+    cottage_management_section()
+    role_management_section()
+    staff_management_section()
 
 if __name__ == "__main__":
     main()
