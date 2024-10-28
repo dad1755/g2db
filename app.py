@@ -1,65 +1,54 @@
 import streamlit as st
-import json
+from sqlalchemy import create_engine, text
 from datetime import datetime
-from pathlib import Path
 
-# Load JSON data
-def load_data(filename):
-    with open(filename, 'r') as f:
-        return json.load(f)
+# Database connection setup
+DATABASE_URL = "mysql+mysqlconnector://sql12741294:Lvu9cg9kGm@sql12.freemysqlhosting.net:3306/sql12741294"
+engine = create_engine(DATABASE_URL)
 
-def save_data(filename, data):
-    with open(filename, 'w') as f:
-        json.dump(data, f, indent=4)
+# Load data from MySQL
+def load_data(query):
+    with engine.connect() as connection:
+        result = connection.execute(text(query))
+        return [dict(row) for row in result]
 
-# Paths to JSON files
-DATA_PATH = Path("data")
-CUSTOMERS_FILE = "customers.json"
-COTTAGES_FILE = "cottages.json"
-RESERVATIONS_FILE = "reservations.json"
-PAYMENTS_FILE = "payments.json"
-MAINTENANCE_FILE = "maintenance.json"
-INVENTORY_FILE = "inventory.json"
-UTILITY_BILLS_FILE = "utility_bills.json"
-HOUSEKEEPING_FILE = "housekeeping.json"
-
-# Load data
-customers = load_data(CUSTOMERS_FILE)
-cottages = load_data(COTTAGES_FILE)
-reservations = load_data(RESERVATIONS_FILE)
-payments = load_data(PAYMENTS_FILE)
-maintenance = load_data(MAINTENANCE_FILE)
-inventory = load_data(INVENTORY_FILE)
-utility_bills = load_data(UTILITY_BILLS_FILE)
-housekeeping = load_data(HOUSEKEEPING_FILE)
+def save_data(query, parameters=None):
+    with engine.connect() as connection:
+        connection.execute(text(query), parameters or {})
 
 # Reservation Section
 def reservation_section():
     st.header("Cottage Reservation")
 
     # Customer selection
-    customer_email = st.selectbox("Customer Email", [c['email'] for c in customers])
-    customer = next((c for c in customers if c['email'] == customer_email), None)
+    customers = load_data("SELECT cust_id, cust_email FROM Customer")
+    customer_email = st.selectbox("Customer Email", [c['cust_email'] for c in customers])
+    customer = next((c for c in customers if c['cust_email'] == customer_email), None)
 
     # Cottage selection and availability check
-    cottage_name = st.selectbox("Cottage", [c['name'] for c in cottages if c['status'] == 'available'])
-    cottage = next((c for c in cottages if c['name'] == cottage_name), None)
+    cottages = load_data("SELECT cottage_id, cottage_name FROM Cottage WHERE cottage_status = 'available'")
+    cottage_name = st.selectbox("Cottage", [c['cottage_name'] for c in cottages])
+    cottage = next((c for c in cottages if c['cottage_name'] == cottage_name), None)
 
     check_in = st.date_input("Check-in Date")
     check_out = st.date_input("Check-out Date")
 
     if st.button("Reserve"):
-        new_reservation = {
-            "reservation_id": len(reservations) + 1,
-            "customer_id": customer['customer_id'],
+        new_reservation_query = """
+            INSERT INTO Reservation (cust_id, cottage_id, reserve_date, check_in_date, check_out_date, payment_status, person_check_in, total_price)
+            VALUES (:cust_id, :cottage_id, :reserve_date, :check_in_date, :check_out_date, :payment_status, :person_check_in, :total_price)
+        """
+        parameters = {
+            "cust_id": customer['cust_id'],
             "cottage_id": cottage['cottage_id'],
-            "reservation_date": str(datetime.now().date()),
-            "check_in": str(check_in),
-            "check_out": str(check_out),
-            "status": "pending"
+            "reserve_date": str(datetime.now().date()),
+            "check_in_date": str(check_in),
+            "check_out_date": str(check_out),
+            "payment_status": "pending",
+            "person_check_in": 1,  # default to 1; adjust as needed
+            "total_price": 100.00  # example, replace with calculation if needed
         }
-        reservations.append(new_reservation)
-        save_data(RESERVATIONS_FILE, reservations)
+        save_data(new_reservation_query, parameters)
         st.success("Reservation created successfully!")
 
 # Payment Section
@@ -67,39 +56,33 @@ def payment_section():
     st.header("Process Payment")
     
     # Show pending payments
-    pending_payments = [p for p in payments if p['status'] == 'pending']
+    pending_payments = load_data("SELECT payment_id FROM Payment WHERE status = 'pending'")
     payment_id = st.selectbox("Pending Payments", [p['payment_id'] for p in pending_payments])
 
     if st.button("Approve Payment"):
-        payment = next((p for p in payments if p['payment_id'] == payment_id), None)
-        if payment:
-            payment['status'] = 'approved'
-            save_data(PAYMENTS_FILE, payments)
-            st.success("Payment approved.")
+        update_payment_query = "UPDATE Payment SET status = 'approved' WHERE payment_id = :payment_id"
+        save_data(update_payment_query, {"payment_id": payment_id})
+        st.success("Payment approved.")
 
 # Maintenance and Housekeeping
 def management_section():
     st.header("Cottage Maintenance and Housekeeping")
 
     # Maintenance requests
-    st.subheader("Maintenance Requests")
-    maintenance_request = st.selectbox("Maintenance", [m['maintenance_id'] for m in maintenance if m['status'] == 'requested'])
+    maintenance_requests = load_data("SELECT maintenance_id FROM Maintenance WHERE status = 'requested'")
+    maintenance_request = st.selectbox("Maintenance", [m['maintenance_id'] for m in maintenance_requests])
     if st.button("Mark Maintenance as Completed"):
-        req = next((m for m in maintenance if m['maintenance_id'] == maintenance_request), None)
-        if req:
-            req['status'] = 'completed'
-            save_data(MAINTENANCE_FILE, maintenance)
-            st.success("Maintenance completed.")
+        update_maintenance_query = "UPDATE Maintenance SET status = 'completed' WHERE maintenance_id = :maintenance_id"
+        save_data(update_maintenance_query, {"maintenance_id": maintenance_request})
+        st.success("Maintenance completed.")
 
     # Housekeeping requests
-    st.subheader("Housekeeping Requests")
-    housekeeping_request = st.selectbox("Housekeeping", [h['housekeeping_id'] for h in housekeeping if h['status'] == 'pending'])
+    housekeeping_requests = load_data("SELECT hk_id FROM Housekeeping WHERE status = 'pending'")
+    housekeeping_request = st.selectbox("Housekeeping", [h['hk_id'] for h in housekeeping_requests])
     if st.button("Mark Housekeeping as Completed"):
-        house = next((h for h in housekeeping if h['housekeeping_id'] == housekeeping_request), None)
-        if house:
-            house['status'] = 'completed'
-            save_data(HOUSEKEEPING_FILE, housekeeping)
-            st.success("Housekeeping completed.")
+        update_housekeeping_query = "UPDATE Housekeeping SET status = 'completed' WHERE hk_id = :hk_id"
+        save_data(update_housekeeping_query, {"hk_id": housekeeping_request})
+        st.success("Housekeeping completed.")
 
 # Sidebar navigation
 st.sidebar.title("Navigation")
