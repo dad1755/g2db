@@ -50,7 +50,7 @@ def role_management():
 
     if st.button("Add Role", key="add_role_button"):
         try:
-            # Determine the next role_id (this is a simple method, consider using sequences or handling in a production environment)
+            # Determine the next role_id
             existing_roles = load_data("SELECT role_id FROM Role")
             new_role_id = max(role['role_id'] for role in existing_roles) + 1 if existing_roles else 1
 
@@ -189,7 +189,7 @@ def finance_section():
 def main():
     st.sidebar.title("Management System")
     page = st.sidebar.radio("Select Page", ("Finance", "Roles"))
-    
+
     if page == "Finance":
         finance_section()
     elif page == "Roles":
