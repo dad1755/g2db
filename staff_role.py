@@ -26,58 +26,54 @@ def staff_role_section():
     manage_staff()
 
 # Role Management
+# Role Management
 def manage_roles():
     """Display, add, update, and delete roles."""
     st.subheader("Manage Roles")
 
     # Function to fetch roles from the database
     def fetch_roles():
-        roles = load_data("SELECT * FROM Role")
-        print("Fetched Roles:", roles)  # Debugging line
-        return roles
+        return load_data("SELECT * FROM Role")
 
-    # Load roles initially
-    roles = fetch_roles()
-    
+    # Load roles initially or from session state
+    if 'roles' not in st.session_state or st.session_state.roles is None:
+        st.session_state.roles = fetch_roles()
+
     # Add Role
     new_role_name = st.text_input("New Role Name")
     if st.button("Add Role"):
         if new_role_name:
             save_data("INSERT INTO Role (role_name) VALUES (:role_name)", {"role_name": new_role_name})
             st.success("Role added successfully.")
-            roles = fetch_roles()  # Re-fetch roles to update the display
-            print("Roles after adding:", roles)  # Debugging line
+            st.session_state.roles = fetch_roles()  # Refresh roles after adding
+        else:
+            st.warning("Please enter a role name.")
 
     # Display roles
-    if roles:
+    if st.session_state.roles:
         st.write("Available Roles:")
-        for role in roles:
-            st.write(f"Role ID: {role['role_id']}, Name: {role['role_name']}")
+        for role in st.session_state.roles:
+            role_id = role['role_id']
+            current_name = role['role_name']
+
+            col1, col2, col3 = st.columns([3, 1, 1])
+            with col1:
+                new_name = st.text_input(f"Edit Role {role_id} Name", current_name, key=f"role_{role_id}")
+            with col2:
+                if st.button("Update", key=f"update_role_{role_id}"):
+                    if new_name and new_name != current_name:
+                        save_data("UPDATE Role SET role_name = :new_name WHERE role_id = :role_id", 
+                                  {"new_name": new_name, "role_id": role_id})
+                        st.success("Role updated.")
+                        st.session_state.roles = fetch_roles()  # Refresh roles after updating
+            with col3:
+                if st.button("Delete", key=f"delete_role_{role_id}"):
+                    save_data("DELETE FROM Role WHERE role_id = :role_id", {"role_id": role_id})
+                    st.success("Role deleted.")
+                    st.session_state.roles = fetch_roles()  # Refresh roles after deleting
     else:
         st.write("No roles found.")
 
-    # Update/Delete Roles
-    for role in roles:
-        role_id = role['role_id']
-        current_name = role['role_name']
-
-        col1, col2, col3 = st.columns([3, 1, 1])
-        with col1:
-            new_name = st.text_input(f"Edit Role {role_id} Name", current_name, key=f"role_{role_id}")
-        with col2:
-            if st.button("Update", key=f"update_role_{role_id}"):
-                if new_name and new_name != current_name:
-                    save_data("UPDATE Role SET role_name = :new_name WHERE role_id = :role_id", 
-                              {"new_name": new_name, "role_id": role_id})
-                    st.success("Role updated.")
-                    roles = fetch_roles()  # Refresh roles after updating
-                    print("Roles after updating:", roles)  # Debugging line
-        with col3:
-            if st.button("Delete", key=f"delete_role_{role_id}"):
-                save_data("DELETE FROM Role WHERE role_id = :role_id", {"role_id": role_id})
-                st.success("Role deleted.")
-                roles = fetch_roles()  # Refresh roles after deleting
-                print("Roles after deleting:", roles)  # Debugging line
 
 # Staff Management
 def manage_staff():
