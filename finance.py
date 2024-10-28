@@ -65,8 +65,11 @@ def finance_section():
         else:
             st.warning("Please enter a valid Payment ID.")
 
-    # Cottage Management Section
+# Cottage Management Section
+def cottage_management_section():
     st.subheader("Cottage Management")
+
+    # Add New Cottage
     new_cottage_name = st.text_input("Cottage Name", key="new_cottage_name")
     new_cottage_description = st.text_area("Cottage Description", key="new_cottage_description")
     new_cottage_price = st.number_input("Cottage Price", min_value=0.0, format="%.2f", key="new_cottage_price")
@@ -97,18 +100,9 @@ def finance_section():
     else:
         st.write("No cottages found.")
 
-    # Role Management Section
+# Role Management Section
+def role_management_section():
     st.subheader("Role Management")
-
-    # Check if roles exist and insert default if none found
-    if not load_data("SELECT * FROM Role"):
-        default_roles = [
-            {"role_id": 1, "role_name": "Admin"},
-            {"role_id": 2, "role_name": "User"},
-            {"role_id": 3, "role_name": "Manager"},
-        ]
-        for role in default_roles:
-            save_data("INSERT INTO Role (role_id, role_name) VALUES (:role_id, :role_name)", role)
 
     # View Existing Roles
     roles = load_data("SELECT * FROM Role")
@@ -136,7 +130,6 @@ def finance_section():
                 "role_id": new_role_id,
                 "role_name": new_role_name
             })
-
             st.success("Role added successfully.")
 
             # Reload and display all roles to show the newly added role
@@ -151,7 +144,8 @@ def finance_section():
         except Exception as e:
             st.error(f"Error adding role: {e}")
 
-    # Staff Management Section
+# Staff Management Section
+def staff_management_section():
     st.subheader("Staff Management")
     staff_name = st.text_input("Staff Name", key="staff_name_input")
     staff_role = st.selectbox("Staff Role", ["Admin", "Housekeeper", "Manager"], key="staff_role_select")
@@ -199,11 +193,11 @@ def main():
     if page == "Finance":
         finance_section()
     elif page == "Cottages":
-        cottage_management_section()  # You may want to implement this separately
+        cottage_management_section()
     elif page == "Roles":
-        role_management_section()  # You may want to implement this separately
+        role_management_section()
     elif page == "Staff":
-        staff_management_section()  # You may want to implement this separately
+        staff_management_section()
 
 if __name__ == "__main__":
     main()
