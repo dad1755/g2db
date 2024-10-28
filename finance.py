@@ -86,8 +86,6 @@ def finance_section():
     if cottages:
         for cottage in cottages:
             st.write(f"Cottage ID: {cottage['cottage_id']}, Name: {cottage['cottage_name']}, Price: {cottage['cottage_price']}, Status: {cottage['cottage_status']}")
-            if st.button(f"Update Cottage {cottage['cottage_id']}", key=f"update_cottage_{cottage['cottage_id']}"):
-                update_cottage(cottage)
     else:
         st.write("No cottages found.")
 
@@ -100,22 +98,29 @@ def finance_section():
 
     if st.button("Add Staff", key="add_staff_button"):
         try:
-            add_staff_query = """
-                INSERT INTO Staff (staff_name, role_id, staff_phone, staff_email) 
-                VALUES (:staff_name, (SELECT role_id FROM Role WHERE role_name = :role_name), :staff_phone, :staff_email)
-            """
-            save_data(add_staff_query, {
-                "staff_name": staff_name,
-                "role_name": staff_role,
-                "staff_phone": staff_phone,
-                "staff_email": staff_email
-            })
-            st.success("Staff added successfully.")
-            
-            # Debugging: Check if the staff member has been added
-            st.write("Debug: Checking staff members after addition...")
-            staff_members = load_data("SELECT * FROM Staff")
-            st.write(staff_members)  # This will show you the current staff members
+            # First check if the role exists in the Role table
+            role_check_query = "SELECT role_id FROM Role WHERE role_name = :role_name"
+            role_result = load_data(role_check_query, {"role_name": staff_role})
+
+            if not role_result:
+                st.error(f"Role '{staff_role}' does not exist. Please add it to the Role table first.")
+            else:
+                add_staff_query = """
+                    INSERT INTO Staff (staff_name, role_id, staff_phone, staff_email) 
+                    VALUES (:staff_name, (SELECT role_id FROM Role WHERE role_name = :role_name), :staff_phone, :staff_email)
+                """
+                save_data(add_staff_query, {
+                    "staff_name": staff_name,
+                    "role_name": staff_role,
+                    "staff_phone": staff_phone,
+                    "staff_email": staff_email
+                })
+                st.success("Staff added successfully.")
+                
+                # Debugging: Check if the staff member has been added
+                st.write("Debug: Checking staff members after addition...")
+                staff_members = load_data("SELECT * FROM Staff")
+                st.write(staff_members)  # This will show you the current staff members
 
         except Exception as e:
             st.error(f"Error adding staff: {e}")
@@ -126,72 +131,8 @@ def finance_section():
     if staff_members:
         for staff in staff_members:
             st.write(f"Staff ID: {staff['staff_id']}, Name: {staff['staff_name']}, Role: {staff['role_id']}, Phone: {staff['staff_phone']}, Email: {staff['staff_email']}")
-            if st.button(f"Update Staff {staff['staff_id']}", key=f"update_staff_{staff['staff_id']}"):
-                update_staff(staff)
     else:
         st.write("No staff members found.")
-
-def update_cottage(cottage):
-    """Function to update existing cottage information."""
-    st.subheader(f"Update Cottage ID: {cottage['cottage_id']}")
-    
-    # Get current values
-    updated_name = st.text_input("Cottage Name", value=cottage['cottage_name'], key=f"update_cottage_name_{cottage['cottage_id']}")
-    updated_description = st.text_area("Cottage Description", value=cottage['cottage_description'], key=f"update_cottage_description_{cottage['cottage_id']}")
-    updated_price = st.number_input("Cottage Price", value=cottage['cottage_price'], min_value=0.0, format="%.2f", key=f"update_cottage_price_{cottage['cottage_id']}")
-    updated_status = st.selectbox("Cottage Status", ["available", "not available"], index=0 if cottage['cottage_status'] == 'available' else 1, key=f"update_cottage_status_{cottage['cottage_id']}")
-    
-    if st.button("Update Cottage", key=f"confirm_update_cottage_{cottage['cottage_id']}"):
-        try:
-            update_query = """
-                UPDATE Cottage 
-                SET cottage_name = :cottage_name, 
-                    cottage_description = :cottage_description, 
-                    cottage_price = :cottage_price, 
-                    cottage_status = :cottage_status 
-                WHERE cottage_id = :cottage_id
-            """
-            save_data(update_query, {
-                "cottage_name": updated_name,
-                "cottage_description": updated_description,
-                "cottage_price": updated_price,
-                "cottage_status": updated_status,
-                "cottage_id": cottage['cottage_id']
-            })
-            st.success("Cottage updated successfully.")
-        except Exception as e:
-            st.error(f"Error updating cottage: {e}")
-
-def update_staff(staff):
-    """Function to update existing staff information."""
-    st.subheader(f"Update Staff ID: {staff['staff_id']}")
-    
-    # Get current values
-    updated_name = st.text_input("Staff Name", value=staff['staff_name'], key=f"update_staff_name_{staff['staff_id']}")
-    updated_role = st.selectbox("Staff Role", ["Admin", "Housekeeper", "Manager"], index=0 if staff['role_id'] == 'Admin' else (1 if staff['role_id'] == 'Housekeeper' else 2), key=f"update_staff_role_{staff['staff_id']}")
-    updated_phone = st.text_input("Staff Phone", value=staff['staff_phone'], key=f"update_staff_phone_{staff['staff_id']}")
-    updated_email = st.text_input("Staff Email", value=staff['staff_email'], key=f"update_staff_email_{staff['staff_id']}")
-    
-    if st.button("Update Staff", key=f"confirm_update_staff_{staff['staff_id']}"):
-        try:
-            update_query = """
-                UPDATE Staff 
-                SET staff_name = :staff_name, 
-                    role_id = (SELECT role_id FROM Role WHERE role_name = :role_name), 
-                    staff_phone = :staff_phone, 
-                    staff_email = :staff_email 
-                WHERE staff_id = :staff_id
-            """
-            save_data(update_query, {
-                "staff_name": updated_name,
-                "role_name": updated_role,
-                "staff_phone": updated_phone,
-                "staff_email": updated_email,
-                "staff_id": staff['staff_id']
-            })
-            st.success("Staff updated successfully.")
-        except Exception as e:
-            st.error(f"Error updating staff: {e}")
 
 # Main app function
 def main():
