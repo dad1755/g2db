@@ -1,6 +1,6 @@
 import streamlit as st
-from db import load_data, save_data
 from datetime import datetime
+from db import load_data, save_data  # Import DB functions from a central location
 
 def calculate_total_price(cottage_price, check_in, check_out):
     nights = (check_out - check_in).days
@@ -13,7 +13,6 @@ def reservation_section():
     customers = load_data("SELECT cust_id, cust_name, cust_email, cust_phone FROM Customer")
     customer_options = {c['cust_email']: c['cust_name'] for c in customers}
 
-    # Customer selection with name displayed
     customer_email = st.selectbox("Customer Email", list(customer_options.keys()), format_func=lambda x: customer_options[x])
     customer = next((c for c in customers if c['cust_email'] == customer_email), None)
 
@@ -28,24 +27,19 @@ def reservation_section():
     if st.button("Reserve"):
         if cottage and customer:
             total_price = calculate_total_price(cottage['cottage_price'], check_in, check_out)
-            if total_price > 0:  # Ensure total price is valid
-                # Retrieve applicable discounts if any
-                discounts = load_data("SELECT discount_id FROM Discount WHERE cottage_id = :cottage_id", {"cottage_id": cottage['cottage_id']})
-                selected_discount_id = discounts[0]['discount_id'] if discounts else None
-
+            if total_price > 0:
                 new_reservation_query = """
-                    INSERT INTO Reservation (cust_id, cottage_id, reserve_date, discount_id, check_in_date, check_out_date, payment_status, person_check_in, total_price)
-                    VALUES (:cust_id, :cottage_id, :reserve_date, :discount_id, :check_in_date, :check_out_date, :payment_status, :person_check_in, :total_price)
+                    INSERT INTO Reservation (cust_id, cottage_id, reserve_date, check_in_date, check_out_date, payment_status, person_check_in, total_price)
+                    VALUES (:cust_id, :cottage_id, :reserve_date, :check_in_date, :check_out_date, :payment_status, :person_check_in, :total_price)
                 """
                 parameters = {
                     "cust_id": customer['cust_id'],
                     "cottage_id": cottage['cottage_id'],
                     "reserve_date": str(datetime.now().date()),
-                    "discount_id": selected_discount_id,
                     "check_in_date": str(check_in),
                     "check_out_date": str(check_out),
                     "payment_status": "pending",
-                    "person_check_in": 1,  # Defaulting to 1 for simplicity
+                    "person_check_in": 1,
                     "total_price": total_price
                 }
                 try:
@@ -80,21 +74,9 @@ def view_bookings():
         else:
             st.write("No bookings found.")
 
-def notify_booking_confirmation():
-    st.header("Booking Confirmation Notification")
-    st.write("Implement notification logic here.")
-    # This could involve sending emails or other forms of communication.
-
-def review_past_orders():
-    st.header("Review Past Orders")
-    st.write("Implement logic to fetch and display past orders for the customer.")
-    # Logic to fetch and display past orders can be added here.
-
 def main():
     reservation_section()
     view_bookings()
-    notify_booking_confirmation()
-    review_past_orders()
 
 if __name__ == "__main__":
     main()
