@@ -1,11 +1,9 @@
 import streamlit as st
 from db import load_data, save_data
 
-def finance_section():
-    st.header("Finance Management")
+def approve_payment_section():
+    st.header("Approve Payment")
 
-    # Approve Payment Section
-    st.subheader("Approve Payment")
     pending_bookings = load_data("SELECT * FROM Reservation WHERE payment_status = 'pending'")
     
     if pending_bookings:
