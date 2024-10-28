@@ -115,21 +115,6 @@ def finance_section():
     if roles:
         for role in roles:
             st.write(f"Role ID: {role['role_id']}, Role Name: {role['role_name']}")
-
-            # Edit Role Functionality
-            updated_role_name = st.text_input("Update Role Name", value=role['role_name'], key=f"update_role_name_{role['role_id']}")
-            if st.button("Update Role", key=f"update_role_button_{role['role_id']}"):
-                try:
-                    update_role_query = "UPDATE Role SET role_name = :role_name WHERE role_id = :role_id"
-                    save_data(update_role_query, {
-                        "role_name": updated_role_name,
-                        "role_id": role['role_id']
-                    })
-                    st.success(f"Role '{role['role_name']}' updated successfully.")
-                except Exception as e:
-                    st.error(f"Error updating role: {e}")
-
-            st.write("---")  # Separator
     else:
         st.write("No roles found.")
 
@@ -151,7 +136,18 @@ def finance_section():
                 "role_id": new_role_id,
                 "role_name": new_role_name
             })
+
             st.success("Role added successfully.")
+
+            # Reload and display all roles to show the newly added role
+            roles = load_data("SELECT * FROM Role")
+            if roles:
+                st.write("Current Roles:")
+                for role in roles:
+                    st.write(f"Role ID: {role['role_id']}, Role Name: {role['role_name']}")
+            else:
+                st.write("No roles found.")
+
         except Exception as e:
             st.error(f"Error adding role: {e}")
 
@@ -198,10 +194,16 @@ def finance_section():
 # Main app function
 def main():
     st.sidebar.title("Management System")
-    page = st.sidebar.radio("Select Page", ("Finance"))
+    page = st.sidebar.radio("Select Page", ("Finance", "Cottages", "Roles", "Staff"))
 
     if page == "Finance":
         finance_section()
+    elif page == "Cottages":
+        cottage_management_section()  # You may want to implement this separately
+    elif page == "Roles":
+        role_management_section()  # You may want to implement this separately
+    elif page == "Staff":
+        staff_management_section()  # You may want to implement this separately
 
 if __name__ == "__main__":
     main()
