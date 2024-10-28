@@ -11,7 +11,7 @@ def staff_role_section():
 def manage_roles():
     """Display, add, update, and delete roles."""
     st.subheader("Manage Roles")
-    
+
     # Function to fetch roles from the database
     def fetch_roles():
         return load_data("SELECT * FROM Role")
@@ -26,11 +26,13 @@ def manage_roles():
             save_data("INSERT INTO Role (role_name) VALUES (:role_name)", {"role_name": new_role_name})
             st.success("Role added successfully.")
             # Refresh roles after adding a new role
-            roles = fetch_roles()
+            roles = fetch_roles()  # Re-fetch roles to update the display
 
     # Display roles
     if roles:
-        st.table([{"Role ID": role['role_id'], "Name": role['role_name']} for role in roles])
+        st.write("Available Roles:")
+        for role in roles:
+            st.write(f"Role ID: {role['role_id']}, Name: {role['role_name']}")
     else:
         st.write("No roles found.")
 
@@ -69,13 +71,9 @@ def manage_staff():
 
     # Display staff members in a table format
     if staff_members:
-        st.table([{
-            "Staff ID": staff['staff_id'], 
-            "Name": staff['staff_name'], 
-            "Email": staff['staff_email'], 
-            "Phone": staff['staff_phone'], 
-            "Role": role_options.get(staff['role_id'], "Unknown")
-        } for staff in staff_members])
+        st.write("Staff Members:")
+        for staff in staff_members:
+            st.write(f"Staff ID: {staff['staff_id']}, Name: {staff['staff_name']}, Email: {staff['staff_email']}, Phone: {staff['staff_phone']}, Role: {role_options.get(staff['role_id'], 'Unknown')}")
     else:
         st.write("No staff found.")
 
