@@ -23,8 +23,7 @@ def staff_role_section():
     st.header("Manage Staff and Roles")
 
     manage_roles()
-    # Uncomment the line below to include staff management
-    # manage_staff()
+    manage_staff()
 
 # Role Management
 def manage_roles():
@@ -80,13 +79,15 @@ def manage_roles():
                 roles = fetch_roles()  # Refresh roles after deleting
                 print("Roles after deleting:", roles)  # Debugging line
 
-# Staff Management (optional to implement)
+# Staff Management
 def manage_staff():
+    """Display, add, update, and delete staff members."""
     st.subheader("Manage Staff")
     staff_members = load_data("SELECT * FROM Staff")
     roles = load_data("SELECT * FROM Role")
     role_options = {role['role_id']: role['role_name'] for role in roles}
 
+    # Adding new staff member
     new_staff_name = st.text_input("New Staff Name")
     new_staff_email = st.text_input("New Staff Email")
     new_staff_phone = st.text_input("New Staff Phone")
@@ -100,23 +101,28 @@ def manage_staff():
             """, {"name": new_staff_name, "phone": new_staff_phone, "email": new_staff_email, "role_id": new_staff_role_id})
             st.success("Staff added successfully.")
 
-    for staff in staff_members:
-        st.write(f"Staff ID: {staff['staff_id']}, Name: {staff['staff_name']}, Email: {staff['staff_email']}")
-        
-        new_name = st.text_input(f"Edit Name for Staff {staff['staff_id']}", staff['staff_name'])
-        new_phone = st.text_input(f"Edit Phone for Staff {staff['staff_id']}", staff['staff_phone'])
-        new_role_id = st.selectbox(f"Edit Role for Staff {staff['staff_id']}", list(role_options.keys()), 
-                                   index=list(role_options.keys()).index(staff['role_id']), format_func=lambda x: role_options[x])
-        
-        if st.button("Update", key=f"update_staff_{staff['staff_id']}"):
-            save_data("""
-                UPDATE Staff SET staff_name = :name, staff_phone = :phone, role_id = :role_id WHERE staff_id = :staff_id
-            """, {"name": new_name, "phone": new_phone, "role_id": new_role_id, "staff_id": staff['staff_id']})
-            st.success("Staff updated.")
-        
-        if st.button("Delete", key=f"delete_staff_{staff['staff_id']}"):
-            save_data("DELETE FROM Staff WHERE staff_id = :staff_id", {"staff_id": staff['staff_id']})
-            st.success("Staff deleted.")
+    # Display staff members
+    if staff_members:
+        st.write("Available Staff:")
+        for staff in staff_members:
+            st.write(f"Staff ID: {staff['staff_id']}, Name: {staff['staff_name']}, Email: {staff['staff_email']}")
+            
+            new_name = st.text_input(f"Edit Name for Staff {staff['staff_id']}", staff['staff_name'], key=f"staff_name_{staff['staff_id']}")
+            new_phone = st.text_input(f"Edit Phone for Staff {staff['staff_id']}", staff['staff_phone'], key=f"staff_phone_{staff['staff_id']}")
+            new_role_id = st.selectbox(f"Edit Role for Staff {staff['staff_id']}", list(role_options.keys()), 
+                                       index=list(role_options.keys()).index(staff['role_id']), format_func=lambda x: role_options[x])
+            
+            if st.button("Update", key=f"update_staff_{staff['staff_id']}"):
+                save_data("""
+                    UPDATE Staff SET staff_name = :name, staff_phone = :phone, role_id = :role_id WHERE staff_id = :staff_id
+                """, {"name": new_name, "phone": new_phone, "role_id": new_role_id, "staff_id": staff['staff_id']})
+                st.success("Staff updated.")
+            
+            if st.button("Delete", key=f"delete_staff_{staff['staff_id']}"):
+                save_data("DELETE FROM Staff WHERE staff_id = :staff_id", {"staff_id": staff['staff_id']})
+                st.success("Staff deleted.")
+    else:
+        st.write("No staff members found.")
 
 # Run the application
 if __name__ == "__main__":
