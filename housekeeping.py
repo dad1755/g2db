@@ -31,10 +31,3 @@ def housekeeping_section():
         update_status_query = "UPDATE Housekeeping SET status = 'available' WHERE cottage_id = :cottage_id AND staff_id = :staff_id"
         save_data(update_status_query, {"cottage_id": cottage_id, "staff_id": staff_id})
         st.success("Cottage status updated to available.")
-
-# Sidebar navigation
-st.sidebar.title("Navigation")
-page = st.sidebar.selectbox("Go to", ["Housekeeping"])
-
-if page == "Housekeeping":
-    housekeeping_section()
