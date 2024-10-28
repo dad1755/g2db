@@ -1,6 +1,8 @@
 import streamlit as st
 from sqlalchemy import create_engine, text
 from datetime import datetime
+import housekeeping  # Importing housekeeping module
+import finance  # Importing finance module
 
 # Database connection setup
 DATABASE_URL = "mysql+mysqlconnector://sql12741294:Lvu9cg9kGm@sql12.freemysqlhosting.net:3306/sql12741294"
@@ -69,7 +71,11 @@ def reservation_section():
 
 # Sidebar navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.selectbox("Go to", ["Reservation"])
+page = st.sidebar.selectbox("Go to", ["Reservation", "Housekeeping", "Finance"])
 
 if page == "Reservation":
     reservation_section()
+elif page == "Housekeeping":
+    housekeeping.housekeeping_section()  # Call the housekeeping section from housekeeping.py
+elif page == "Finance":
+    finance.finance_section()  # Call the finance section from finance.py
