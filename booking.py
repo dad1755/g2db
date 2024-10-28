@@ -3,16 +3,18 @@ from db import load_data, save_data
 from datetime import datetime
 
 def calculate_total_price(cottage_price, check_in, check_out):
-    # Calculate the number of nights based on the check-in and check-out dates
     nights = (check_out - check_in).days
     return cottage_price * nights if nights > 0 else 0
 
 def reservation_section():
     st.header("Cottage Reservation")
 
-    # Customer selection
-    customers = load_data("SELECT cust_id, cust_email FROM Customer")
-    customer_email = st.selectbox("Customer Email", [c['cust_email'] for c in customers])
+    # Load customers with names and emails
+    customers = load_data("SELECT cust_id, cust_name, cust_email FROM Customer")
+    customer_options = {c['cust_email']: c['cust_name'] for c in customers}
+
+    # Customer selection with name displayed
+    customer_email = st.selectbox("Customer Email", list(customer_options.keys()), format_func=lambda x: customer_options[x])
     customer = next((c for c in customers if c['cust_email'] == customer_email), None)
 
     # Cottage selection and availability check
@@ -55,7 +57,7 @@ def view_bookings():
     st.header("View Your Bookings")
     customer_email = st.selectbox("Select Your Email", [c['cust_email'] for c in load_data("SELECT cust_email FROM Customer")])
     customer = load_data("SELECT cust_id FROM Customer WHERE cust_email = :email", {"email": customer_email})
-    
+
     if customer:
         reservations = load_data("""
             SELECT r.reserve_id, c.cottage_name, r.check_in_date, r.check_out_date, r.total_price
