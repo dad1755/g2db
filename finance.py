@@ -29,8 +29,8 @@ def finance_section():
     else:
         st.write("No pending bookings.")
 
-    payment_id = st.text_input("Enter Payment ID to Approve")
-    if st.button("Approve Payment"):
+    payment_id = st.text_input("Enter Payment ID to Approve", key="payment_id_input")
+    if st.button("Approve Payment", key="approve_payment_button"):
         # Change status of cottage to available and clear other orders
         update_payment_query = "UPDATE Payment SET status = 'approved' WHERE payment_id = :payment_id"
         save_data(update_payment_query, {"payment_id": payment_id})
@@ -56,9 +56,9 @@ def finance_section():
     # Cottage Management Section
     st.subheader("Cottage Management")
     # Add new cottage
-    new_cottage_name = st.text_input("Cottage Name")
-    new_cottage_price = st.number_input("Cottage Price", min_value=0.0)
-    if st.button("Add Cottage"):
+    new_cottage_name = st.text_input("Cottage Name", key="new_cottage_name")
+    new_cottage_price = st.number_input("Cottage Price", min_value=0.0, key="new_cottage_price")
+    if st.button("Add Cottage", key="add_cottage_button"):
         add_cottage_query = "INSERT INTO Cottage (cottage_name, price) VALUES (:cottage_name, :price)"
         save_data(add_cottage_query, {"cottage_name": new_cottage_name, "price": new_cottage_price})
         st.success("New cottage added successfully.")
@@ -75,9 +75,9 @@ def finance_section():
     # Staff Management Section
     st.subheader("Staff Management")
     # Add staff
-    staff_name = st.text_input("Staff Name")
-    staff_role = st.selectbox("Staff Role", ["Admin", "Housekeeper", "Manager"])
-    if st.button("Add Staff"):
+    staff_name = st.text_input("Staff Name", key="staff_name_input")
+    staff_role = st.selectbox("Staff Role", ["Admin", "Housekeeper", "Manager"], key="staff_role_select")
+    if st.button("Add Staff", key="add_staff_button"):
         add_staff_query = "INSERT INTO Staff (name, role) VALUES (:name, :role)"
         save_data(add_staff_query, {"name": staff_name, "role": staff_role})
         st.success("Staff added successfully.")
