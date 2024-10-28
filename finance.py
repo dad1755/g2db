@@ -23,67 +23,6 @@ def save_data(query, parameters=None):
     except Exception as e:
         print(f"Error saving data: {e}")
 
-# Role Management Section
-def role_management():
-    st.header("Role Management")
-
-    # Check if roles exist and insert default if none found
-    if not load_data("SELECT * FROM Role"):
-        default_roles = [
-            {"role_id": 1, "role_name": "Admin"},
-            {"role_id": 2, "role_name": "User"},
-            {"role_id": 3, "role_name": "Manager"},
-        ]
-        for role in default_roles:
-            save_data("INSERT INTO Role (role_id, role_name) VALUES (:role_id, :role_name)", role)
-
-    # View Existing Roles
-    st.subheader("View Roles")
-    roles = load_data("SELECT * FROM Role")
-    if roles:
-        for role in roles:
-            st.write(f"Role ID: {role['role_id']}, Role Name: {role['role_name']}")
-
-            # Edit Role Functionality
-            updated_role_name = st.text_input("Update Role Name", value=role['role_name'], key=f"update_role_name_{role['role_id']}")
-            if st.button("Update Role", key=f"update_role_button_{role['role_id']}"):
-                try:
-                    update_role_query = "UPDATE Role SET role_name = :role_name WHERE role_id = :role_id"
-                    save_data(update_role_query, {
-                        "role_name": updated_role_name,
-                        "role_id": role['role_id']
-                    })
-                    st.success(f"Role '{role['role_name']}' updated successfully.")
-                except Exception as e:
-                    st.error(f"Error updating role: {e}")
-
-            st.write("---")  # Separator
-
-    else:
-        st.write("No roles found.")
-
-    # Add New Role
-    st.subheader("Add New Role")
-    new_role_name = st.text_input("Role Name", key="new_role_name")
-
-    if st.button("Add Role", key="add_role_button"):
-        try:
-            # Determine the next role_id
-            existing_roles = load_data("SELECT role_id FROM Role")
-            new_role_id = max(role['role_id'] for role in existing_roles) + 1 if existing_roles else 1
-
-            add_role_query = """
-                INSERT INTO Role (role_id, role_name) 
-                VALUES (:role_id, :role_name)
-            """
-            save_data(add_role_query, {
-                "role_id": new_role_id,
-                "role_name": new_role_name
-            })
-            st.success("Role added successfully.")
-        except Exception as e:
-            st.error(f"Error adding role: {e}")
-
 # Finance Section
 def finance_section():
     st.header("Finance Management")
@@ -158,6 +97,64 @@ def finance_section():
     else:
         st.write("No cottages found.")
 
+    # Role Management Section
+    st.subheader("Role Management")
+
+    # Check if roles exist and insert default if none found
+    if not load_data("SELECT * FROM Role"):
+        default_roles = [
+            {"role_id": 1, "role_name": "Admin"},
+            {"role_id": 2, "role_name": "User"},
+            {"role_id": 3, "role_name": "Manager"},
+        ]
+        for role in default_roles:
+            save_data("INSERT INTO Role (role_id, role_name) VALUES (:role_id, :role_name)", role)
+
+    # View Existing Roles
+    roles = load_data("SELECT * FROM Role")
+    if roles:
+        for role in roles:
+            st.write(f"Role ID: {role['role_id']}, Role Name: {role['role_name']}")
+
+            # Edit Role Functionality
+            updated_role_name = st.text_input("Update Role Name", value=role['role_name'], key=f"update_role_name_{role['role_id']}")
+            if st.button("Update Role", key=f"update_role_button_{role['role_id']}"):
+                try:
+                    update_role_query = "UPDATE Role SET role_name = :role_name WHERE role_id = :role_id"
+                    save_data(update_role_query, {
+                        "role_name": updated_role_name,
+                        "role_id": role['role_id']
+                    })
+                    st.success(f"Role '{role['role_name']}' updated successfully.")
+                except Exception as e:
+                    st.error(f"Error updating role: {e}")
+
+            st.write("---")  # Separator
+    else:
+        st.write("No roles found.")
+
+    # Add New Role
+    st.subheader("Add New Role")
+    new_role_name = st.text_input("Role Name", key="new_role_name")
+
+    if st.button("Add Role", key="add_role_button"):
+        try:
+            # Determine the next role_id
+            existing_roles = load_data("SELECT role_id FROM Role")
+            new_role_id = max(role['role_id'] for role in existing_roles) + 1 if existing_roles else 1
+
+            add_role_query = """
+                INSERT INTO Role (role_id, role_name) 
+                VALUES (:role_id, :role_name)
+            """
+            save_data(add_role_query, {
+                "role_id": new_role_id,
+                "role_name": new_role_name
+            })
+            st.success("Role added successfully.")
+        except Exception as e:
+            st.error(f"Error adding role: {e}")
+
     # Staff Management Section
     st.subheader("Staff Management")
     staff_name = st.text_input("Staff Name", key="staff_name_input")
@@ -185,11 +182,6 @@ def finance_section():
                     "staff_email": staff_email
                 })
                 st.success("Staff added successfully.")
-                
-                # Debugging: Check if the staff member has been added
-                st.write("Debug: Checking staff members after addition...")
-                staff_members = load_data("SELECT * FROM Staff")
-                st.write(staff_members)  # This will show you the current staff members
 
         except Exception as e:
             st.error(f"Error adding staff: {e}")
@@ -206,12 +198,10 @@ def finance_section():
 # Main app function
 def main():
     st.sidebar.title("Management System")
-    page = st.sidebar.radio("Select Page", ("Finance", "Roles"))
+    page = st.sidebar.radio("Select Page", ("Finance"))
 
     if page == "Finance":
         finance_section()
-    elif page == "Roles":
-        role_management()
 
 if __name__ == "__main__":
     main()
