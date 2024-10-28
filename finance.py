@@ -19,42 +19,83 @@ def save_data(query, parameters=None):
 def finance_section():
     st.header("Finance Management")
 
-    # View bookings to confirm payment
-    pending_bookings = load_data("SELECT * FROM Reservation WHERE payment_status = 'pending'")
-    for booking in pending_bookings:
-        st.write(f"Booking ID: {booking['reserve_id']}, Cottage ID: {booking['cottage_id']}, Total Price: {booking['total_price']}")
-    
-    payment_id = st.text_input("Enter Payment ID to Approve")
-    if st.button("Approve Payment"):
-        # Change status of cottage to available and clear other orders
-        update_payment_query = "UPDATE Payment SET status = 'approved' WHERE payment_id = :payment_id"
-        save_data(update_payment_query, {"payment_id": payment_id})
+    # Create three columns for the different functionalities
+    col1, col2, col3 = st.columns(3)
 
-        # Change cottage status back to available
-        update_cottage_query = "UPDATE Cottage SET cottage_status = 'available' WHERE cottage_id = (SELECT cottage_id FROM Reservation WHERE reserve_id = (SELECT reserve_id FROM Payment WHERE payment_id = :payment_id))"
-        save_data(update_cottage_query, {"payment_id": payment_id})
+    # Approve Payment
+    with col1:
+        st.subheader("Approve Payment")
+        # View pending bookings
+        pending_bookings = load_data("SELECT * FROM Reservation WHERE payment_status = 'pending'")
+        if pending_bookings:
+            for booking in pending_bookings:
+                st.write(f"Booking ID: {booking['reserve_id']}, Cottage ID: {booking['cottage_id']}, Total Price: {booking['total_price']}")
+        else:
+            st.write("No pending bookings.")
 
-        st.success("Payment approved and cottage status updated.")
+        payment_id = st.text_input("Enter Payment ID to Approve")
+        if st.button("Approve Payment"):
+            # Change status of cottage to available and clear other orders
+            update_payment_query = "UPDATE Payment SET status = 'approved' WHERE payment_id = :payment_id"
+            save_data(update_payment_query, {"payment_id": payment_id})
 
-    # Add and view discounts
-    discount = st.number_input("Enter Discount Percentage", 0, 100)
-    if st.button("Add Discount"):
-        add_discount_query = "INSERT INTO Discounts (percentage) VALUES (:percentage)"
-        save_data(add_discount_query, {"percentage": discount})
-        st.success("Discount added successfully.")
+            # Change cottage status back to available
+            update_cottage_query = """
+                UPDATE Cottage 
+                SET cottage_status = 'available' 
+                WHERE cottage_id = (
+                    SELECT cottage_id 
+                    FROM Reservation 
+                    WHERE reserve_id = (
+                        SELECT reserve_id 
+                        FROM Payment 
+                        WHERE payment_id = :payment_id
+                    )
+                )
+            """
+            save_data(update_cottage_query, {"payment_id": payment_id})
 
-    # Add new cottage
-    new_cottage_name = st.text_input("Cottage Name")
-    new_cottage_price = st.number_input("Cottage Price")
-    if st.button("Add Cottage"):
-        add_cottage_query = "INSERT INTO Cottage (cottage_name, price) VALUES (:cottage_name, :price)"
-        save_data(add_cottage_query, {"cottage_name": new_cottage_name, "price": new_cottage_price})
-        st.success("New cottage added successfully.")
+            st.success("Payment approved and cottage status updated.")
 
-    # Add, view, and set roles to staff
-    staff_name = st.text_input("Staff Name")
-    staff_role = st.selectbox("Staff Role", ["Admin", "Housekeeper", "Manager"])
-    if st.button("Add Staff"):
-        add_staff_query = "INSERT INTO Staff (name, role) VALUES (:name, :role)"
-        save_data(add_staff_query, {"name": staff_name, "role": staff_role})
-        st.success("Staff added successfully.")
+    # Cottage Management
+    with col2:
+        st.subheader("Cottage Management")
+        # Add new cottage
+        new_cottage_name = st.text_input("Cottage Name")
+        new_cottage_price = st.number_input("Cottage Price", min_value=0.0)
+        if st.button("Add Cottage"):
+            add_cottage_query = "INSERT INTO Cottage (cottage_name, price) VALUES (:cottage_name, :price)"
+            save_data(add_cottage_query, {"cottage_name": new_cottage_name, "price": new_cottage_price})
+            st.success("New cottage added successfully.")
+
+        # View available cottages
+        available_cottages = load_data("SELECT * FROM Cottage WHERE cottage_status = 'available'")
+        if available_cottages:
+            st.write("Available Cottages:")
+            for cottage in available_cottages:
+                st.write(f"Cottage ID: {cottage['cottage_id']}, Name: {cottage['cottage_name']}, Price: {cottage['price']}")
+        else:
+            st.write("No cottages available.")
+
+    # Staff Management
+    with col3:
+        st.subheader("Staff Management")
+        # Add staff
+        staff_name = st.text_input("Staff Name")
+        staff_role = st.selectbox("Staff Role", ["Admin", "Housekeeper", "Manager"])
+        if st.button("Add Staff"):
+            add_staff_query = "INSERT INTO Staff (name, role) VALUES (:name, :role)"
+            save_data(add_staff_query, {"name": staff_name, "role": staff_role})
+            st.success("Staff added successfully.")
+
+        # View staff
+        staff_list = load_data("SELECT * FROM Staff")
+        if staff_list:
+            st.write("Current Staff:")
+            for staff in staff_list:
+                st.write(f"Staff ID: {staff['staff_id']}, Name: {staff['name']}, Role: {staff['role']}")
+        else:
+            st.write("No staff available.")
+
+# Call the finance_section function to display the app
+finance_section()
