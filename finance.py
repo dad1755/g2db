@@ -7,17 +7,35 @@ engine = create_engine(DATABASE_URL)
 
 # Load data from MySQL
 def load_data(query, parameters=None):
-    with engine.connect() as connection:
-        result = connection.execute(text(query), parameters or {})
-        return [dict(row) for row in result]
+    try:
+        with engine.connect() as connection:
+            print(f"Executing query: {query} with parameters: {parameters}")
+            result = connection.execute(text(query), parameters or {})
+            return [dict(row) for row in result]
+    except Exception as e:
+        print(f"Error loading data: {e}")
+        return []
 
 def save_data(query, parameters=None):
-    with engine.connect() as connection:
-        connection.execute(text(query), parameters or {})
+    try:
+        with engine.connect() as connection:
+            connection.execute(text(query), parameters or {})
+    except Exception as e:
+        print(f"Error saving data: {e}")
 
 # Role Management Section
 def role_management():
     st.header("Role Management")
+
+    # Check if roles exist and insert default if none found
+    if not load_data("SELECT * FROM Role"):
+        default_roles = [
+            {"role_id": 1, "role_name": "Admin"},
+            {"role_id": 2, "role_name": "User"},
+            {"role_id": 3, "role_name": "Manager"},
+        ]
+        for role in default_roles:
+            save_data("INSERT INTO Role (role_id, role_name) VALUES (:role_id, :role_name)", role)
 
     # View Existing Roles
     st.subheader("View Roles")
