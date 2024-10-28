@@ -80,6 +80,15 @@ def finance_section():
         except Exception as e:
             st.error(f"Error adding cottage: {e}")
 
+    # View Existing Cottages
+    st.subheader("View Cottages")
+    cottages = load_data("SELECT * FROM Cottage")
+    if cottages:
+        for cottage in cottages:
+            st.write(f"Cottage ID: {cottage['cottage_id']}, Name: {cottage['cottage_name']}, Price: {cottage['cottage_price']}, Status: {cottage['cottage_status']}")
+    else:
+        st.write("No cottages found.")
+
     # Staff Management Section
     st.subheader("Staff Management")
     staff_name = st.text_input("Staff Name", key="staff_name_input")
@@ -102,6 +111,15 @@ def finance_section():
             st.success("Staff added successfully.")
         except Exception as e:
             st.error(f"Error adding staff: {e}")
+
+    # View Existing Staff
+    st.subheader("View Staff")
+    staff_members = load_data("SELECT * FROM Staff")
+    if staff_members:
+        for staff in staff_members:
+            st.write(f"Staff ID: {staff['staff_id']}, Name: {staff['staff_name']}, Role: {staff['role_id']}, Phone: {staff['staff_phone']}, Email: {staff['staff_email']}")
+    else:
+        st.write("No staff members found.")
 
 # Main app function
 def main():
