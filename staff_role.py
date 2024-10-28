@@ -14,7 +14,9 @@ def manage_roles():
 
     # Function to fetch roles from the database
     def fetch_roles():
-        return load_data("SELECT * FROM Role")
+        roles = load_data("SELECT * FROM Role")
+        print("Fetched Roles:", roles)  # Debugging line
+        return roles
 
     # Load roles initially
     roles = fetch_roles()
@@ -25,8 +27,8 @@ def manage_roles():
         if new_role_name:
             save_data("INSERT INTO Role (role_name) VALUES (:role_name)", {"role_name": new_role_name})
             st.success("Role added successfully.")
-            # Refresh roles after adding a new role
-            roles = fetch_roles()  # Re-fetch roles to update the display
+            roles = fetch_roles()  # Refresh roles after adding
+            print("Roles after adding:", roles)  # Debugging line
 
     # Display roles
     if roles:
@@ -50,14 +52,15 @@ def manage_roles():
                     save_data("UPDATE Role SET role_name = :new_name WHERE role_id = :role_id", 
                               {"new_name": new_name, "role_id": role_id})
                     st.success("Role updated.")
-                    # Refresh roles after updating
-                    roles = fetch_roles()
+                    roles = fetch_roles()  # Refresh roles after updating
+                    print("Roles after updating:", roles)  # Debugging line
         with col3:
             if st.button("Delete", key=f"delete_role_{role_id}"):
                 save_data("DELETE FROM Role WHERE role_id = :role_id", {"role_id": role_id})
                 st.success("Role deleted.")
-                # Refresh roles after deleting
-                roles = fetch_roles()
+                roles = fetch_roles()  # Refresh roles after deleting
+                print("Roles after deleting:", roles)  # Debugging line
+
 
 # Staff Management
 def manage_staff():
