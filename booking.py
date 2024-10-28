@@ -1,18 +1,13 @@
 import streamlit as st
+from db import load_data, save_data
 from datetime import datetime
-from db import load_data, save_data  # Import DB functions from a central location
 
-def calculate_total_price(cottage_price, check_in, check_out):
-    nights = (check_out - check_in).days
-    return cottage_price * nights if nights > 0 else 0
-
-def reservation_section():
+def booking_section():
     st.header("Cottage Reservation")
 
-    # Load customers with names, emails, and phone numbers
+    # Load customers
     customers = load_data("SELECT cust_id, cust_name, cust_email, cust_phone FROM Customer")
     customer_options = {c['cust_email']: c['cust_name'] for c in customers}
-
     customer_email = st.selectbox("Customer Email", list(customer_options.keys()), format_func=lambda x: customer_options[x])
     customer = next((c for c in customers if c['cust_email'] == customer_email), None)
 
@@ -52,31 +47,6 @@ def reservation_section():
         else:
             st.error("Please select a customer and a cottage.")
 
-def view_bookings():
-    st.header("View Your Bookings")
-    customer_email = st.selectbox("Select Your Email", [c['cust_email'] for c in load_data("SELECT cust_email FROM Customer")])
-    customer = load_data("SELECT cust_id FROM Customer WHERE cust_email = :email", {"email": customer_email})
-
-    if customer:
-        reservations = load_data("""
-            SELECT r.reserve_id, c.cottage_name, r.check_in_date, r.check_out_date, r.total_price, r.payment_status, r.reserve_date
-            FROM Reservation r
-            JOIN Cottage c ON r.cottage_id = c.cottage_id
-            WHERE r.cust_id = :cust_id
-        """, {"cust_id": customer[0]['cust_id']})
-
-        if reservations:
-            for reservation in reservations:
-                st.write(f"Reservation ID: {reservation['reserve_id']}, Cottage: {reservation['cottage_name']}, "
-                         f"Check-in: {reservation['check_in_date']}, Check-out: {reservation['check_out_date']}, "
-                         f"Total Price: {reservation['total_price']}, Payment Status: {reservation['payment_status']}, "
-                         f"Reservation Date: {reservation['reserve_date']}")
-        else:
-            st.write("No bookings found.")
-
-def main():
-    reservation_section()
-    view_bookings()
-
-if __name__ == "__main__":
-    main()
+def calculate_total_price(cottage_price, check_in, check_out):
+    nights = (check_out - check_in).days
+    return cottage_price * nights if nights > 0 else 0
