@@ -89,7 +89,7 @@ def main():
         
         if st.button("Delete Payment Type"):
             delete_payment_type(delete_id)
-            st.experimental_rerun()  # Refresh the app to update the data
+            st.rerun()  # Refresh the app to update the data
 
     else:
         st.info("No payment types found.")
