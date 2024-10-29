@@ -49,6 +49,7 @@ def manage_roles():
             st.success("Role added successfully.")
             # Refresh the list of roles after adding a new one
             st.session_state.roles = fetch_roles()  # Re-fetch roles from DB
+            st.rerun()
             print("Roles after adding:", st.session_state.roles)  # Debugging line
         else:
             st.warning("Please enter a role name.")
