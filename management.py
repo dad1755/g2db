@@ -19,7 +19,7 @@ def create_table():
         cursor = connection.cursor()
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS STAFF (
-            staff_id VARCHAR(10) PRIMARY KEY,
+            staff_id INT AUTO_INCREMENT PRIMARY KEY,
             staff_name VARCHAR(100) NOT NULL
         )
         """)
@@ -32,11 +32,11 @@ def create_table():
             connection.close()
 
 # Function to add staff to the database
-def add_staff(staff_id, staff_name):
+def add_staff(staff_name):
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor()
-        cursor.execute("INSERT INTO STAFF (staff_id, staff_name) VALUES (%s, %s)", (staff_id, staff_name))
+        cursor.execute("INSERT INTO STAFF (staff_name) VALUES (%s)", (staff_name,))
         connection.commit()
         st.success(f"Added staff member: {staff_name}")
     except Error as e:
@@ -93,13 +93,12 @@ def show_management():
 
         # Add Staff
         st.write("### Add Staff Member")
-        staff_id = st.text_input("Staff ID (e.g., S001)")
         staff_name = st.text_input("Staff Name")
         if st.button("Add Staff"):
-            if staff_id and staff_name:
-                add_staff(staff_id, staff_name)
+            if staff_name:
+                add_staff(staff_name)
             else:
-                st.warning("Please enter both Staff ID and Staff Name.")
+                st.warning("Please enter Staff Name.")
 
         # View Staff
         st.write("### Available Staff")
@@ -109,7 +108,7 @@ def show_management():
 
             # Delete Staff
             st.write("### Delete Staff Member")
-            staff_id_to_delete = st.text_input("Enter Staff ID to delete")
+            staff_id_to_delete = st.number_input("Enter Staff ID to delete", min_value=1)
             if st.button("Delete Staff"):
                 if staff_id_to_delete:
                     delete_staff(staff_id_to_delete)
