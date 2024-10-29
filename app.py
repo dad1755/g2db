@@ -12,14 +12,15 @@ DB_CONFIG = {
     'port': 3306
 }
 
-def add_payment_type(pt_id, pt_details):
-    """Insert a new payment type into the database."""
+def add_payment_type(pt_details):
+    """Insert a new payment type into the database without needing pt_id."""
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         if connection.is_connected():
             cursor = connection.cursor()
-            query = "INSERT INTO PAYMENT_TYPES (pt_id, pt_details) VALUES (%s, %s)"
-            cursor.execute(query, (pt_id, pt_details))
+            # Assuming pt_id is auto-incremented, we don't specify it in the insert query
+            query = "INSERT INTO PAYMENT_TYPES (pt_details) VALUES (%s)"
+            cursor.execute(query, (pt_details,))
             connection.commit()
             st.success("Payment type added successfully!")
     except Error as e:
@@ -66,14 +67,15 @@ def main():
 
     # Add Payment Type section
     st.subheader("Add Payment Type")
-    pt_id = st.text_input("Payment Type ID (pt_id)", max_chars=10)
+    # Removed the pt_id input as it's auto-assigned
     pt_details = st.text_input("Payment Type Details (pt_details)", max_chars=50)
 
     if st.button("Add Payment Type"):
-        if pt_id and pt_details:
-            add_payment_type(pt_id, pt_details)
+        if pt_details:
+            add_payment_type(pt_details)
+            st.experimental_rerun()  # Refresh the app to show the new payment type
         else:
-            st.warning("Please fill in both fields.")
+            st.warning("Please fill in the payment type details.")
 
     # View Payment Types section
     st.subheader("View Payment Types")
@@ -87,7 +89,7 @@ def main():
         
         if st.button("Delete Payment Type"):
             delete_payment_type(delete_id)
-            st.rerun()  # Refresh the app to update the data
+            st.experimental_rerun()  # Refresh the app to update the data
 
     else:
         st.info("No payment types found.")
