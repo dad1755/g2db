@@ -25,7 +25,7 @@ def staff_role_section():
     manage_roles()
     manage_staff()
 
-## Role Management
+# Role Management
 def manage_roles():
     """Display, add, update, and delete roles."""
     st.subheader("Manage Roles")
@@ -33,12 +33,12 @@ def manage_roles():
     # Function to fetch roles from the database
     def fetch_roles():
         roles = load_data("SELECT * FROM Role")
-        print("Fetched Roles from DB:", roles)  # Debugging line
+        print("Fetched Roles from DB:", roles)  # Debugging line to see fetched roles
         return roles
 
     # Load roles initially or from session state
     if 'roles' not in st.session_state:
-        st.session_state.roles = fetch_roles()
+        st.session_state.roles = fetch_roles()  # Initial fetch of roles
 
     # Add Role
     new_role_name = st.text_input("New Role Name")
@@ -47,8 +47,8 @@ def manage_roles():
             # Insert the new role into the database
             save_data("INSERT INTO Role (role_name) VALUES (:role_name)", {"role_name": new_role_name})
             st.success("Role added successfully.")
-            # Re-fetch the roles to ensure the latest data
-            st.session_state.roles = fetch_roles()
+            # Refresh the list of roles after adding a new one
+            st.session_state.roles = fetch_roles()  # Re-fetch roles from DB
             print("Roles after adding:", st.session_state.roles)  # Debugging line
         else:
             st.warning("Please enter a role name.")
