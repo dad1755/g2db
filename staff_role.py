@@ -33,7 +33,7 @@ def manage_roles():
     # Function to fetch roles from the database
     def fetch_roles():
         roles = load_data("SELECT * FROM Role")
-        print("Fetched Roles from DB:", roles)  # Debugging line to see fetched roles
+        print("Fetched Roles from DB:", roles)  # Debugging line
         return roles
 
     # Load roles initially or from session state
@@ -44,13 +44,16 @@ def manage_roles():
     new_role_name = st.text_input("New Role Name")
     if st.button("Add Role"):
         if new_role_name:
-            # Insert the new role into the database
-            save_data("INSERT INTO Role (role_name) VALUES (:role_name)", {"role_name": new_role_name})
-            st.success("Role added successfully.")
-            # Refresh the list of roles after adding a new one
-            st.session_state.roles = fetch_roles()  # Re-fetch roles from DB
-        
-            print("Roles after adding:", st.session_state.roles)  # Debugging line
+            try:
+                # Insert the new role into the database without specifying role_id
+                save_data("INSERT INTO Role (role_name) VALUES (:role_name)", {"role_name": new_role_name})
+                st.success("Role added successfully.")
+                # Refresh the list of roles after adding a new one
+                st.session_state.roles = fetch_roles()  # Re-fetch roles from DB
+                print("Roles after adding:", st.session_state.roles)  # Debugging line
+            except Exception as e:
+                st.error(f"Error adding role: {e}")  # Show error in Streamlit UI
+                print("Error adding role:", e)  # Debugging line
         else:
             st.warning("Please enter a role name.")
 
@@ -60,7 +63,6 @@ def manage_roles():
         for role in st.session_state.roles:
             role_id = role['role_id']
             current_name = role['role_name']
-
             col1, col2, col3 = st.columns([3, 1, 1])
             with col1:
                 new_name = st.text_input(f"Edit Role {role_id} Name", current_name, key=f"role_{role_id}")
