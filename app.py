@@ -73,7 +73,7 @@ def main():
     if st.button("Add Payment Type"):
         if pt_details:
             add_payment_type(pt_details)
-            st.experimental_rerun()  # Refresh the app to show the new payment type
+            st.rerun()  # Refresh the app to show the new payment type
         else:
             st.warning("Please fill in the payment type details.")
 
