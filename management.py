@@ -1,7 +1,7 @@
 import streamlit as st
 
 def show_management():
-    st.subheader("Management")
+    st.subheader("Management2")
     st.write("This is the Management section where you can manage overall operations.")
 
     # Create tabs for different management functionalities
