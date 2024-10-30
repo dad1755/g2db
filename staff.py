@@ -47,20 +47,20 @@ def fetch_data(query):
             connection.close()
 
 # Staff Management Functions
-def create_staff(name, role):
+def create_staff(name):
     """Create a new staff member."""
-    query = "INSERT INTO STAFF (name, role) VALUES (%s, %s)"
-    execute_query(query, (name, role))
+    query = "INSERT INTO STAFF (name) VALUES (%s)"
+    execute_query(query, (name,))
 
 def get_staff():
     """Fetch all staff members."""
     query = "SELECT * FROM STAFF"
     return fetch_data(query)
 
-def delete_staff(staff_id):
-    """Delete a staff member by ID."""
-    query = "DELETE FROM STAFF WHERE id = %s"
-    execute_query(query, (staff_id,))
+def delete_staff(name):
+    """Delete a staff member by name."""
+    query = "DELETE FROM STAFF WHERE name = %s"
+    execute_query(query, (name,))
 
 def show_staff_management():
     """Streamlit UI for Staff Management."""
@@ -69,13 +69,12 @@ def show_staff_management():
     # Add Staff
     st.write("### Add Staff")
     name = st.text_input("Staff Name")
-    role = st.text_input("Staff Role")
     if st.button("Add Staff"):
-        if name and role:
-            create_staff(name, role)
+        if name:
+            create_staff(name)
             st.success(f"Added Staff: {name}")
         else:
-            st.warning("Please enter both Staff Name and Role.")
+            st.warning("Please enter a Staff Name.")
 
     # View Staff
     st.write("### Staff List")
@@ -85,12 +84,16 @@ def show_staff_management():
 
         # Delete Staff
         st.write("### Delete Staff")
-        staff_id_to_delete = st.text_input("Enter Staff ID to delete")
+        staff_name_to_delete = st.text_input("Enter Staff Name to delete")
         if st.button("Delete Staff"):
-            if staff_id_to_delete:
-                delete_staff(staff_id_to_delete)
-                st.success(f"Deleted Staff with ID: {staff_id_to_delete}")
+            if staff_name_to_delete:
+                delete_staff(staff_name_to_delete)
+                st.success(f"Deleted Staff with Name: {staff_name_to_delete}")
             else:
-                st.warning("Please enter a Staff ID to delete.")
+                st.warning("Please enter a Staff Name to delete.")
     else:
         st.warning("No staff members found.")
+
+# Call the show_staff_management function to display the UI
+if __name__ == "__main__":
+    show_staff_management()
