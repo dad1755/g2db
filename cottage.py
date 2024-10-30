@@ -2,7 +2,7 @@ import streamlit as st
 import mysql.connector
 from mysql.connector import Error
 
-# Database connection details
+# Hardcoded database configuration (make sure to secure your credentials)
 DB_CONFIG = {
     'host': 'sql12.freemysqlhosting.net',
     'database': 'sql12741294',
@@ -12,6 +12,7 @@ DB_CONFIG = {
 }
 
 def execute_query(query, params=None):
+    """Execute a query with optional parameters."""
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor()
@@ -20,74 +21,80 @@ def execute_query(query, params=None):
         else:
             cursor.execute(query)
         connection.commit()
-        return cursor  # Return the cursor for further processing if needed
+        return cursor  # Return cursor for further processing
     except Error as e:
         st.error(f"Error: {e}")
-        return None  # Return None to signal failure
+        return None
     finally:
         if connection.is_connected():
             cursor.close()
             connection.close()
 
-def create_cottage_table():
-    query = """
-    CREATE TABLE IF NOT EXISTS COTTAGE (
-        cottage_id INT AUTO_INCREMENT PRIMARY KEY,
-        cottage_name VARCHAR(100) NOT NULL,
-        capacity INT NOT NULL
-    )
-    """
-    execute_query(query)
+def fetch_data(query):
+    """Fetch data from the database."""
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        return rows  # Return fetched rows
+    except Error as e:
+        st.error(f"Error: {e}")
+        return None
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
 
-def add_cottage(cottage_name, capacity):
-    query = "INSERT INTO COTTAGE (cottage_name, capacity) VALUES (%s, %s)"
-    result = execute_query(query, (cottage_name, capacity))
-    if result is None:
-        st.error("Error while adding cottage.")
-    else:
-        st.success(f"Added cottage: {cottage_name} with capacity {capacity}")
-
-def delete_cottage(cottage_id):
-    query = "DELETE FROM COTTAGE WHERE cottage_id = %s"
-    result = execute_query(query, (cottage_id,))
-    if result is None:
-        st.error("Error while deleting cottage.")
-    elif result.rowcount > 0:
-        st.success(f"Deleted cottage record with ID: {cottage_id}")
-    else:
-        st.warning(f"No cottage record found with ID: {cottage_id}")
+# Cottage Management Functions
+def create_cottage(cot_id, cot_name):
+    """Create a new cottage."""
+    query = "INSERT INTO COTTAGE (cot_id, cot_name) VALUES (%s, %s)"
+    execute_query(query, (cot_id, cot_name))
 
 def get_cottages():
+    """Fetch all cottages."""
     query = "SELECT * FROM COTTAGE"
     return fetch_data(query)
 
+def delete_cottage(cot_id):
+    """Delete a cottage by ID."""
+    query = "DELETE FROM COTTAGE WHERE cot_id = %s"
+    execute_query(query, (cot_id,))
+
 def show_cottage_management():
+    """Streamlit UI for Cottage Management."""
     st.subheader("Cottage Management")
-    create_cottage_table()
 
     # Add Cottage
     st.write("### Add Cottage")
-    cottage_name = st.text_input("Cottage Name")
-    capacity = st.number_input("Capacity", min_value=1)
+    cot_id = st.text_input("Cottage ID")
+    cot_name = st.text_input("Cottage Name")
     if st.button("Add Cottage"):
-        if cottage_name and capacity:
-            add_cottage(cottage_name, capacity)
+        if cot_id and cot_name:
+            create_cottage(cot_id, cot_name)
+            st.success(f"Added Cottage: {cot_name}")
         else:
-            st.warning("Please provide both name and capacity.")
+            st.warning("Please enter both Cottage ID and Name.")
 
     # View Cottages
-    st.write("### Cottage Records")
-    cottages_data = get_cottages()
-    if cottages_data is not None and not cottages_data.empty:
-        st.dataframe(cottages_data)
+    st.write("### Cottage List")
+    cottage_data = get_cottages()
+    if cottage_data:
+        st.dataframe(cottage_data)
 
         # Delete Cottage
-        st.write("### Delete Cottage Record")
-        cottage_id_to_delete = st.number_input("Enter Cottage ID to delete", min_value=1)
+        st.write("### Delete Cottage")
+        cot_id_to_delete = st.text_input("Enter Cottage ID to delete")
         if st.button("Delete Cottage"):
-            if cottage_id_to_delete:
-                delete_cottage(cottage_id_to_delete)
+            if cot_id_to_delete:
+                delete_cottage(cot_id_to_delete)
+                st.success(f"Deleted Cottage with ID: {cot_id_to_delete}")
             else:
                 st.warning("Please enter a Cottage ID to delete.")
     else:
-        st.warning("No cottage records found.")
+        st.warning("No cottages found.")
+
+# Call the show_cottage_management function to display the UI
+if __name__ == "__main__":
+    show_cottage_management()
