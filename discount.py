@@ -58,6 +58,13 @@ def get_staff():
     query = "SELECT staff_id, staff_name FROM STAFF"
     return fetch_data(query)
 
+# Check if a discount already exists for the same cottage and staff
+def discount_exists(cot_id, staff_id):
+    """Check if a discount exists for the same cottage and staff member."""
+    query = "SELECT COUNT(*) AS count FROM DISCOUNT WHERE cot_id = %s AND staff_id = %s"
+    result = fetch_data(query, (cot_id, staff_id))
+    return result[0]['count'] > 0
+
 # Create discount function
 def create_discount(cot_id, dis_amount, staff_id):
     """Create a new discount without a visible discount ID."""
@@ -83,7 +90,6 @@ def delete_discount(dis_id):
     """Delete a discount by ID."""
     query = "DELETE FROM DISCOUNT WHERE dis_id = %s"
     execute_query(query, (dis_id,))
-    st.rerun()
 
 def show_discount_management():
     """Streamlit UI for Discount Management."""
@@ -108,8 +114,12 @@ def show_discount_management():
     
     if st.button("Add Discount"):
         if dis_amount:
-            create_discount(selected_cottage_id, dis_amount, selected_staff_id)
-            st.success(f"Added Discount for Cottage: {selected_cottage_name} with amount: {dis_amount}")
+            # Check if a discount already exists for the same cottage and staff
+            if discount_exists(selected_cottage_id, selected_staff_id):
+                st.warning(f"A discount for Cottage '{selected_cottage_name}' by Staff '{selected_staff_name}' already exists.")
+            else:
+                create_discount(selected_cottage_id, dis_amount, selected_staff_id)
+                st.success(f"Added Discount for Cottage: {selected_cottage_name} with amount: {dis_amount}")
         else:
             st.warning("Please enter a Discount Amount.")
 
