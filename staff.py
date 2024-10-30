@@ -1,4 +1,3 @@
-# staff.py
 import streamlit as st
 import mysql.connector
 from mysql.connector import Error
@@ -24,7 +23,7 @@ def execute_query(query, params=None):
         connection.commit()
         return cursor  # Return cursor for further processing
     except Error as e:
-        st.error(f"Error: {e}")  # Display error in Streamlit
+        st.error(f"Error: {e}")
         return None
     finally:
         if connection.is_connected():
@@ -40,70 +39,55 @@ def fetch_data(query):
         rows = cursor.fetchall()
         return rows  # Return fetched rows
     except Error as e:
-        st.error(f"Error: {e}")  # Display error in Streamlit
+        st.error(f"Error: {e}")
         return None
     finally:
         if connection.is_connected():
             cursor.close()
             connection.close()
 
-def create_table():
-    query = """
-    CREATE TABLE IF NOT EXISTS STAFF (
-        staff_id INT AUTO_INCREMENT PRIMARY KEY,
-        staff_name VARCHAR(100) NOT NULL
-    )
-    """
-    execute_query(query)
+# COTTAGE TABLE CRUD FUNCTIONS
+def create_cottage(cot_id, cot_name):
+    query = "INSERT INTO COTTAGE (cot_id, cot_name) VALUES (%s, %s)"
+    execute_query(query, (cot_id, cot_name))
 
-def add_staff(staff_name):
-    query = "INSERT INTO STAFF (staff_name) VALUES (%s)"
-    result = execute_query(query, (staff_name,))
-    if result is None:  # Check if the result is None
-        st.error("Error while adding staff.")
-    else:
-        st.success(f"Added staff member: {staff_name}")
-
-def delete_staff(staff_id):
-    query = "DELETE FROM STAFF WHERE staff_id = %s"
-    result = execute_query(query, (staff_id,))
-    if result is None:
-        st.error("Error while deleting staff.")
-    elif result.rowcount > 0:
-        st.success(f"Deleted staff member with ID: {staff_id}")
-    else:
-        st.warning(f"No staff member found with ID: {staff_id}")
-
-def get_staff():
-    query = "SELECT * FROM STAFF"
+def get_cottages():
+    query = "SELECT * FROM COTTAGE"
     return fetch_data(query)
 
-def show_staff_management():
-    st.subheader("Staff Management")
-    create_table()
+def delete_cottage(cot_id):
+    query = "DELETE FROM COTTAGE WHERE cot_id = %s"
+    execute_query(query, (cot_id,))
 
-    # Add Staff
-    st.write("### Add Staff Member")
-    staff_name = st.text_input("Staff Name")
-    if st.button("Add Staff"):
-        if staff_name:
-            add_staff(staff_name)
+# Streamlit UI for Cottage Management
+def show_cottage_management():
+    st.subheader("Cottage Management")
+
+    # Add Cottage
+    st.write("### Add Cottage")
+    cot_id = st.text_input("Cottage ID")
+    cot_name = st.text_input("Cottage Name")
+    if st.button("Add Cottage"):
+        if cot_id and cot_name:
+            create_cottage(cot_id, cot_name)
+            st.success(f"Added Cottage: {cot_name}")
         else:
-            st.warning("Please enter Staff Name.")
+            st.warning("Please enter both Cottage ID and Cottage Name.")
 
-    # View Staff
-    st.write("### Available Staff")
-    staff_data = get_staff()
-    if staff_data:
-        st.dataframe(staff_data)
+    # View Cottages
+    st.write("### Available Cottages")
+    cottages_data = get_cottages()
+    if cottages_data:
+        st.dataframe(cottages_data)
 
-        # Delete Staff
-        st.write("### Delete Staff Member")
-        staff_id_to_delete = st.number_input("Enter Staff ID to delete", min_value=1)
-        if st.button("Delete Staff"):
-            if staff_id_to_delete:
-                delete_staff(staff_id_to_delete)
+        # Delete Cottage
+        st.write("### Delete Cottage")
+        cot_id_to_delete = st.text_input("Enter Cottage ID to delete")
+        if st.button("Delete Cottage"):
+            if cot_id_to_delete:
+                delete_cottage(cot_id_to_delete)
+                st.success(f"Deleted Cottage with ID: {cot_id_to_delete}")
             else:
-                st.warning("Please enter a Staff ID to delete.")
+                st.warning("Please enter a Cottage ID to delete.")
     else:
-        st.warning("No staff members found.")
+        st.warning("No cottages found.")
