@@ -11,6 +11,9 @@ DB_CONFIG = {
     'port': 3306
 }
 
+def show_staff_management():
+    st.subheader("Staff Management")
+    st.write("This is where you manage staff.")
 def execute_query(query, params=None):
     """Execute a query with optional parameters."""
     try:
