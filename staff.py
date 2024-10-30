@@ -1,8 +1,53 @@
+# staff.py
 import streamlit as st
-from database import execute_query, fetch_data  # Ensure these functions are correctly defined in your database module
+import mysql.connector
+from mysql.connector import Error
+
+# Hardcoded database configuration
+DB_CONFIG = {
+    'host': 'sql12.freemysqlhosting.net',
+    'database': 'sql12741294',
+    'user': 'sql12741294',
+    'password': 'Lvu9cg9kGm',
+    'port': 3306
+}
+
+def execute_query(query, params=None):
+    """Execute a query with optional parameters."""
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
+        connection.commit()
+        return cursor  # Return cursor for further processing
+    except Error as e:
+        st.error(f"Error: {e}")  # Display error in Streamlit
+        return None
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+def fetch_data(query):
+    """Fetch data from the database."""
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        return rows  # Return fetched rows
+    except Error as e:
+        st.error(f"Error: {e}")  # Display error in Streamlit
+        return None
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
 
 def create_table():
-    """Create the STAFF table if it does not exist."""
     query = """
     CREATE TABLE IF NOT EXISTS STAFF (
         staff_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -12,16 +57,14 @@ def create_table():
     execute_query(query)
 
 def add_staff(staff_name):
-    """Add a staff member to the database."""
     query = "INSERT INTO STAFF (staff_name) VALUES (%s)"
     result = execute_query(query, (staff_name,))
-    if result is None:
+    if result is None:  # Check if the result is None
         st.error("Error while adding staff.")
     else:
         st.success(f"Added staff member: {staff_name}")
 
 def delete_staff(staff_id):
-    """Delete a staff member by their ID."""
     query = "DELETE FROM STAFF WHERE staff_id = %s"
     result = execute_query(query, (staff_id,))
     if result is None:
@@ -32,15 +75,11 @@ def delete_staff(staff_id):
         st.warning(f"No staff member found with ID: {staff_id}")
 
 def get_staff():
-    """Fetch all staff members from the database."""
     query = "SELECT * FROM STAFF"
     return fetch_data(query)
 
 def show_staff_management():
-    """Display the staff management interface."""
     st.subheader("Staff Management")
-    
-    # Ensure the table is created
     create_table()
 
     # Add Staff
@@ -50,12 +89,12 @@ def show_staff_management():
         if staff_name:
             add_staff(staff_name)
         else:
-            st.warning("Please enter a Staff Name.")
+            st.warning("Please enter Staff Name.")
 
     # View Staff
     st.write("### Available Staff")
     staff_data = get_staff()
-    if staff_data is not None and staff_data:  # Check if staff_data is not None and not empty
+    if staff_data:
         st.dataframe(staff_data)
 
         # Delete Staff
