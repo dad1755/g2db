@@ -1,33 +1,61 @@
 import streamlit as st
-from db_utils import execute_query, fetch_data
+import mysql.connector
+from mysql.connector import Error
+
+# Database connection details
+DB_CONFIG = {
+    'host': 'sql12.freemysqlhosting.net',
+    'database': 'sql12741294',
+    'user': 'sql12741294',
+    'password': 'Lvu9cg9kGm',
+    'port': 3306
+}
+
+def execute_query(query, params=None):
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
+        connection.commit()
+        return cursor  # Return the cursor for further processing if needed
+    except Error as e:
+        st.error(f"Error: {e}")
+        return None  # Return None to signal failure
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
 
 def create_discount_table():
     query = """
     CREATE TABLE IF NOT EXISTS DISCOUNT (
         discount_id INT AUTO_INCREMENT PRIMARY KEY,
-        discount_code VARCHAR(20) NOT NULL,
-        discount_amount DECIMAL(5, 2) NOT NULL
+        discount_rate DECIMAL(5, 2) NOT NULL,
+        description VARCHAR(255)
     )
     """
     execute_query(query)
 
-def add_discount(discount_code, discount_amount):
-    query = "INSERT INTO DISCOUNT (discount_code, discount_amount) VALUES (%s, %s)"
-    result = execute_query(query, (discount_code, discount_amount))
-    if isinstance(result, Error):
-        st.error(f"Error while adding discount: {result}")
+def add_discount(discount_rate, description):
+    query = "INSERT INTO DISCOUNT (discount_rate, description) VALUES (%s, %s)"
+    result = execute_query(query, (discount_rate, description))
+    if result is None:
+        st.error("Error while adding discount.")
     else:
-        st.success(f"Added discount {discount_code} of ${discount_amount}")
+        st.success(f"Added discount: {discount_rate}% - {description}")
 
 def delete_discount(discount_id):
     query = "DELETE FROM DISCOUNT WHERE discount_id = %s"
     result = execute_query(query, (discount_id,))
-    if isinstance(result, Error):
-        st.error(f"Error while deleting discount: {result}")
+    if result is None:
+        st.error("Error while deleting discount.")
     elif result.rowcount > 0:
-        st.success(f"Deleted discount with ID: {discount_id}")
+        st.success(f"Deleted discount record with ID: {discount_id}")
     else:
-        st.warning(f"No discount found with ID: {discount_id}")
+        st.warning(f"No discount record found with ID: {discount_id}")
 
 def get_discounts():
     query = "SELECT * FROM DISCOUNT"
@@ -39,22 +67,22 @@ def show_discount_management():
 
     # Add Discount
     st.write("### Add Discount")
-    discount_code = st.text_input("Discount Code")
-    discount_amount = st.number_input("Discount Amount", min_value=0.0)
+    discount_rate = st.number_input("Discount Rate (%)", min_value=0.0, max_value=100.0)
+    description = st.text_input("Description")
     if st.button("Add Discount"):
-        if discount_code and discount_amount:
-            add_discount(discount_code, discount_amount)
+        if discount_rate and description:
+            add_discount(discount_rate, description)
         else:
-            st.warning("Please provide both code and amount.")
+            st.warning("Please provide both rate and description.")
 
     # View Discounts
-    st.write("### Available Discounts")
+    st.write("### Discount Records")
     discounts_data = get_discounts()
-    if not discounts_data.empty:
+    if discounts_data is not None and not discounts_data.empty:
         st.dataframe(discounts_data)
 
         # Delete Discount
-        st.write("### Delete Discount")
+        st.write("### Delete Discount Record")
         discount_id_to_delete = st.number_input("Enter Discount ID to delete", min_value=1)
         if st.button("Delete Discount"):
             if discount_id_to_delete:
@@ -62,4 +90,4 @@ def show_discount_management():
             else:
                 st.warning("Please enter a Discount ID to delete.")
     else:
-        st.warning("No discounts found.")
+        st.warning("No discount records found.")
