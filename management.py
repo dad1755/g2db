@@ -1,6 +1,7 @@
 import streamlit as st
 from staff import show_staff_management
 from cottage import show_cottage_management  # Importing cottage management function
+from discount import show_discount_management
 
 def show_management():
     """Display the management section with tabs for different functionalities."""
@@ -16,12 +17,10 @@ def show_management():
         st.warning("Payment management functionality not implemented yet.")
 
     with tabs[1]:  # Discount Tab
-        st.write("### Discount Management")
-        # Implement Discount Management functionality here
-        st.warning("Discount management functionality not implemented yet.")
+        show_discount_management()
+       
 
     with tabs[2]:  # Cottage Tab
-       
         show_cottage_management()  # Call the cottage management function
 
     with tabs[3]:  # Staff Tab
