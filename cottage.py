@@ -84,13 +84,15 @@ def show_cottage_management():
 
         # Delete Cottage
         st.write("### Delete Cottage")
-        cot_id_to_delete = st.text_input("Enter Cottage ID to delete")
+        cot_name_to_delete = st.text_input("Enter Cottage Name to delete")
         if st.button("Delete Cottage"):
-            if cot_id_to_delete:
+            if cot_name_to_delete:
+                # Combine "COT" with the cottage name
+                cot_id_to_delete = f"COT{cot_name_to_delete}"
                 delete_cottage(cot_id_to_delete)
                 st.success(f"Deleted Cottage with ID: {cot_id_to_delete}")
             else:
-                st.warning("Please enter a Cottage ID to delete.")
+                st.warning("Please enter a Cottage Name to delete.")
     else:
         st.warning("No cottages found.")
 
