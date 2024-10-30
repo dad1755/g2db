@@ -61,6 +61,7 @@ def delete_staff(staff_name):
     """Delete a staff member by name."""
     query = "DELETE FROM STAFF WHERE staff_name = %s"
     execute_query(query, (staff_name,))
+    st.rerun()
 
 def show_staff_management():
     """Streamlit UI for Staff Management."""
