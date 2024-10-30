@@ -29,6 +29,21 @@ def execute_query(query, params=None):
             cursor.close()
             connection.close()
 
+def fetch_data(query):
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)  # Use dictionary for easier access
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        return rows  # Return fetched rows
+    except Error as e:
+        st.error(f"Error: {e}")
+        return None
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
 def create_table():
     query = """
     CREATE TABLE IF NOT EXISTS STAFF (
@@ -76,7 +91,7 @@ def show_staff_management():
     # View Staff
     st.write("### Available Staff")
     staff_data = get_staff()
-    if staff_data is not None and not staff_data.empty:
+    if staff_data is not None and staff_data:
         st.dataframe(staff_data)
 
         # Delete Staff
@@ -89,3 +104,7 @@ def show_staff_management():
                 st.warning("Please enter a Staff ID to delete.")
     else:
         st.warning("No staff members found.")
+
+# Run the Streamlit app
+if __name__ == "__main__":
+    show_staff_management()
