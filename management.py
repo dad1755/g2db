@@ -1,6 +1,7 @@
 # management.py
 import streamlit as st
 from staff import show_staff_management
+from cottage import show_cottage
 
 def show_management():
     """Display the management section with tabs for different functionalities."""
@@ -19,6 +20,7 @@ def show_management():
 
     with tabs[2]:  # Cottage Tab
         pass  # Implement functionality here
+        show_cottage()
 
     with tabs[3]:  # Staff Tab
         show_staff_management()
