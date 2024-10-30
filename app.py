@@ -4,7 +4,7 @@ from housekeeping import show_housekeeping
 from management import show_management
 
 # Set the title of the app
-st.title("Cottage Booking System")
+st.title("Cottage Booking System Group 2")
 
 # Create a sidebar with three options
 st.sidebar.title("Menu")
