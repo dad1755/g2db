@@ -1,51 +1,65 @@
 import streamlit as st
-from db import load_data, save_data
+from utils.db_utils import execute_query, fetch_data
 
-def cottage_section():
-    st.header("Manage Cottages")
+def create_cottage_table():
+    query = """
+    CREATE TABLE IF NOT EXISTS COTTAGE (
+        cottage_id INT AUTO_INCREMENT PRIMARY KEY,
+        cottage_name VARCHAR(100) NOT NULL,
+        capacity INT NOT NULL
+    )
+    """
+    execute_query(query)
 
-    cottages = load_data("SELECT * FROM Cottage")
+def add_cottage(cottage_name, capacity):
+    query = "INSERT INTO COTTAGE (cottage_name, capacity) VALUES (%s, %s)"
+    result = execute_query(query, (cottage_name, capacity))
+    if isinstance(result, Error):
+        st.error(f"Error while adding cottage: {result}")
+    else:
+        st.success(f"Added cottage: {cottage_name} with capacity {capacity}")
 
-    new_cottage_name = st.text_input("New Cottage Name")
-    new_cottage_description = st.text_area("New Cottage Description")
-    new_cottage_price = st.number_input("New Cottage Price", min_value=0.0, format="%.2f")
-    new_cottage_status = st.selectbox("New Cottage Status", ["available", "occupied"])
+def delete_cottage(cottage_id):
+    query = "DELETE FROM COTTAGE WHERE cottage_id = %s"
+    result = execute_query(query, (cottage_id,))
+    if isinstance(result, Error):
+        st.error(f"Error while deleting cottage: {result}")
+    elif result.rowcount > 0:
+        st.success(f"Deleted cottage with ID: {cottage_id}")
+    else:
+        st.warning(f"No cottage found with ID: {cottage_id}")
 
+def get_cottages():
+    query = "SELECT * FROM COTTAGE"
+    return fetch_data(query)
+
+def show_cottage_management():
+    st.subheader("Cottage Management")
+    create_cottage_table()
+
+    # Add Cottage
+    st.write("### Add Cottage")
+    cottage_name = st.text_input("Cottage Name")
+    capacity = st.number_input("Capacity", min_value=1)
     if st.button("Add Cottage"):
-        if new_cottage_name and new_cottage_price:
-            save_data("""
-                INSERT INTO Cottage (cottage_name, cottage_description, cottage_price, cottage_status)
-                VALUES (:name, :description, :price, :status)
-            """, {
-                "name": new_cottage_name, 
-                "description": new_cottage_description, 
-                "price": new_cottage_price, 
-                "status": new_cottage_status
-            })
-            st.success("Cottage added successfully.")
+        if cottage_name and capacity:
+            add_cottage(cottage_name, capacity)
+        else:
+            st.warning("Please provide both name and capacity.")
 
-    for cottage in cottages:
-        st.write(f"Cottage ID: {cottage['cottage_id']}, Name: {cottage['cottage_name']}, Status: {cottage['cottage_status']}")
-        
-        new_name = st.text_input(f"Edit Name for Cottage {cottage['cottage_id']}", cottage['cottage_name'])
-        new_description = st.text_area(f"Edit Description for Cottage {cottage['cottage_id']}", cottage['cottage_description'])
-        new_price = st.number_input(f"Edit Price for Cottage {cottage['cottage_id']}", value=float(cottage['cottage_price']), format="%.2f")
-        new_status = st.selectbox(f"Edit Status for Cottage {cottage['cottage_id']}", ["available", "occupied"], 
-                                  index=0 if cottage['cottage_status'] == "available" else 1)
-        
-        if st.button("Update", key=f"update_cottage_{cottage['cottage_id']}"):
-            save_data("""
-                UPDATE Cottage SET cottage_name = :name, cottage_description = :description, 
-                cottage_price = :price, cottage_status = :status WHERE cottage_id = :cottage_id
-            """, {
-                "name": new_name, 
-                "description": new_description, 
-                "price": new_price, 
-                "status": new_status, 
-                "cottage_id": cottage['cottage_id']
-            })
-            st.success("Cottage updated.")
-        
-        if st.button("Delete", key=f"delete_cottage_{cottage['cottage_id']}"):
-            save_data("DELETE FROM Cottage WHERE cottage_id = :cottage_id", {"cottage_id": cottage['cottage_id']})
-            st.success("Cottage deleted.")
+    # View Cottages
+    st.write("### Available Cottages")
+    cottages_data = get_cottages()
+    if not cottages_data.empty:
+        st.dataframe(cottages_data)
+
+        # Delete Cottage
+        st.write("### Delete Cottage")
+        cottage_id_to_delete = st.number_input("Enter Cottage ID to delete", min_value=1)
+        if st.button("Delete Cottage"):
+            if cottage_id_to_delete:
+                delete_cottage(cottage_id_to_delete)
+            else:
+                st.warning("Please enter a Cottage ID to delete.")
+    else:
+        st.warning("No cottages found.")
