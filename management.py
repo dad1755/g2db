@@ -21,7 +21,7 @@ def show_management():
         st.warning("Discount management functionality not implemented yet.")
 
     with tabs[2]:  # Cottage Tab
-        st.write("### Cottage Management")
+       
         show_cottage_management()  # Call the cottage management function
 
     with tabs[3]:  # Staff Tab
