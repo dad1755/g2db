@@ -47,20 +47,20 @@ def fetch_data(query):
             connection.close()
 
 # Staff Management Functions
-def create_staff(name):
+def create_staff(staff_name):
     """Create a new staff member."""
-    query = "INSERT INTO STAFF (name) VALUES (%s)"
-    execute_query(query, (name,))
+    query = "INSERT INTO STAFF (staff_name) VALUES (%s)"
+    execute_query(query, (staff_name,))
 
 def get_staff():
     """Fetch all staff members."""
     query = "SELECT * FROM STAFF"
     return fetch_data(query)
 
-def delete_staff(name):
+def delete_staff(staff_name):
     """Delete a staff member by name."""
-    query = "DELETE FROM STAFF WHERE name = %s"
-    execute_query(query, (name,))
+    query = "DELETE FROM STAFF WHERE staff_name = %s"
+    execute_query(query, (staff_name,))
 
 def show_staff_management():
     """Streamlit UI for Staff Management."""
@@ -68,11 +68,11 @@ def show_staff_management():
 
     # Add Staff
     st.write("### Add Staff")
-    name = st.text_input("Staff Name")
+    staff_name = st.text_input("Staff Name")
     if st.button("Add Staff"):
-        if name:
-            create_staff(name)
-            st.success(f"Added Staff: {name}")
+        if staff_name:
+            create_staff(staff_name)
+            st.success(f"Added Staff: {staff_name}")
         else:
             st.warning("Please enter a Staff Name.")
 
