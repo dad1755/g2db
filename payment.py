@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.db_utils import execute_query, fetch_data
+from db_utils import execute_query, fetch_data
 
 def create_payment_table():
     query = """
