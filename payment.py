@@ -1,5 +1,33 @@
 import streamlit as st
-from db_utils import execute_query, fetch_data
+import mysql.connector
+from mysql.connector import Error
+
+# Database connection details
+DB_CONFIG = {
+    'host': 'sql12.freemysqlhosting.net',
+    'database': 'sql12741294',
+    'user': 'sql12741294',
+    'password': 'Lvu9cg9kGm',
+    'port': 3306
+}
+
+def execute_query(query, params=None):
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
+        connection.commit()
+        return cursor  # Return the cursor for further processing if needed
+    except Error as e:
+        st.error(f"Error: {e}")
+        return None  # Return None to signal failure
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
 
 def create_payment_table():
     query = """
@@ -14,16 +42,16 @@ def create_payment_table():
 def add_payment(amount, payment_date):
     query = "INSERT INTO PAYMENT (amount, payment_date) VALUES (%s, %s)"
     result = execute_query(query, (amount, payment_date))
-    if isinstance(result, Error):
-        st.error(f"Error while adding payment: {result}")
+    if result is None:
+        st.error("Error while adding payment.")
     else:
         st.success(f"Added payment of ${amount} on {payment_date}")
 
 def delete_payment(payment_id):
     query = "DELETE FROM PAYMENT WHERE payment_id = %s"
     result = execute_query(query, (payment_id,))
-    if isinstance(result, Error):
-        st.error(f"Error while deleting payment: {result}")
+    if result is None:
+        st.error("Error while deleting payment.")
     elif result.rowcount > 0:
         st.success(f"Deleted payment record with ID: {payment_id}")
     else:
@@ -50,7 +78,7 @@ def show_payment_management():
     # View Payments
     st.write("### Payment Records")
     payments_data = get_payments()
-    if not payments_data.empty:
+    if payments_data is not None and not payments_data.empty:
         st.dataframe(payments_data)
 
         # Delete Payment
