@@ -2,7 +2,7 @@ import streamlit as st
 import mysql.connector
 from mysql.connector import Error
 
-# Hardcoded database configuration
+# Hardcoded database configuration (make sure to secure your credentials)
 DB_CONFIG = {
     'host': 'sql12.freemysqlhosting.net',
     'database': 'sql12741294',
@@ -46,46 +46,48 @@ def fetch_data(query):
             cursor.close()
             connection.close()
 
-# DISCOUNT TABLE CRUD FUNCTIONS
+# Discount Management Functions
 def create_discount(dis_id, cot_id, dis_amount, staff_id):
+    """Create a new discount."""
     query = "INSERT INTO DISCOUNT (dis_id, cot_id, dis_amount, staff_id) VALUES (%s, %s, %s, %s)"
     execute_query(query, (dis_id, cot_id, dis_amount, staff_id))
 
 def get_discounts():
-    query = """
-    SELECT d.dis_id, d.dis_amount, c.cot_name, s.staff_name 
-    FROM DISCOUNT d 
-    JOIN COTTAGE c ON d.cot_id = c.cot_id 
-    JOIN STAFF s ON d.staff_id = s.staff_id
-    """
+    """Fetch all discounts."""
+    query = "SELECT * FROM DISCOUNT"
     return fetch_data(query)
 
 def delete_discount(dis_id):
+    """Delete a discount by ID."""
     query = "DELETE FROM DISCOUNT WHERE dis_id = %s"
     execute_query(query, (dis_id,))
 
-# Streamlit UI for Discount Management
 def show_discount_management():
+    """Streamlit UI for Discount Management."""
     st.subheader("Discount Management")
 
     # Add Discount
     st.write("### Add Discount")
     dis_id = st.text_input("Discount ID")
     cot_id = st.text_input("Cottage ID")
-    dis_amount = st.number_input("Discount Amount", format="%.2f", step=0.01)
-    staff_id = st.text_input("Staff ID (optional)")
+    dis_amount = st.number_input("Discount Amount", min_value=0.0, format="%.2f")
+    staff_id = st.text_input("Staff ID")
+    
     if st.button("Add Discount"):
-        if dis_id and cot_id and dis_amount is not None:
+        if dis_id and cot_id and dis_amount and staff_id:
             create_discount(dis_id, cot_id, dis_amount, staff_id)
-            st.success(f"Added Discount: {dis_amount} for Cottage ID: {cot_id}")
+            st.success(f"Added Discount ID: {dis_id}")
         else:
-            st.warning("Please enter all required fields.")
+            st.warning("Please fill all fields.")
 
     # View Discounts
-    st.write("### Available Discounts")
+    st.write("### Discount List")
     discount_data = get_discounts()
     if discount_data:
         st.dataframe(discount_data)
+
+        # Delete Discount
+        st.write("### Delete Discount")
         dis_id_to_delete = st.text_input("Enter Discount ID to delete")
         if st.button("Delete Discount"):
             if dis_id_to_delete:
@@ -95,3 +97,7 @@ def show_discount_management():
                 st.warning("Please enter a Discount ID to delete.")
     else:
         st.warning("No discounts found.")
+
+# Call the show_discount_management function to display the UI
+if __name__ == "__main__":
+    show_discount_management()
