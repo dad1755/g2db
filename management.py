@@ -19,7 +19,7 @@ def show_management():
         pass  # Implement functionality here
 
     with tabs[2]:  # Cottage Tab
-        pass  # Implement functionality here
+        #pass  # Implement functionality here
         show_cottage()
 
     with tabs[3]:  # Staff Tab
