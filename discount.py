@@ -83,6 +83,7 @@ def delete_discount(dis_id):
     """Delete a discount by ID."""
     query = "DELETE FROM DISCOUNT WHERE dis_id = %s"
     execute_query(query, (dis_id,))
+    st.rerun()
 
 def show_discount_management():
     """Streamlit UI for Discount Management."""
