@@ -1,10 +1,11 @@
+#app.py file
 import streamlit as st
 from booking import show_booking
 from housekeeping import show_housekeeping
 from management import show_management
 
 # Set the title of the app
-st.title("Cottage Booking System Group 2")
+st.title("Cottage Booking System Group")
 
 # Create a sidebar with three options
 st.sidebar.title("Menu")
