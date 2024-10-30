@@ -2,7 +2,7 @@ import streamlit as st
 import mysql.connector
 from mysql.connector import Error
 
-# Hardcoded database configuration
+# Hardcoded database configuration (make sure to secure your credentials)
 DB_CONFIG = {
     'host': 'sql12.freemysqlhosting.net',
     'database': 'sql12741294',
@@ -11,9 +11,6 @@ DB_CONFIG = {
     'port': 3306
 }
 
-def show_staff_management():
-    st.subheader("Staff Management")
-    st.write("This is where you manage staff.")
 def execute_query(query, params=None):
     """Execute a query with optional parameters."""
     try:
@@ -49,48 +46,51 @@ def fetch_data(query):
             cursor.close()
             connection.close()
 
-# COTTAGE TABLE CRUD FUNCTIONS
-def create_cottage(cot_id, cot_name):
-    query = "INSERT INTO COTTAGE (cot_id, cot_name) VALUES (%s, %s)"
-    execute_query(query, (cot_id, cot_name))
+# Staff Management Functions
+def create_staff(name, role):
+    """Create a new staff member."""
+    query = "INSERT INTO STAFF (name, role) VALUES (%s, %s)"
+    execute_query(query, (name, role))
 
-def get_cottages():
-    query = "SELECT * FROM COTTAGE"
+def get_staff():
+    """Fetch all staff members."""
+    query = "SELECT * FROM STAFF"
     return fetch_data(query)
 
-def delete_cottage(cot_id):
-    query = "DELETE FROM COTTAGE WHERE cot_id = %s"
-    execute_query(query, (cot_id,))
+def delete_staff(staff_id):
+    """Delete a staff member by ID."""
+    query = "DELETE FROM STAFF WHERE id = %s"
+    execute_query(query, (staff_id,))
 
-# Streamlit UI for Cottage Management
-def show_cottage_management():
-    st.subheader("Cottage Management")
+def show_staff_management():
+    """Streamlit UI for Staff Management."""
+    st.subheader("Staff Management")
 
-    # Add Cottage
-    st.write("### Add Cottage")
-    cot_id = st.text_input("Cottage ID")
-    cot_name = st.text_input("Cottage Name")
-    if st.button("Add Cottage"):
-        if cot_id and cot_name:
-            create_cottage(cot_id, cot_name)
-            st.success(f"Added Cottage: {cot_name}")
+    # Add Staff
+    st.write("### Add Staff")
+    name = st.text_input("Staff Name")
+    role = st.text_input("Staff Role")
+    if st.button("Add Staff"):
+        if name and role:
+            create_staff(name, role)
+            st.success(f"Added Staff: {name}")
         else:
-            st.warning("Please enter both Cottage ID and Cottage Name.")
+            st.warning("Please enter both Staff Name and Role.")
 
-    # View Cottages
-    st.write("### Available Cottages")
-    cottages_data = get_cottages()
-    if cottages_data:
-        st.dataframe(cottages_data)
+    # View Staff
+    st.write("### Staff List")
+    staff_data = get_staff()
+    if staff_data:
+        st.dataframe(staff_data)
 
-        # Delete Cottage
-        st.write("### Delete Cottage")
-        cot_id_to_delete = st.text_input("Enter Cottage ID to delete")
-        if st.button("Delete Cottage"):
-            if cot_id_to_delete:
-                delete_cottage(cot_id_to_delete)
-                st.success(f"Deleted Cottage with ID: {cot_id_to_delete}")
+        # Delete Staff
+        st.write("### Delete Staff")
+        staff_id_to_delete = st.text_input("Enter Staff ID to delete")
+        if st.button("Delete Staff"):
+            if staff_id_to_delete:
+                delete_staff(staff_id_to_delete)
+                st.success(f"Deleted Staff with ID: {staff_id_to_delete}")
             else:
-                st.warning("Please enter a Cottage ID to delete.")
+                st.warning("Please enter a Staff ID to delete.")
     else:
-        st.warning("No cottages found.")
+        st.warning("No staff members found.")
