@@ -30,12 +30,15 @@ def execute_query(query, params=None):
             cursor.close()
             connection.close()
 
-def fetch_data(query):
+def fetch_data(query, params=None):
     """Fetch data from the database."""
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor(dictionary=True)
-        cursor.execute(query)
+        if params:
+            cursor.execute(query, params)  # Use parameters if provided
+        else:
+            cursor.execute(query)
         rows = cursor.fetchall()
         return rows  # Return fetched rows
     except Error as e:
@@ -63,7 +66,7 @@ def discount_exists(cot_id, staff_id):
     """Check if a discount exists for the same cottage and staff member."""
     query = "SELECT COUNT(*) AS count FROM DISCOUNT WHERE cot_id = %s AND staff_id = %s"
     result = fetch_data(query, (cot_id, staff_id))
-    return result[0]['count'] > 0
+    return result[0]['count'] > 0 if result else False
 
 # Create discount function
 def create_discount(cot_id, dis_amount, staff_id):
