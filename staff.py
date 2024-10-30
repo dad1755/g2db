@@ -1,5 +1,33 @@
 import streamlit as st
-from db_utils import execute_query, fetch_data  # Adjusted import statement
+import mysql.connector
+from mysql.connector import Error
+
+# Database connection details
+DB_CONFIG = {
+    'host': 'sql12.freemysqlhosting.net',
+    'database': 'sql12741294',
+    'user': 'sql12741294',
+    'password': 'Lvu9cg9kGm',
+    'port': 3306
+}
+
+def execute_query(query, params=None):
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
+        connection.commit()
+        return cursor  # Return the cursor for further processing if needed
+    except Error as e:
+        st.error(f"Error: {e}")
+        return None  # Return None to signal failure
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
 
 def create_table():
     query = """
@@ -13,16 +41,16 @@ def create_table():
 def add_staff(staff_name):
     query = "INSERT INTO STAFF (staff_name) VALUES (%s)"
     result = execute_query(query, (staff_name,))
-    if isinstance(result, Error):
-        st.error(f"Error while adding staff: {result}")
+    if result is None:  # Check if the result is None
+        st.error("Error while adding staff.")
     else:
         st.success(f"Added staff member: {staff_name}")
 
 def delete_staff(staff_id):
     query = "DELETE FROM STAFF WHERE staff_id = %s"
     result = execute_query(query, (staff_id,))
-    if isinstance(result, Error):
-        st.error(f"Error while deleting staff: {result}")
+    if result is None:
+        st.error("Error while deleting staff.")
     elif result.rowcount > 0:
         st.success(f"Deleted staff member with ID: {staff_id}")
     else:
@@ -34,8 +62,6 @@ def get_staff():
 
 def show_staff_management():
     st.subheader("Staff Management")
-    
-    # Ensure STAFF table exists
     create_table()
 
     # Add Staff
@@ -50,7 +76,7 @@ def show_staff_management():
     # View Staff
     st.write("### Available Staff")
     staff_data = get_staff()
-    if not staff_data.empty:
+    if staff_data is not None and not staff_data.empty:
         st.dataframe(staff_data)
 
         # Delete Staff
