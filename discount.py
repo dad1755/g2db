@@ -93,6 +93,7 @@ def delete_discount(dis_id):
     """Delete a discount by ID."""
     query = "DELETE FROM DISCOUNT WHERE dis_id = %s"
     execute_query(query, (dis_id,))
+    st.rerun()
 
 # Updated show_discount_management function
 def show_discount_management():
