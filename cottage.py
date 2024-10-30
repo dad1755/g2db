@@ -91,6 +91,7 @@ def show_cottage_management():
                 cot_id_to_delete = f"COT{cot_name_to_delete}"
                 delete_cottage(cot_id_to_delete)
                 st.success(f"Deleted Cottage with ID: {cot_id_to_delete}")
+                st.rerun()
             else:
                 st.warning("Please enter a Cottage Name to delete.")
     else:
