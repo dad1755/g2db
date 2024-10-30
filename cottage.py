@@ -47,10 +47,10 @@ def fetch_data(query):
             connection.close()
 
 # Cottage Management Functions
-def create_cottage(cot_id, cot_name):
+def create_cottage(cot_name):
     """Create a new cottage."""
-    query = "INSERT INTO COTTAGE (cot_id, cot_name) VALUES (%s, %s)"
-    execute_query(query, (cot_id, cot_name))
+    query = "INSERT INTO COTTAGE (cot_name) VALUES (%s)"
+    execute_query(query, (cot_name,))  # Only pass cot_name
 
 def get_cottages():
     """Fetch all cottages."""
@@ -68,14 +68,13 @@ def show_cottage_management():
 
     # Add Cottage
     st.write("### Add Cottage")
-    cot_id = st.text_input("Cottage ID")
     cot_name = st.text_input("Cottage Name")
     if st.button("Add Cottage"):
-        if cot_id and cot_name:
-            create_cottage(cot_id, cot_name)
+        if cot_name:
+            create_cottage(cot_name)
             st.success(f"Added Cottage: {cot_name}")
         else:
-            st.warning("Please enter both Cottage ID and Name.")
+            st.warning("Please enter a Cottage Name.")
 
     # View Cottages
     st.write("### Cottage List")
