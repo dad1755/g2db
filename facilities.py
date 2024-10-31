@@ -1,8 +1,9 @@
+# facilities.py
 import streamlit as st
 import mysql.connector
 from mysql.connector import Error
 
-# Hardcoded database configuration (make sure to secure your credentials)
+# Database configuration (update as necessary)
 DB_CONFIG = {
     'host': 'sql12.freemysqlhosting.net',
     'database': 'sql12741294',
@@ -46,7 +47,7 @@ def fetch_data(query):
             cursor.close()
             connection.close()
 
-# Facilities Management Functions
+# CRUD Functions for Facilities
 def create_facility(fac_detail):
     """Create a new facility."""
     query = "INSERT INTO FACILITIES (fac_detail) VALUES (%s)"
@@ -67,7 +68,7 @@ def delete_facility(fac_id):
     query = "DELETE FROM FACILITIES WHERE fac_id = %s"
     execute_query(query, (fac_id,))
 
-def show_facility_management():
+def show_facilities_management():
     """Streamlit UI for Facility Management."""
     st.subheader("Facility Management")
 
@@ -116,17 +117,3 @@ def show_facility_management():
                 st.warning("Please select a Facility to delete.")
     else:
         st.warning("No facilities found.")
-
-# Main function to call different management sections
-def show_management():
-    st.title("Management System")
-    management_option = st.sidebar.selectbox("Select Management Section", 
-                                               ["Facilities", "Location", "Room", "Maximum Pax", "Cottage Types", "Cottage Status"])
-    
-    if management_option == "Facilities":
-        show_facility_management()
-    # You can add additional elif conditions for other management sections here
-
-# Call the show_management function to display the UI
-if __name__ == "__main__":
-    show_management()
