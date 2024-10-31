@@ -851,3 +851,6 @@ def show_pool_management():
     else:
         st.warning("No cottage statuses found.")
 
+# Call the show_discount_management function to display the UI
+if __name__ == "__main__":
+    show_facilities_management()
