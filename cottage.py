@@ -79,6 +79,10 @@ def get_cottages():
 
 def get_cottage_details(cot_id):
     """Fetch detailed information for a specific cottage."""
+    if cot_id is None:
+        st.error("Cottage ID is None.")
+        return None
+    
     query = """
         SELECT C.*, P.pool_detail, L.loc_details, R.room_details, M.max_pax_details, CT.ct_details, CS.ct_details AS status_details
         FROM COTTAGE C
@@ -91,8 +95,17 @@ def get_cottage_details(cot_id):
         LEFT JOIN COTTAGE_STATUS CS ON CAR.ct_id_stat = CS.cottage_status_id
         WHERE C.cot_id = %s
     """
-    result = fetch_data(query, (cot_id,))
-    return result[0] if result else None
+    try:
+        result = fetch_data(query, (cot_id,))
+        if result:
+            return result[0]  # Return the first result
+        else:
+            st.warning("No details found for the selected cottage.")
+            return None
+    except Error as e:
+        st.error(f"Error fetching cottage details: {e}")
+        return None
+
 
 def delete_cottage(cot_id):
     """Delete a cottage by ID."""
@@ -188,20 +201,25 @@ def show_cottage_management():
         
         # Fetch and display the selected cottage details
         if selected_cottage_name:
-            selected_cottage_id = next(cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == selected_cottage_name)
-            cottage_details = get_cottage_details(selected_cottage_id)
-
-            if cottage_details:
-                st.write("#### Cottage Details")
-                st.write(f"**Cottage Name:** {cottage_details['cot_name']}")
-                st.write(f"**Pool:** {cottage_details['pool_detail']}")
-                st.write(f"**Location:** {cottage_details['loc_details']}")
-                st.write(f"**Room Details:** {cottage_details['room_details']}")
-                st.write(f"**Maximum Pax:** {cottage_details['max_pax_details']}")
-                st.write(f"**Cottage Type:** {cottage_details['ct_details']}")
-                st.write(f"**Cottage Status:** {cottage_details['status_details']}")
+            selected_cottage_id = next((cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == selected_cottage_name), None)
+            
+            if selected_cottage_id is not None:
+                cottage_details = get_cottage_details(selected_cottage_id)
+        
+                if cottage_details:
+                    st.write("#### Cottage Details")
+                    st.write(f"**Cottage Name:** {cottage_details['cot_name']}")
+                    st.write(f"**Pool:** {cottage_details['pool_detail']}")
+                    st.write(f"**Location:** {cottage_details['loc_details']}")
+                    st.write(f"**Room Details:** {cottage_details['room_details']}")
+                    st.write(f"**Maximum Pax:** {cottage_details['max_pax_details']}")
+                    st.write(f"**Cottage Type:** {cottage_details['ct_details']}")
+                    st.write(f"**Cottage Status:** {cottage_details['status_details']}")
+                else:
+                    st.warning("No details found for the selected cottage.")
             else:
-                st.warning("No details found for the selected cottage.")
+                st.warning("Selected cottage ID is invalid.")
+
 
         # Prepare to delete a cottage
         st.write("### Delete Cottage")
