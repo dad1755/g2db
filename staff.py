@@ -55,7 +55,11 @@ def create_staff(name, role, contact):
 def get_staff():
     """Fetch all staff members."""
     query = "SELECT * FROM STAFF"
-    return fetch_data(query)
+    data = fetch_data(query)
+    if data is None:
+        return []  # Return an empty list
+    return data
+
 
 def update_staff(staff_id, name, role, contact):
     """Update staff member information."""
@@ -87,32 +91,29 @@ def show_staff_management():
     st.write("### Staff List")
     staff_data = get_staff()
     if staff_data:
-        # Display staff data in a dataframe
         st.dataframe(staff_data)
-
         # Prepare to update a staff member
         st.write("### Update Staff Member")
         staff_names = [f"{staff['name']} (ID: {staff['staff_id']})" for staff in staff_data]
         staff_name_to_update = st.selectbox("Select Staff Member to Update", options=staff_names)
-        
-        # Extract selected staff ID
-        staff_id_to_update = int(staff_name_to_update.split("(ID: ")[-1][:-1])  # Extract ID
 
-        selected_staff = next((staff for staff in staff_data if staff['staff_id'] == staff_id_to_update), None)
-        
-        if selected_staff:
-            updated_name = st.text_input("Updated Name", value=selected_staff['name'])
-            updated_role = st.text_input("Updated Role", value=selected_staff['role'])
-            updated_contact = st.text_input("Updated Contact", value=selected_staff['contact'])
+        if staff_name_to_update:
+            staff_id_to_update = int(staff_name_to_update.split("(ID: ")[-1][:-1])  # Extract ID
+            selected_staff = next((staff for staff in staff_data if staff['staff_id'] == staff_id_to_update), None)
 
-            if st.button("Update Staff"):
-                update_staff(staff_id_to_update, updated_name, updated_role, updated_contact)
-                st.success(f"Updated Staff Member: {updated_name}")
+            if selected_staff:
+                updated_name = st.text_input("Updated Name", value=selected_staff['name'])
+                updated_role = st.text_input("Updated Role", value=selected_staff['role'])
+                updated_contact = st.text_input("Updated Contact", value=selected_staff['contact'])
+
+                if st.button("Update Staff"):
+                    update_staff(staff_id_to_update, updated_name, updated_role, updated_contact)
+                    st.success(f"Updated Staff Member: {updated_name}")
 
         # Prepare to delete a staff member
         st.write("### Delete Staff Member")
         staff_name_to_delete = st.selectbox("Select Staff Member to Delete", options=staff_names)
-        
+
         if st.button("Delete Staff"):
             if staff_name_to_delete:
                 delete_staff(staff_id_to_update)
@@ -121,6 +122,7 @@ def show_staff_management():
                 st.warning("Please select a Staff Member to delete.")
     else:
         st.warning("No staff members found.")
+
 
 # Call the show_staff_management function to display the UI
 if __name__ == "__main__":
