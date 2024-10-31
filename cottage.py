@@ -151,13 +151,27 @@ def show_cottage_management():
     ct_options = get_cottage_types()
     ct_stat_options = get_cottage_statuses()
 
-    # Selection boxes for cottage attributes
-    pool_id = st.selectbox("Select Pool", [pool['pool_id'] for pool in pool_options])
-    loc_id = st.selectbox("Select Location", [loc['loc_id'] for loc in loc_options])
-    room_id = st.selectbox("Select Room", [room['room_id'] for room in room_options])
-    max_pax_id = st.selectbox("Select Maximum Pax", [max_pax['max_pax_id'] for max_pax in max_pax_options])
-    ct_id = st.selectbox("Select Cottage Type", [ct['ct_id'] for ct in ct_options])
-    ct_id_stat = st.selectbox("Select Cottage Status", [cs['cottage_status_id'] for cs in ct_stat_options])
+    # Selection boxes for cottage attributes with detailed display
+    pool_selection = st.selectbox("Select Pool", 
+                                   options=[f"{pool['pool_id']}: {pool['pool_detail']}" for pool in pool_options])
+    loc_selection = st.selectbox("Select Location", 
+                                   options=[f"{loc['loc_id']}: {loc['loc_details']}" for loc in loc_options])
+    room_selection = st.selectbox("Select Room", 
+                                   options=[f"{room['room_id']}: {room['room_details']}" for room in room_options])
+    max_pax_selection = st.selectbox("Select Maximum Pax", 
+                                       options=[f"{max_pax['max_pax_id']}: {max_pax['max_pax_details']}" for max_pax in max_pax_options])
+    ct_selection = st.selectbox("Select Cottage Type", 
+                                 options=[f"{ct['ct_id']}: {ct['ct_details']}" for ct in ct_options])
+    ct_stat_selection = st.selectbox("Select Cottage Status", 
+                                      options=[f"{cs['cottage_status_id']}: {cs['ct_details']}" for cs in ct_stat_options])
+
+    # Extract selected IDs from the selections
+    pool_id = int(pool_selection.split(":")[0])
+    loc_id = int(loc_selection.split(":")[0])
+    room_id = int(room_selection.split(":")[0])
+    max_pax_id = int(max_pax_selection.split(":")[0])
+    ct_id = int(ct_selection.split(":")[0])
+    ct_id_stat = int(ct_stat_selection.split(":")[0])
 
     if st.button("Add Cottage"):
         if cot_name:
@@ -186,6 +200,8 @@ def show_cottage_management():
                 st.write(f"**Maximum Pax:** {cottage_details['max_pax_details']}")
                 st.write(f"**Cottage Type:** {cottage_details['ct_details']}")
                 st.write(f"**Cottage Status:** {cottage_details['status_details']}")
+            else:
+                st.warning("No details found for the selected cottage.")
 
         # Prepare to delete a cottage
         st.write("### Delete Cottage")
@@ -201,6 +217,7 @@ def show_cottage_management():
                 st.warning("Please select a Cottage to delete.")
     else:
         st.warning("No cottages found.")
+
 
 # Call the show_cottage_management function to display the UI
 if __name__ == "__main__":
