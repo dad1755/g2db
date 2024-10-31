@@ -253,12 +253,20 @@ def show_cottage_management():
                                           options=[f"{cs['cottage_status_id']}: {cs['ct_details']}" for cs in ct_stat_options])
 
         # Extract selected IDs from the selections
-        pool_id = int(pool_selection.split(":")[0])
-        loc_id = int(loc_selection.split(":")[0])
-        room_id = int(room_selection.split(":")[0])
-        max_pax_id = int(max_pax_selection.split(":")[0])
-        ct_id = int(ct_selection.split(":")[0])
-        ct_id_stat = int(ct_stat_selection.split(":")[0])
+        # Selection boxes for new attribute values
+        pool_selection = st.selectbox("Select New Pool", 
+                                       options=[f"{pool['pool_id']}: {pool['pool_detail']}" for pool in pool_options], key="edit_pool")
+        loc_selection = st.selectbox("Select New Location", 
+                                       options=[f"{loc['loc_id']}: {loc['loc_details']}" for loc in loc_options], key="edit_location")
+        room_selection = st.selectbox("Select New Room", 
+                                       options=[f"{room['room_id']}: {room['room_details']}" for room in room_options], key="edit_room")
+        max_pax_selection = st.selectbox("Select New Maximum Pax", 
+                                           options=[f"{max_pax['max_pax_id']}: {max_pax['max_pax_details']}" for max_pax in max_pax_options], key="edit_max_pax")
+        ct_selection = st.selectbox("Select New Cottage Type", 
+                                     options=[f"{ct['ct_id']}: {ct['ct_details']}" for ct in ct_options], key="edit_ct")
+        ct_stat_selection = st.selectbox("Select New Cottage Status", 
+                                          options=[f"{cs['cottage_status_id']}: {cs['ct_details']}" for cs in ct_stat_options], key="edit_ct_stat")
+
 
         if st.button("Edit Attributes"):
             if selected_cottage_id:
