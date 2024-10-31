@@ -55,7 +55,11 @@ def create_discount(discount_name, discount_percentage):
 def get_discounts():
     """Fetch all discounts."""
     query = "SELECT * FROM DISCOUNTS"
-    return fetch_data(query)
+    data = fetch_data(query)
+    if data is None:
+        return []  # Return an empty list instead of None to avoid errors in UI
+    return data
+
 
 def delete_discount(discount_id):
     """Delete a discount by ID."""
@@ -81,17 +85,14 @@ def show_discount_management():
     st.write("### Discount List")
     discount_data = get_discounts()
     if discount_data:
-        # Display discount data in a dataframe
         st.dataframe(discount_data)
-
         # Prepare to delete a discount
         st.write("### Delete Discount")
-        discount_names = [discount['discount_name'] for discount in discount_data]  # Extract names for selection
+        discount_names = [discount['discount_name'] for discount in discount_data]
         discount_name_to_delete = st.selectbox("Select Discount to Delete", options=discount_names)
-        
+
         if st.button("Delete Discount"):
             if discount_name_to_delete:
-                # Fetch the ID of the discount to delete
                 discount_id_to_delete = next(discount['discount_id'] for discount in discount_data if discount['discount_name'] == discount_name_to_delete)
                 delete_discount(discount_id_to_delete)
                 st.success(f"Deleted Discount: {discount_name_to_delete}")
@@ -99,6 +100,7 @@ def show_discount_management():
                 st.warning("Please select a Discount to delete.")
     else:
         st.warning("No discounts found.")
+
 
 # Call the show_discount_management function to display the UI
 if __name__ == "__main__":
