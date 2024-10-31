@@ -80,20 +80,23 @@ def show_cottage_management():
     st.write("### Cottage List")
     cottage_data = get_cottages()
     if cottage_data:
+        # Display cottage data in a dataframe
         st.dataframe(cottage_data)
 
-        # Delete Cottage
+        # Prepare to delete a cottage
         st.write("### Delete Cottage")
-        cot_name_to_delete = st.text_input("Enter Cottage Name to delete")
+        # Let the user select a cottage to delete
+        cottage_names = [cottage['cot_name'] for cottage in cottage_data]  # Extract names for selection
+        cot_name_to_delete = st.selectbox("Select Cottage to Delete", options=cottage_names)
+        
         if st.button("Delete Cottage"):
             if cot_name_to_delete:
-                # Combine "COT" with the cottage name
-                cot_id_to_delete = f"COT{cot_name_to_delete}"
+                # Fetch the ID of the cottage to delete
+                cot_id_to_delete = next(cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == cot_name_to_delete)
                 delete_cottage(cot_id_to_delete)
-                st.success(f"Deleted Cottage with ID: {cot_id_to_delete}")
-                st.rerun()
+                st.success(f"Deleted Cottage: {cot_name_to_delete}")
             else:
-                st.warning("Please enter a Cottage Name to delete.")
+                st.warning("Please select a Cottage to delete.")
     else:
         st.warning("No cottages found.")
 
