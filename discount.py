@@ -153,7 +153,7 @@ def show_discount_management():
             new_discount_amount = st.number_input("New Discount Amount", min_value=0.0, max_value=100.0, step=0.1, value=current_dis_amount)
 
             if st.button("Update Discount"):
-                if new_selected_staff:  # Ensuring new staff selection is valid
+                if new_selected_staff:
                     new_staff_id = int(new_selected_staff.split(" - ")[0])  # Get the selected staff ID
                     edit_discount(discount_to_edit, new_discount_amount, new_staff_id)
                     st.success(f"Updated Discount ID: {discount_to_edit}")
