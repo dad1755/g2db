@@ -30,6 +30,10 @@ def execute_query(query, params=None):
         if connection.is_connected():
             cursor.close()
             connection.close()
+def create_cottage(cot_name, cot_price):
+    """Create a new cottage with a name and price."""
+    query = "INSERT INTO COTTAGE (cot_name, cot_price) VALUES (%s, %s)"
+    execute_query(query, (cot_name, cot_price))
 
 def fetch_data(query, params=None):
     """Fetch data from the database with optional parameters."""
@@ -136,15 +140,6 @@ def cottage_has_attributes(cot_id):
     query = "SELECT COUNT(*) as count FROM COTTAGE_ATTRIBUTES_RELATION WHERE cot_id = %s"
     result = fetch_data(query, (cot_id,))
     return result[0]['count'] > 0 if result else False
-def create_cottage(cot_name, price):
-    """Create a new cottage."""
-    query = "INSERT INTO COTTAGE (cot_name, price) VALUES (%s, %s)"
-    execute_query(query, (cot_name, price))
-def edit_cottage(cottage_id, new_name, new_price):
-    """Edit an existing cottage's name and price."""
-    query = "UPDATE COTTAGE SET cot_name = %s, price = %s WHERE cot_id = %s"
-    execute_query(query, (new_name, new_price, cottage_id))
-
 
 def show_cottage_management():
     """Streamlit UI for Cottage Management."""
@@ -162,31 +157,36 @@ def show_cottage_management():
     # Add Cottage
     st.write("### Add Cottage")
     cot_name = st.text_input("Cottage Name")
+    cot_price = st.number_input("Cottage Price", min_value=0.0, step=0.01)  # Input for price
     if st.button("Create Cottage"):
-        if cot_name:
-            create_cottage(cot_name)
+        if cot_name and cot_price:
+            create_cottage(cot_name, cot_price)
             cottage_id = get_last_insert_id()
             st.success(f"Added Cottage: {cot_name} (ID: {cottage_id})")
             st.rerun()
         else:
-            st.warning("Please enter a Cottage Name.")
+            st.warning("Please enter both Cottage Name and Price.")
+
     # Edit Cottage
     st.write("### Edit Cottage")
     if cottage_data:
         selected_cottage_name = st.selectbox("Select a Cottage to Edit", 
                                              options=[cottage['cot_name'] for cottage in cottage_data])
         selected_cottage_id = next((cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == selected_cottage_name), None)
-        
         new_cot_name = st.text_input("New Cottage Name")
-        new_cot_price = st.number_input("New Cottage Price", min_value=0.0, format="%.2f")  # New input for price
-    
+        new_cot_price = st.number_input("New Cottage Price", min_value=0.0, step=0.01)  # Input for new price
+        
         if st.button("Update Cottage"):
-            if new_cot_name:
-                edit_cottage(selected_cottage_id, new_cot_name, new_cot_price)  # Call updated edit function
-                st.success(f"Updated Cottage to: {new_cot_name} with Price: {new_cot_price}")
+            if new_cot_name and new_cot_price:
+                edit_cottage(selected_cottage_id, new_cot_name, new_cot_price)  # Update to include price
+                st.success(f"Updated Cottage to: {new_cot_name} with price: {new_cot_price}")
             else:
-                st.warning("Please enter a new Cottage Name.")
+                st.warning("Please enter a new Cottage Name and Price.")
 
+        if st.button("Delete Cottage"):
+            delete_cottage(selected_cottage_id)
+            st.success(f"Deleted Cottage: {selected_cottage_name}")
+            st.rerun()
 
    
     # Cottage Attributes
