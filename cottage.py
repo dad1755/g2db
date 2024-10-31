@@ -212,8 +212,8 @@ def show_cottage_management():
                                           index=[i for i, loc in enumerate(loc_options) if loc['loc_id'] == current_attributes['loc_id']][0])
             room_selection = st.selectbox("Select Room", options=[f"{room['room_id']}: {room['room_details']}" for room in room_options],
                                           index=[i for i, room in enumerate(room_options) if room['room_id'] == current_attributes['room_id']][0])
-            max_pax_selection = st.selectbox("Select Maximum Pax", options=[f"{max_pax['max_pax_id']}: {max_pax['max_pax_details']}" for max_pax in max_pax_options],
-                                             index=[i for i, max_pax in enumerate(max_pax_options) if max_pax['max_pax_id'] == current_attributes['max_pax_id']][0])
+            max_pax_selection = st.selectbox("Select Maximum Pax", options=[f"{max_pax['max_pax_id']}: {max_pax['max_pax_detail']}" for max_pax in max_pax_options],
+                                              index=[i for i, max_pax in enumerate(max_pax_options) if max_pax['max_pax_id'] == current_attributes['max_pax_id']][0])
             ct_selection = st.selectbox("Select Cottage Type", options=[f"{ct['ct_id']}: {ct['ct_details']}" for ct in ct_options],
                                          index=[i for i, ct in enumerate(ct_options) if ct['ct_id'] == current_attributes['ct_id']][0])
             ct_stat_selection = st.selectbox("Select Cottage Status", options=[f"{ct_stat['ct_id_stat']}: {ct_stat['ct_details_stat']}" for ct_stat in ct_stat_options],
@@ -229,7 +229,6 @@ def show_cottage_management():
 
                 edit_cottage_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_id_stat)
                 st.success("Updated Cottage Attributes")
-
         else:
             st.warning("No attributes found for the selected cottage.")
 
