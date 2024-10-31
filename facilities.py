@@ -559,7 +559,7 @@ def delete_cottage_status(cottage_status_id):
     query = "DELETE FROM COTTAGE_STATUS WHERE cottage_status_id = %s"
     execute_query(query, (cottage_status_id,))
 
-def show_poolilities_management():
+def show_pool_management():
     """Streamlit UI for Facility Management."""
     st.subheader("Management Dashboard")
 
@@ -567,49 +567,49 @@ def show_poolilities_management():
     # Add Facility
     # ===================
     st.write("### Add Facility")
-    pool_detail = st.text_input("Facility Detail")
-    if st.button("Add Facility"):
+    pool_detail = st.text_input("Pool Detail")
+    if st.button("Add Pool"):
         if pool_detail:
-            create_poolility(pool_detail)
-            st.success(f"Added Facility: {pool_detail}")
+            create_pool(pool_detail)
+            st.success(f"Added Pool: {pool_detail}")
         else:
-            st.warning("Please fill in the Facility Detail.")
+            st.warning("Please fill in the Pool Detail.")
 
-    # View Facilities
-    st.write("### Facility List")
-    poolilities_data = get_poolilities()
-    if poolilities_data:
-        st.dataframe(poolilities_data)
+    # View Pool
+    st.write("### Pool List")
+    pool_data = get_pool()
+    if pool_data:
+        st.dataframe(pool_data)
         
-        # Update Facility
-        st.write("### Update Facility")
-        pool_names = [f"{poolility['pool_detail']} (ID: {poolility['pool_id']})" for poolility in poolilities_data]
-        pool_name_to_update = st.selectbox("Select Facility to Update", options=pool_names)
+        # Update Pool
+        st.write("### Update Pool")
+        pool_names = [f"{pool['pool_detail']} (ID: {pool['pool_id']})" for pool in pool_data]
+        pool_name_to_update = st.selectbox("Select Pool to Update", options=pool_names)
 
         if pool_name_to_update:
             pool_id_to_update = int(pool_name_to_update.split("(ID: ")[-1][:-1])  # Extract ID
-            selected_poolility = next((poolility for poolility in poolilities_data if poolility['pool_id'] == pool_id_to_update), None)
+            selected_pool = next((pool for pool in pool_data if pool['pool_id'] == pool_id_to_update), None)
 
-            if selected_poolility:
-                updated_detail = st.text_input("Updated Facility Detail", value=selected_poolility['pool_detail'])
+            if selected_pool:
+                updated_detail = st.text_input("Updated Pool Detail", value=selected_pool['pool_detail'])
 
-                if st.button("Update Facility"):
-                    update_poolility(pool_id_to_update, updated_detail)
+                if st.button("Update Pool"):
+                    update_pool(pool_id_to_update, updated_detail)
                     st.success(f"Updated Facility: {updated_detail}")
 
-        # Delete Facility
-        st.write("### Delete Facility")
-        pool_name_to_delete = st.selectbox("Select Facility to Delete", options=pool_names)
+        # Delete Pool
+        st.write("### Delete Pool")
+        pool_name_to_delete = st.selectbox("Select Pool to Delete", options=pool_names)
 
-        if st.button("Delete Facility"):
+        if st.button("Delete Pool"):
             if pool_name_to_delete:
                 pool_id_to_delete = int(pool_name_to_delete.split("(ID: ")[-1][:-1])  # Extract ID
-                delete_poolility(pool_id_to_delete)
-                st.success(f"Deleted Facility: {pool_name_to_delete}")
+                delete_pool(pool_id_to_delete)
+                st.success(f"Deleted Pool: {pool_name_to_delete}")
             else:
-                st.warning("Please select a Facility to delete.")
+                st.warning("Please select a Pool to delete.")
     else:
-        st.warning("No poolilities found.")
+        st.warning("No pool found.")
 
     # ===================
     # Add Location
