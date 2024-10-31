@@ -67,16 +67,19 @@ def delete_cottage(cot_id):
     # Step 2: Delete discounts for this cottage using cot_id
     delete_discounts_query = "DELETE FROM DISCOUNT WHERE cot_id = %s"
     execute_query(delete_discounts_query, (cot_id,))
-    
+
+    # After executing this, we do not need to fetch any result, so we can safely move on
+
     # Step 3: Delete attributes related to the cottage
     delete_attributes_query = "DELETE FROM COTTAGE_ATTRIBUTES_RELATION WHERE cot_id = %s"
     execute_query(delete_attributes_query, (cot_id,))
-    
+
     # Step 4: Delete the cottage itself
     delete_cottage_query = "DELETE FROM COTTAGE WHERE cot_id = %s"
     execute_query(delete_cottage_query, (cot_id,))
     
     print(f"Cottage '{cottage_name}' with ID {cot_id} and its related data have been deleted.")
+
 
 
 def edit_cottage(cottage_id, new_name):
