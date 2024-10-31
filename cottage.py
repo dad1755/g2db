@@ -184,6 +184,18 @@ def show_cottage_management():
         st.dataframe(attributes_df)
     else:
         st.warning("No cottage attributes found.")
+    # Cottage Attributes
+    st.write("### Cottage Attributes")
+    cottage_attributes_data = get_cottage_attributes_relation()
+    if cottage_attributes_data:
+        attributes_df = pd.DataFrame(cottage_attributes_data)
+        st.dataframe(attributes_df)  # Display the attributes in a grid format
+    else:
+        st.warning("No cottage attributes found. ----> VIEW GRID HERE")
+        # Create an empty DataFrame for display
+        empty_df = pd.DataFrame(columns=["cot_id", "pool_id", "loc_id", "room_id", "max_pax_id", "ct_id", "ct_id_stat"])
+        st.dataframe(empty_df)  # Display an empty grid for better UX
+
 
     # Add Cottage Attributes
     st.write("### Add Attributes for Cottage")
