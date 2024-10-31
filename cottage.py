@@ -136,6 +136,15 @@ def cottage_has_attributes(cot_id):
     query = "SELECT COUNT(*) as count FROM COTTAGE_ATTRIBUTES_RELATION WHERE cot_id = %s"
     result = fetch_data(query, (cot_id,))
     return result[0]['count'] > 0 if result else False
+def create_cottage(cot_name, price):
+    """Create a new cottage."""
+    query = "INSERT INTO COTTAGE (cot_name, price) VALUES (%s, %s)"
+    execute_query(query, (cot_name, price))
+def edit_cottage(cottage_id, new_name, new_price):
+    """Edit an existing cottage's name and price."""
+    query = "UPDATE COTTAGE SET cot_name = %s, price = %s WHERE cot_id = %s"
+    execute_query(query, (new_name, new_price, cottage_id))
+
 
 def show_cottage_management():
     """Streamlit UI for Cottage Management."""
@@ -161,26 +170,23 @@ def show_cottage_management():
             st.rerun()
         else:
             st.warning("Please enter a Cottage Name.")
-
     # Edit Cottage
     st.write("### Edit Cottage")
     if cottage_data:
         selected_cottage_name = st.selectbox("Select a Cottage to Edit", 
                                              options=[cottage['cot_name'] for cottage in cottage_data])
         selected_cottage_id = next((cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == selected_cottage_name), None)
-        new_cot_name = st.text_input("New Cottage Name")
         
+        new_cot_name = st.text_input("New Cottage Name")
+        new_cot_price = st.number_input("New Cottage Price", min_value=0.0, format="%.2f")  # New input for price
+    
         if st.button("Update Cottage"):
             if new_cot_name:
-                edit_cottage(selected_cottage_id, new_cot_name)
-                st.success(f"Updated Cottage to: {new_cot_name}")
+                edit_cottage(selected_cottage_id, new_cot_name, new_cot_price)  # Call updated edit function
+                st.success(f"Updated Cottage to: {new_cot_name} with Price: {new_cot_price}")
             else:
                 st.warning("Please enter a new Cottage Name.")
 
-        if st.button("Delete Cottage"):
-            delete_cottage(selected_cottage_id)
-            st.success(f"Deleted Cottage: {selected_cottage_name}")
-            st.rerun()
 
    
     # Cottage Attributes
