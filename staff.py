@@ -17,7 +17,7 @@ def execute_query(query, params=None):
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor()
         if params:
-            cursor.execute(query, params)
+            cursor.execute(query, params)  # Using parameterized queries is good for safety
         else:
             cursor.execute(query)
         connection.commit()
@@ -61,7 +61,7 @@ def delete_staff(staff_name):
     """Delete a staff member by name."""
     query = "DELETE FROM STAFF WHERE staff_name = %s"
     execute_query(query, (staff_name,))
-    st.rerun()
+    st.rerun()  # Refresh the app to show changes
 
 def show_staff_management():
     """Streamlit UI for Staff Management."""
