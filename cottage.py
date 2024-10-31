@@ -52,6 +52,15 @@ def create_cottage(cot_name):
     """Create a new cottage."""
     query = "INSERT INTO COTTAGE (cot_name) VALUES (%s)"
     execute_query(query, (cot_name,))
+def edit_cottage_attributes(cottage_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat):
+    """Edit attributes of an existing cottage."""
+    query = """
+        UPDATE COTTAGE_ATTRIBUTES_RELATION 
+        SET pool_id = %s, loc_id = %s, room_id = %s, max_pax_id = %s, ct_id = %s, ct_id_stat = %s
+        WHERE cot_id = %s
+    """
+    execute_query(query, (pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat, cottage_id))
+
 
 def create_cottage_with_attributes(cottage_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat):
     """Link attributes to an existing cottage."""
@@ -210,6 +219,63 @@ def show_cottage_management():
             st.warning("No attributes found for the selected cottage.")
     else:
         st.warning("No cottages available for editing.")
+    #edit Cottage Attributes
+    # Edit Cottage Attributes
+    st.write("### Edit Cottage Attributes")
+    cottage_data = get_cottages()  # Fetch existing cottages
+    if cottage_data:
+        selected_cottage_name = st.selectbox("Select a Cottage to Edit Attributes", 
+                                               options=[cottage['cot_name'] for cottage in cottage_data])
+        
+        # Get the cottage ID for the selected name
+        selected_cottage_id = next((cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == selected_cottage_name), None)
+        
+        # Fetch options for cottage attributes
+        pool_options = get_pools()
+        loc_options = get_locations()
+        room_options = get_rooms()
+        max_pax_options = get_maximum_pax()
+        ct_options = get_cottage_types()
+        ct_stat_options = get_cottage_statuses()
+
+        # Selection boxes for new attribute values
+        pool_selection = st.selectbox("Select New Pool", 
+                                       options=[f"{pool['pool_id']}: {pool['pool_detail']}" for pool in pool_options])
+        loc_selection = st.selectbox("Select New Location", 
+                                       options=[f"{loc['loc_id']}: {loc['loc_details']}" for loc in loc_options])
+        room_selection = st.selectbox("Select New Room", 
+                                       options=[f"{room['room_id']}: {room['room_details']}" for room in room_options])
+        max_pax_selection = st.selectbox("Select New Maximum Pax", 
+                                           options=[f"{max_pax['max_pax_id']}: {max_pax['max_pax_details']}" for max_pax in max_pax_options])
+        ct_selection = st.selectbox("Select New Cottage Type", 
+                                     options=[f"{ct['ct_id']}: {ct['ct_details']}" for ct in ct_options])
+        ct_stat_selection = st.selectbox("Select New Cottage Status", 
+                                          options=[f"{cs['cottage_status_id']}: {cs['ct_details']}" for cs in ct_stat_options])
+
+        # Extract selected IDs from the selections
+        pool_id = int(pool_selection.split(":")[0])
+        loc_id = int(loc_selection.split(":")[0])
+        room_id = int(room_selection.split(":")[0])
+        max_pax_id = int(max_pax_selection.split(":")[0])
+        ct_id = int(ct_selection.split(":")[0])
+        ct_id_stat = int(ct_stat_selection.split(":")[0])
+
+        if st.button("Edit Attributes"):
+            if selected_cottage_id:
+                edit_cottage_attributes(selected_cottage_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat)
+                st.success(f"Updated Attributes for Cottage: {selected_cottage_name}")
+                
+                # Show the COTTAGE_ATTRIBUTES_RELATION table after editing attributes
+                st.write("### Updated Cottage Attributes Relation")
+                cottage_attributes_data = get_cottage_attributes_relation()
+                if cottage_attributes_data:
+                    cottage_attributes_df = pd.DataFrame(cottage_attributes_data)
+                    st.dataframe(cottage_attributes_df)  # Display updated cottage attributes in a grid
+                else:
+                    st.warning("No cottage attributes found.")
+            else:
+                st.warning("Please select a Cottage to edit attributes.")
+
 
 # Call the show_cottage_management function to display the UI
 if __name__ == "__main__":
