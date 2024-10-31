@@ -77,6 +77,23 @@ def get_cottages():
         return []  # Return an empty list
     return data
 
+def get_cottage_details(cot_id):
+    """Fetch detailed information for a specific cottage."""
+    query = """
+        SELECT C.*, P.pool_detail, L.loc_details, R.room_details, M.max_pax_details, CT.ct_details, CS.ct_details AS status_details
+        FROM COTTAGE C
+        LEFT JOIN COTTAGE_ATTRIBUTES_RELATION CAR ON C.cot_id = CAR.cot_id
+        LEFT JOIN POOL P ON CAR.pool_id = P.pool_id
+        LEFT JOIN LOCATION L ON CAR.loc_id = L.loc_id
+        LEFT JOIN ROOM R ON CAR.room_id = R.room_id
+        LEFT JOIN MAXIMUM_PAX M ON CAR.max_pax_id = M.max_pax_id
+        LEFT JOIN COTTAGE_TYPES CT ON CAR.ct_id = CT.ct_id
+        LEFT JOIN COTTAGE_STATUS CS ON CAR.ct_id_stat = CS.cottage_status_id
+        WHERE C.cot_id = %s
+    """
+    result = fetch_data(query, (cot_id,))
+    return result[0] if result else None
+
 def delete_cottage(cot_id):
     """Delete a cottage by ID."""
     query = "DELETE FROM COTTAGE WHERE cot_id = %s"
@@ -153,7 +170,22 @@ def show_cottage_management():
     st.write("### Cottage List")
     cottage_data = get_cottages()
     if cottage_data:
-        st.dataframe(cottage_data)
+        selected_cottage_name = st.selectbox("Select a Cottage to View Details", options=[cottage['cot_name'] for cottage in cottage_data])
+        
+        # Fetch and display the selected cottage details
+        if selected_cottage_name:
+            selected_cottage_id = next(cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == selected_cottage_name)
+            cottage_details = get_cottage_details(selected_cottage_id)
+
+            if cottage_details:
+                st.write("#### Cottage Details")
+                st.write(f"**Cottage Name:** {cottage_details['cot_name']}")
+                st.write(f"**Pool:** {cottage_details['pool_detail']}")
+                st.write(f"**Location:** {cottage_details['loc_details']}")
+                st.write(f"**Room Details:** {cottage_details['room_details']}")
+                st.write(f"**Maximum Pax:** {cottage_details['max_pax_details']}")
+                st.write(f"**Cottage Type:** {cottage_details['ct_details']}")
+                st.write(f"**Cottage Status:** {cottage_details['status_details']}")
 
         # Prepare to delete a cottage
         st.write("### Delete Cottage")
