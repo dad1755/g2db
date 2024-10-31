@@ -47,10 +47,10 @@ def fetch_data(query):
             connection.close()
 
 # Staff Management Functions
-def create_staff(name):
+def create_staff(staff_name):
     """Create a new staff member."""
-    query = "INSERT INTO STAFF (name) VALUES (%s)"
-    execute_query(query, (name,))
+    query = "INSERT INTO STAFF (staff_name) VALUES (%s)"  # Use staff_name instead of name
+    execute_query(query, (staff_name,))
 
 def get_staff():
     """Fetch all staff members."""
@@ -60,10 +60,10 @@ def get_staff():
         return []  # Return an empty list
     return data
 
-def update_staff(staff_id, name):
+def update_staff(staff_id, staff_name):
     """Update staff member information."""
-    query = "UPDATE STAFF SET name = %s WHERE staff_id = %s"
-    execute_query(query, (name, staff_id))
+    query = "UPDATE STAFF SET staff_name = %s WHERE staff_id = %s"  # Use staff_name instead of name
+    execute_query(query, (staff_name, staff_id))
 
 def delete_staff(staff_id):
     """Delete a staff member by ID."""
@@ -92,7 +92,7 @@ def show_staff_management():
 
         # Prepare to update a staff member
         st.write("### Update Staff Member")
-        staff_names = [f"{staff['name']} (ID: {staff['staff_id']})" for staff in staff_data]
+        staff_names = [f"{staff['staff_name']} (ID: {staff['staff_id']})" for staff in staff_data]  # Use staff_name
         staff_name_to_update = st.selectbox("Select Staff Member to Update", options=staff_names)
 
         if staff_name_to_update:
@@ -100,7 +100,7 @@ def show_staff_management():
             selected_staff = next((staff for staff in staff_data if staff['staff_id'] == staff_id_to_update), None)
 
             if selected_staff:
-                updated_name = st.text_input("Updated Name", value=selected_staff['name'])
+                updated_name = st.text_input("Updated Name", value=selected_staff['staff_name'])  # Use staff_name
 
                 if st.button("Update Staff"):
                     update_staff(staff_id_to_update, updated_name)
@@ -119,7 +119,6 @@ def show_staff_management():
                 st.warning("Please select a Staff Member to delete.")
     else:
         st.warning("No staff members found.")
-
 
 # Call the show_staff_management function to display the UI
 if __name__ == "__main__":
