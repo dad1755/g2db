@@ -219,70 +219,64 @@ def show_cottage_management():
             st.warning("No attributes found for the selected cottage.")
     else:
         st.warning("No cottages available for editing.")
-    #edit Cottage Attributes
-    # Edit Cottage Attributes
-    st.write("### Edit Cottage Attributes")
-    cottage_data = get_cottages()  # Fetch existing cottages
+    
+    
+    # Edit Attributes for Existing Cottage
+    st.write("### Edit Attributes for Cottage")
     if cottage_data:
         selected_cottage_name = st.selectbox("Select a Cottage to Edit Attributes", 
-                                               options=[cottage['cot_name'] for cottage in cottage_data])
-        
-        # Get the cottage ID for the selected name
+                                             options=[cottage['cot_name'] for cottage in cottage_data], key="cottage_select")
         selected_cottage_id = next((cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == selected_cottage_name), None)
-        
-        # Fetch options for cottage attributes
-        pool_options = get_pools()
-        loc_options = get_locations()
-        room_options = get_rooms()
-        max_pax_options = get_maximum_pax()
-        ct_options = get_cottage_types()
-        ct_stat_options = get_cottage_statuses()
-
-        # Selection boxes for new attribute values
-        pool_selection = st.selectbox("Select New Pool", 
-                                       options=[f"{pool['pool_id']}: {pool['pool_detail']}" for pool in pool_options])
-        loc_selection = st.selectbox("Select New Location", 
-                                       options=[f"{loc['loc_id']}: {loc['loc_details']}" for loc in loc_options])
-        room_selection = st.selectbox("Select New Room", 
-                                       options=[f"{room['room_id']}: {room['room_details']}" for room in room_options])
-        max_pax_selection = st.selectbox("Select New Maximum Pax", 
-                                           options=[f"{max_pax['max_pax_id']}: {max_pax['max_pax_details']}" for max_pax in max_pax_options])
-        ct_selection = st.selectbox("Select New Cottage Type", 
-                                     options=[f"{ct['ct_id']}: {ct['ct_details']}" for ct in ct_options])
-        ct_stat_selection = st.selectbox("Select New Cottage Status", 
-                                          options=[f"{cs['cottage_status_id']}: {cs['ct_details']}" for cs in ct_stat_options])
-
-        # Extract selected IDs from the selections
-        # Selection boxes for new attribute values
-        pool_selection = st.selectbox("Select New Pool", 
-                                       options=[f"{pool['pool_id']}: {pool['pool_detail']}" for pool in pool_options], key="edit_pool")
-        loc_selection = st.selectbox("Select New Location", 
-                                       options=[f"{loc['loc_id']}: {loc['loc_details']}" for loc in loc_options], key="edit_location")
-        room_selection = st.selectbox("Select New Room", 
-                                       options=[f"{room['room_id']}: {room['room_details']}" for room in room_options], key="edit_room")
-        max_pax_selection = st.selectbox("Select New Maximum Pax", 
-                                           options=[f"{max_pax['max_pax_id']}: {max_pax['max_pax_details']}" for max_pax in max_pax_options], key="edit_max_pax")
-        ct_selection = st.selectbox("Select New Cottage Type", 
-                                     options=[f"{ct['ct_id']}: {ct['ct_details']}" for ct in ct_options], key="edit_ct")
-        ct_stat_selection = st.selectbox("Select New Cottage Status", 
-                                          options=[f"{cs['cottage_status_id']}: {cs['ct_details']}" for cs in ct_stat_options], key="edit_ct_stat")
-
-
-        if st.button("Edit Attributes"):
-            if selected_cottage_id:
+    
+        cottage_attributes_data = get_cottage_attributes_relation()
+        current_attributes = next((attr for attr in cottage_attributes_data if attr['cot_id'] == selected_cottage_id), None)
+    
+        if current_attributes:
+            pool_options = get_pools()
+            loc_options = get_locations()
+            room_options = get_rooms()
+            max_pax_options = get_maximum_pax()
+            ct_options = get_cottage_types()
+            ct_stat_options = get_cottage_statuses()
+    
+            pool_selection = st.selectbox("Select Pool", options=[f"{pool['pool_id']}: {pool['pool_detail']}" for pool in pool_options],
+                                          index=[i for i, pool in enumerate(pool_options) if pool['pool_id'] == current_attributes['pool_id']][0], key="pool_select")
+            loc_selection = st.selectbox("Select Location", options=[f"{loc['loc_id']}: {loc['loc_details']}" for loc in loc_options],
+                                          index=[i for i, loc in enumerate(loc_options) if loc['loc_id'] == current_attributes['loc_id']][0], key="loc_select")
+            room_selection = st.selectbox("Select Room", options=[f"{room['room_id']}: {room['room_details']}" for room in room_options],
+                                          index=[i for i, room in enumerate(room_options) if room['room_id'] == current_attributes['room_id']][0], key="room_select")
+            max_pax_selection = st.selectbox("Select Maximum Pax", options=[f"{max_pax['max_pax_id']}: {max_pax['max_pax_details']}" for max_pax in max_pax_options],
+                                             index=[i for i, max_pax in enumerate(max_pax_options) if max_pax['max_pax_id'] == current_attributes['max_pax_id']][0], key="max_pax_select")
+            ct_selection = st.selectbox("Select Cottage Type", options=[f"{ct['ct_id']}: {ct['ct_details']}" for ct in ct_options],
+                                        index=[i for i, ct in enumerate(ct_options) if ct['ct_id'] == current_attributes['ct_id']][0], key="ct_select")
+            ct_stat_selection = st.selectbox("Select Cottage Status", options=[f"{cs['cottage_status_id']}: {cs['ct_details']}" for cs in ct_stat_options],
+                                             index=[i for i, cs in enumerate(ct_stat_options) if cs['cottage_status_id'] == current_attributes['ct_id_stat']][0], key="ct_stat_select")
+    
+            # Extract IDs
+            pool_id = int(pool_selection.split(":")[0])
+            loc_id = int(loc_selection.split(":")[0])
+            room_id = int(room_selection.split(":")[0])
+            max_pax_id = int(max_pax_selection.split(":")[0])
+            ct_id = int(ct_selection.split(":")[0])
+            ct_id_stat = int(ct_stat_selection.split(":")[0])
+    
+            if st.button("Update Attributes", key="update_attributes_button"):
                 edit_cottage_attributes(selected_cottage_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat)
                 st.success(f"Updated Attributes for Cottage: {selected_cottage_name}")
-                
-                # Show the COTTAGE_ATTRIBUTES_RELATION table after editing attributes
+    
+                # Display updated cottage attributes
                 st.write("### Updated Cottage Attributes Relation")
-                cottage_attributes_data = get_cottage_attributes_relation()
-                if cottage_attributes_data:
-                    cottage_attributes_df = pd.DataFrame(cottage_attributes_data)
-                    st.dataframe(cottage_attributes_df)  # Display updated cottage attributes in a grid
+                updated_cottage_attributes_data = get_cottage_attributes_relation()
+                if updated_cottage_attributes_data:
+                    updated_cottage_attributes_df = pd.DataFrame(updated_cottage_attributes_data)
+                    st.dataframe(updated_cottage_attributes_df)
                 else:
                     st.warning("No cottage attributes found.")
-            else:
-                st.warning("Please select a Cottage to edit attributes.")
+        else:
+            st.warning("No attributes found for the selected cottage.")
+    else:
+        st.warning("No cottages available for editing.")
+
 
 
 # Call the show_cottage_management function to display the UI
