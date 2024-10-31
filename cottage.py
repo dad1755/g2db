@@ -120,7 +120,7 @@ def get_cottage_attributes_relation():
             P.pool_detail,
             L.loc_details,
             R.room_details,
-            MP.max_pax_detail,
+            MP.max_pax_id,  -- Adjusted to use existing column
             CT.ct_details,
             CS.ct_details_stat
         FROM 
@@ -134,6 +134,7 @@ def get_cottage_attributes_relation():
         JOIN COTTAGE_STATUS CS ON CAR.ct_id_stat = CS.ct_id_stat
     """
     return fetch_data(query)
+
 
 def show_cottage_management():
     """Streamlit UI for Cottage Management."""
