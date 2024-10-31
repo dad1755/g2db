@@ -1,6 +1,7 @@
 import streamlit as st
 import mysql.connector
 from mysql.connector import Error
+from decimal import Decimal
 
 # Hardcoded database configuration (make sure to secure your credentials)
 DB_CONFIG = {
@@ -63,6 +64,9 @@ def get_discounts():
     data = fetch_data(query)
     if data is None:
         return []  # Return an empty list instead of None to avoid errors in UI
+    # Convert Decimal amounts to float
+    for row in data:
+        row['dis_amount'] = float(row['dis_amount']) if isinstance(row['dis_amount'], Decimal) else row['dis_amount']
     return data
 
 def delete_discount(discount_id):
@@ -84,11 +88,6 @@ def get_staff():
     """Fetch all staff members."""
     query = "SELECT * FROM STAFF"
     return fetch_data(query) or []
-
-def cottage_exists(cot_name):
-    """Check if a cottage name already exists."""
-    query = "SELECT * FROM COTTAGE WHERE cot_name = %s"
-    return fetch_data(query, (cot_name,))
 
 def show_discount_management():
     """Streamlit UI for Discount Management."""
