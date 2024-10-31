@@ -176,14 +176,7 @@ def show_cottage_management():
             delete_cottage(selected_cottage_id)
             st.success(f"Deleted Cottage: {selected_cottage_name}")
 
-    # Cottage Attributes
-    st.write("### Cottage Attributes")
-    cottage_attributes_data = get_cottage_attributes_relation()
-    if cottage_attributes_data:
-        attributes_df = pd.DataFrame(cottage_attributes_data)
-        st.dataframe(attributes_df)
-    else:
-        st.warning("No cottage attributes found.")
+   
     # Cottage Attributes
     st.write("### Cottage Attributes")
     cottage_attributes_data = get_cottage_attributes_relation()
