@@ -12,24 +12,31 @@ DB_CONFIG = {
     'port': 3306
 }
 
-def execute_query(query, params=None):
+def execute_query(query, params=None, fetch=False):
     """Execute a query with optional parameters."""
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor()
+        
         if params:
             cursor.execute(query, params)
         else:
             cursor.execute(query)
-        connection.commit()
-        return cursor.rowcount  # Return number of affected rows
+
+        if fetch:
+            return cursor.fetchall()  # Return results if it's a SELECT query
+        else:
+            connection.commit()
+            return cursor.rowcount  # Return number of affected rows for INSERT/DELETE/UPDATE
     except Error as e:
         st.error(f"Error: {e}")
         return None
     finally:
+        if cursor:
+            cursor.close()  # Ensure cursor is closed
         if connection.is_connected():
-            cursor.close()
-            connection.close()
+            connection.close()  # Ensure connection is closed
+
 
 
 def create_cottage(cot_name, cot_price):
@@ -58,27 +65,30 @@ def delete_cottage(cot_id):
     
     # Step 1: Get the cottage name for the given cottage ID
     get_cottage_name_query = "SELECT cot_name FROM COTTAGE WHERE cot_id = %s"
-    cottage_name_result = execute_query(get_cottage_name_query, (cot_id,))
+    cottage_name_result = execute_query(get_cottage_name_query, (cot_id,), fetch=True)  # Set fetch to True
     
     if not cottage_name_result:
-        print(f"Cottage with ID {cot_id} does not exist.")
+        st.warning(f"Cottage with ID {cot_id} does not exist.")
         return
 
     cottage_name = cottage_name_result[0][0]  # Extract the cottage name
 
     # Step 2: Check for discounts related to this cottage
     check_discounts_query = "SELECT COUNT(*) FROM DISCOUNT WHERE cot_id = %s"
-    discount_count_result = execute_query(check_discounts_query, (cot_id,))
+    discount_count_result = execute_query(check_discounts_query, (cot_id,), fetch=True)  # Set fetch to True
     
-    discount_count = discount_count_result[0][0]  # Extract count from result
+    if discount_count_result:
+        discount_count = discount_count_result[0][0]  # Extract count from result
+    else:
+        discount_count = 0
 
     if discount_count > 0:
         # If there are discounts, delete them
         delete_discounts_query = "DELETE FROM DISCOUNT WHERE cot_id = %s"
         execute_query(delete_discounts_query, (cot_id,))
-        print(f"Deleted {discount_count} discount(s) associated with cottage '{cottage_name}'.")
+        st.success(f"Deleted {discount_count} discount(s) associated with cottage '{cottage_name}'.")
     else:
-        print(f"No discounts found for cottage '{cottage_name}'.")
+        st.warning(f"No discounts found for cottage '{cottage_name}'.")
 
     # Step 3: Delete attributes related to the cottage
     delete_attributes_query = "DELETE FROM COTTAGE_ATTRIBUTES_RELATION WHERE cot_id = %s"
@@ -88,7 +98,8 @@ def delete_cottage(cot_id):
     delete_cottage_query = "DELETE FROM COTTAGE WHERE cot_id = %s"
     execute_query(delete_cottage_query, (cot_id,))
     
-    print(f"Cottage '{cottage_name}' with ID {cot_id} and its related data have been deleted.")
+    st.success(f"Cottage '{cottage_name}' with ID {cot_id} and its related data have been deleted.")
+
 
 
 def edit_cottage(cottage_id, new_name, new_price):
