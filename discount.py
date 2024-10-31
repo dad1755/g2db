@@ -74,10 +74,10 @@ def delete_discount(discount_id):
     query = "DELETE FROM DISCOUNT WHERE dis_id = %s"
     execute_query(query, (discount_id,))
 
-def edit_discount(dis_id, new_cot_id, new_dis_amount, new_staff_id):
+def edit_discount(dis_id, new_dis_amount, new_staff_id):
     """Edit an existing discount."""
-    query = "UPDATE DISCOUNT SET cot_id = %s, dis_amount = %s, staff_id = %s WHERE dis_id = %s"
-    execute_query(query, (new_cot_id, new_dis_amount, new_staff_id, dis_id))
+    query = "UPDATE DISCOUNT SET dis_amount = %s, staff_id = %s WHERE dis_id = %s"
+    execute_query(query, (new_dis_amount, new_staff_id, dis_id))
 
 def get_cottages():
     """Fetch all cottages."""
@@ -144,23 +144,21 @@ def show_discount_management():
             current_staff_name = current_discount['staff_name']
 
             # Display current details
-            st.write(f"Current Cottage: {current_cot_name}")
+            st.write(f"Current Cottage: {current_cot_name}")  # Current cottage displayed but not editable
             st.write(f"Current Discount Amount: {current_dis_amount}")
             st.write(f"Current Staff: {current_staff_name}")
 
-            # New values for edit
-            new_selected_cot = st.selectbox("New Cottage", options=cot_names)
-            new_selected_staff = st.selectbox("New Staff", options=staff_names)
+            # New staff for edit
+            new_selected_staff = st.selectbox("New Staff (leave as is if unchanged)", options=staff_names)
             new_discount_amount = st.number_input("New Discount Amount", min_value=0.0, max_value=100.0, step=0.1, value=current_dis_amount)
 
             if st.button("Update Discount"):
-                if new_selected_cot and new_selected_staff:
-                    new_cot_id = int(new_selected_cot.split(" - ")[0])
-                    new_staff_id = int(new_selected_staff.split(" - ")[0])
-                    edit_discount(discount_to_edit, new_cot_id, new_discount_amount, new_staff_id)
+                if new_selected_staff:
+                    new_staff_id = int(new_selected_staff.split(" - ")[0])  # Get the selected staff ID
+                    edit_discount(discount_to_edit, new_discount_amount, new_staff_id)
                     st.success(f"Updated Discount ID: {discount_to_edit}")
                 else:
-                    st.warning("Please select a new Cottage and Staff.")
+                    st.warning("Please select a new Staff.")
     else:
         st.warning("No discounts found.")
 
