@@ -1,4 +1,4 @@
-# poolilities.py
+# facilities.py
 import streamlit as st
 import mysql.connector
 from mysql.connector import Error
@@ -58,14 +58,14 @@ def get_pool():
     query = "SELECT * FROM POOL"
     return fetch_data(query) or []
 
-def update_POOL(pool_id, pool_detail):
+def update_pool(pool_id, pool_detail):
     """Update pool information."""
     query = "UPDATE POOL SET pool_detail = %s WHERE pool_id = %s"
     execute_query(query, (pool_detail, pool_id))
 
 def delete_pool(pool_id):
-    """Delete a poolility by ID."""
-    query = "DELETE FROM FACILITIES WHERE pool_id = %s"
+    """Delete a pool by ID."""
+    query = "DELETE FROM POOL WHERE pool_id = %s"
     execute_query(query, (pool_id,))
 
 # CRUD Functions for Location
@@ -179,7 +179,7 @@ def show_management():
     st.subheader("Management Dashboard")
 
     # Add Facility
-    st.write("### Add Facility")
+    st.write("### Add Pool")
     pool_detail = st.text_input("Pool Detail")
     if st.button("Add Pool"):
         if pool_detail:
@@ -189,7 +189,7 @@ def show_management():
             st.warning("Please fill in the Facility Detail.")
 
     # View Pool
-    st.write("### Facility List")
+    st.write("### Pool List")
     pool_data = get_pool()
     if pool_data:
         st.dataframe(pool_data)
