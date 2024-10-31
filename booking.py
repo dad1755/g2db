@@ -22,7 +22,19 @@ def create_connection():
         st.error(f"Error connecting to database: {e}")
         return None
 
-# Function to insert customer into database
+# Function to fetch cottages from the database
+def fetch_cottages():
+    connection = create_connection()
+    cottages = []
+    if connection:
+        cursor = connection.cursor()
+        cursor.execute("SELECT cot_name FROM COTTAGE")
+        cottages = [row[0] for row in cursor.fetchall()]  # Extract cottage names from result
+        cursor.close()
+        connection.close()
+    return cottages
+
+# Function to insert customer into the database
 def insert_customer(name, email, phone):
     connection = create_connection()
     if connection:
@@ -47,10 +59,15 @@ def show_booking():
         email = st.text_input("Email")
         phone = st.text_input("Phone")
 
+    # Fetch cottage options from database
+    cottage_options = fetch_cottages()
+    if not cottage_options:
+        st.error("No cottages available. Please check your database.")
+
     # Booking Details section
     with st.container():
         st.write("### Booking Details")
-        cottage = st.selectbox("Cottage", options=["Cottage A", "Cottage B", "Cottage C"])  # Replace with cottage options from DB if needed
+        cottage = st.selectbox("Cottage", options=cottage_options)  # Dynamic cottage options
         check_in_date = st.date_input("Check-in Date")
         nights = st.number_input("Number of Nights", min_value=1)
         
