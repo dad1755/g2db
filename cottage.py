@@ -92,6 +92,43 @@ def delete_cottage_and_attributes(cot_id):
     delete_cottage_query = "DELETE FROM COTTAGE WHERE cot_id = %s"
     execute_query(delete_cottage_query, (cot_id,))
 
+# Functions to fetch pool, location, room, maximum pax, cottage type, and cottage status
+def get_pools():
+    """Fetch all pools."""
+    query = "SELECT * FROM POOL"
+    data = fetch_data(query)
+    return data if data is not None else []
+
+def get_locations():
+    """Fetch all locations."""
+    query = "SELECT * FROM LOCATION"
+    data = fetch_data(query)
+    return data if data is not None else []
+
+def get_rooms():
+    """Fetch all rooms."""
+    query = "SELECT * FROM ROOM"
+    data = fetch_data(query)
+    return data if data is not None else []
+
+def get_maximum_pax():
+    """Fetch all maximum pax options."""
+    query = "SELECT * FROM MAXIMUM_PAX"
+    data = fetch_data(query)
+    return data if data is not None else []
+
+def get_cottage_types():
+    """Fetch all cottage types."""
+    query = "SELECT * FROM COTTAGE_TYPES"
+    data = fetch_data(query)
+    return data if data is not None else []
+
+def get_cottage_statuses():
+    """Fetch all cottage statuses."""
+    query = "SELECT * FROM COTTAGE_STATUS"
+    data = fetch_data(query)
+    return data if data is not None else []
+
 def show_cottage_management():
     """Streamlit UI for Cottage Management."""
     st.subheader("Cottage Management")
@@ -180,14 +217,14 @@ def show_cottage_management():
     if cottage_data:
         cottage_to_delete = st.selectbox("Select a Cottage to Delete", 
                                            options=[cottage['cot_name'] for cottage in cottage_data])
-        
+        selected_cottage_id_for_delete = next((cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == cottage_to_delete), None)
+
         if st.button("Delete Cottage"):
-            cottage_id_to_delete = next((cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == cottage_to_delete), None)
-            if cottage_id_to_delete:
-                delete_cottage_and_attributes(cottage_id_to_delete)
+            if selected_cottage_id_for_delete:
+                delete_cottage_and_attributes(selected_cottage_id_for_delete)
                 st.success(f"Deleted Cottage: {cottage_to_delete}")
             else:
-                st.warning("Cottage not found.")
+                st.warning("Please select a Cottage to delete.")
     else:
         st.warning("No cottages available to delete.")
 
