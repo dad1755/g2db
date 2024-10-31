@@ -2,6 +2,7 @@ import streamlit as st
 from staff import show_staff_management
 from cottage import show_cottage_management  # Importing cottage management function
 from discount import show_discount_management
+from facilities import show_facilities_management
 
 def show_management():
     """Display the management section with tabs for different functionalities."""
@@ -22,7 +23,7 @@ def show_management():
         show_cottage_management()  # Call the cottage management function
     
     with tabs[3]:  # Cottage Details
-        st.warning("Cottage details functionality not implemented yet.")
+        show_facilities_management()
 
     with tabs[4]:  # Staff Tab
         show_staff_management()  # Call the staff management function
