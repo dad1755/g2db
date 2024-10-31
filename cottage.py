@@ -137,13 +137,13 @@ def show_cottage_management():
     st.title("Cottage Management")
 
     # View Cottages
-    st.subheader("Cottage List")
-    cottage_data = get_cottages()
-    if cottage_data:
-        cottage_df = pd.DataFrame(cottage_data)
-        st.dataframe(cottage_df)
-    else:
-        st.warning("No cottages found.")
+    #st.subheader("Cottage List")
+    #cottage_data = get_cottages()
+    #if cottage_data:
+     #   cottage_df = pd.DataFrame(cottage_data)
+     #   st.dataframe(cottage_df)
+   # else:
+     #   st.warning("No cottages found.")
 
     # Add Cottage
     st.write("### Add Cottage")
