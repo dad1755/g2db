@@ -112,28 +112,28 @@ def get_cottage_statuses():
     return data if data is not None else []
 
 def get_cottage_attributes_relation():
-    """Fetch existing cottage attributes."""
+    """Fetch all cottage attributes relation."""
     query = """
-        SELECT 
-            CAR.cot_id,
-            C.cot_name,
-            P.pool_detail,
-            L.loc_details,
-            R.room_details,
-            MP.max_pax_id,  -- Adjusted to use existing column
-            CT.ct_details,
-            CS.ct_details_stat
-        FROM 
-            COTTAGE_ATTRIBUTES_RELATION CAR
-        JOIN COTTAGE C ON CAR.cot_id = C.cot_id
-        JOIN POOL P ON CAR.pool_id = P.pool_id
-        JOIN LOCATION L ON CAR.loc_id = L.loc_id
-        JOIN ROOM R ON CAR.room_id = R.room_id
-        JOIN MAXIMUM_PAX MP ON CAR.max_pax_id = MP.max_pax_id
-        JOIN COTTAGE_TYPES CT ON CAR.ct_id = CT.ct_id
-        JOIN COTTAGE_STATUS CS ON CAR.ct_id_stat = CS.ct_id_stat
+    SELECT 
+        CAR.id,
+        C.cot_name,
+        P.pool_detail,
+        L.loc_details,
+        R.room_details,
+        MP.max_pax_details,
+        CT.ct_details,
+        CS.ct_details
+    FROM COTTAGE_ATTRIBUTES_RELATION CAR
+    JOIN COTTAGE C ON CAR.cot_id = C.cot_id
+    JOIN POOL P ON CAR.pool_id = P.pool_id
+    JOIN LOCATION L ON CAR.loc_id = L.loc_id
+    JOIN ROOM R ON CAR.room_id = R.room_id
+    JOIN MAXIMUM_PAX MP ON CAR.max_pax_id = MP.max_pax_id
+    JOIN COTTAGE_TYPES CT ON CAR.ct_id = CT.ct_id
+    JOIN COTTAGE_STATUS CS ON CAR.ct_id_stat = CS.cottage_status_id
     """
-    return fetch_data(query)
+    data = fetch_data(query)
+    return data if data is not None else []
 
 
 def show_cottage_management():
