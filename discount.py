@@ -49,12 +49,12 @@ def fetch_data(query):
 # Discount Management Functions
 def create_discount(discount_name, discount_percentage):
     """Create a new discount."""
-    query = "INSERT INTO DISCOUNTS (discount_name, discount_percentage) VALUES (%s, %s)"
+    query = "INSERT INTO DISCOUNT (discount_name, discount_percentage) VALUES (%s, %s)"
     execute_query(query, (discount_name, discount_percentage))
 
 def get_discounts():
-    """Fetch all discounts."""
-    query = "SELECT * FROM DISCOUNTS"
+    """Fetch all discount."""
+    query = "SELECT * FROM DISCOUNT"
     data = fetch_data(query)
     if data is None:
         return []  # Return an empty list instead of None to avoid errors in UI
@@ -63,7 +63,7 @@ def get_discounts():
 
 def delete_discount(discount_id):
     """Delete a discount by ID."""
-    query = "DELETE FROM DISCOUNTS WHERE discount_id = %s"
+    query = "DELETE FROM DISCOUNT WHERE discount_id = %s"
     execute_query(query, (discount_id,))
 
 def show_discount_management():
