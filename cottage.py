@@ -193,8 +193,8 @@ def show_cottage_management():
         # Create an empty DataFrame for display
         empty_df = pd.DataFrame(columns=["cot_id", "pool_id", "loc_id", "room_id", "max_pax_id", "ct_id", "ct_id_stat"])
         st.dataframe(empty_df)  # Display an empty grid for better UX
-
-
+    
+    # Add Cottage Attributes
     st.write("### Add Attributes for Cottage")
     if cottage_data:
         selected_cottage_name = st.selectbox("Select a Cottage to Add Attributes", 
@@ -204,6 +204,47 @@ def show_cottage_management():
         # Check if the cottage already has attributes
         if cottage_has_attributes(selected_cottage_id):
             st.warning(f"The cottage '{selected_cottage_name}' already has attributes. You can edit them instead.")
+            
+            # Fetch existing attributes for editing
+            existing_attributes_query = "SELECT * FROM COTTAGE_ATTRIBUTES_RELATION WHERE cot_id = %s"
+            existing_attributes = fetch_data(existing_attributes_query, (selected_cottage_id,))
+            
+            if existing_attributes:
+                attr = existing_attributes[0]  # Assuming one-to-one relationship for attributes
+                pool_id = attr['pool_id']
+                loc_id = attr['loc_id']
+                room_id = attr['room_id']
+                max_pax_id = attr['max_pax_id']
+                ct_id = attr['ct_id']
+                ct_id_stat = attr['ct_id_stat']
+                
+                # Select attribute options for editing
+                pool_options = get_pools()
+                loc_options = get_locations()
+                room_options = get_rooms()
+                max_pax_options = get_maximum_pax()
+                ct_options = get_cottage_types()
+                ct_stat_options = get_cottage_statuses()
+    
+                # Select attribute options with current values pre-filled
+                pool_selection = st.selectbox("Select Pool", options=[f"{pool['pool_id']}: {pool['pool_detail']}" for pool in pool_options], index=next(i for i, pool in enumerate(pool_options) if pool['pool_id'] == pool_id))
+                loc_selection = st.selectbox("Select Location", options=[f"{loc['loc_id']}: {loc['loc_details']}" for loc in loc_options], index=next(i for i, loc in enumerate(loc_options) if loc['loc_id'] == loc_id))
+                room_selection = st.selectbox("Select Room", options=[f"{room['room_id']}: {room['room_details']}" for room in room_options], index=next(i for i, room in enumerate(room_options) if room['room_id'] == room_id))
+                max_pax_selection = st.selectbox("Select Maximum Pax", options=[f"{max_pax['max_pax_id']}: {max_pax['max_pax_details']}" for max_pax in max_pax_options], index=next(i for i, max_pax in enumerate(max_pax_options) if max_pax['max_pax_id'] == max_pax_id))
+                ct_selection = st.selectbox("Select Cottage Type", options=[f"{ct['ct_id']}: {ct['ct_details']}" for ct in ct_options], index=next(i for i, ct in enumerate(ct_options) if ct['ct_id'] == ct_id))
+                ct_stat_selection = st.selectbox("Select Cottage Status", options=[f"{ct_stat['cottage_status_id']}: {ct_stat['ct_details']}" for ct_stat in ct_stat_options], index=next(i for i, ct_stat in enumerate(ct_stat_options) if ct_stat['cottage_status_id'] == ct_id_stat))
+    
+                if st.button("Update Attributes"):
+                    new_pool_id = pool_selection.split(":")[0]
+                    new_loc_id = loc_selection.split(":")[0]
+                    new_room_id = room_selection.split(":")[0]
+                    new_max_pax_id = max_pax_selection.split(":")[0]
+                    new_ct_id = ct_selection.split(":")[0]
+                    new_ct_stat_id = ct_stat_selection.split(":")[0]
+                    
+                    edit_cottage_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_stat_id)
+                    st.success(f"Updated attributes for Cottage ID: {selected_cottage_id}")
+    
         else:
             # Fetch options for attributes
             pool_options = get_pools()
@@ -231,6 +272,7 @@ def show_cottage_management():
                 
                 create_cottage_with_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_stat_id)
                 st.success(f"Added attributes for Cottage ID: {selected_cottage_id}")
+
 
 # Run the application
 if __name__ == "__main__":
