@@ -9,10 +9,9 @@ def show_management():
     st.write("This is the Management section where you can manage overall operations.")
 
     # Create tabs for different management functionalities
-    tabs = st.tabs(["Payment", "Discount", "Cottage", "Staff"])
+    tabs = st.tabs(["Payment", "Discount", "Cottage","Cottage Details" "Staff"])
 
     with tabs[0]:  # Payment Tab
-        st.write("### Payment Management")
         # Implement Payment Management functionality here
         st.warning("Payment management functionality not implemented yet.")
 
@@ -22,8 +21,12 @@ def show_management():
 
     with tabs[2]:  # Cottage Tab
         show_cottage_management()  # Call the cottage management function
+    
+    with tabs[3]:  # Cottage Details
+      
+        st.warning("Cottage details functionality not implemented yet.")
 
-    with tabs[3]:  # Staff Tab
+    with tabs[4]:  # Staff Tab
         
         show_staff_management()  # Call the staff management function
 
