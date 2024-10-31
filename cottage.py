@@ -17,7 +17,7 @@ def execute_query(query, params=None):
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor()
         if params:
-            cursor.execute(query, params)
+            cursor.execute(query, params)  # Using parameterized queries is good for safety
         else:
             cursor.execute(query)
         connection.commit()
