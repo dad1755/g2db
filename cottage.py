@@ -146,24 +146,25 @@ def get_cottage_statuses():
     data = fetch_data(query)
     return data if data is not None else []
 
-def get_cottage_attributes(cottage_id):
-    """Fetch attributes for a specific cottage."""
-    query = """
-        SELECT CAR.*, P.pool_detail, L.loc_details, R.room_details, M.max_pax_details, CT.ct_details, CS.ct_details AS status_details
-        FROM COTTAGE_ATTRIBUTES_RELATION CAR
-        LEFT JOIN POOL P ON CAR.pool_id = P.pool_id
-        LEFT JOIN LOCATION L ON CAR.loc_id = L.loc_id
-        LEFT JOIN ROOM R ON CAR.room_id = R.room_id
-        LEFT JOIN MAXIMUM_PAX M ON CAR.max_pax_id = M.max_pax_id
-        LEFT JOIN COTTAGE_TYPES CT ON CAR.ct_id = CT.ct_id
-        LEFT JOIN COTTAGE_STATUS CS ON CAR.ct_id_stat = CS.cottage_status_id
-        WHERE CAR.cot_id = %s
-    """
-    return fetch_data(query, (cottage_id,))
+def get_cottage_attributes_relation():
+    """Fetch all cottage attributes relation."""
+    query = "SELECT * FROM COTTAGE_ATTRIBUTES_RELATION"
+    data = fetch_data(query)
+    return data if data is not None else []
 
 def show_cottage_management():
     """Streamlit UI for Cottage Management."""
     st.subheader("Cottage Management")
+
+    # View Cottages
+    st.write("### Cottage List")
+    cottage_data = get_cottages()
+    if cottage_data:
+        # Display cottage list in a grid format
+        cottage_df = pd.DataFrame(cottage_data)
+        st.dataframe(cottage_df)  # Displaying the cottage list in a grid
+    else:
+        st.warning("No cottages found.")
 
     # Add Cottage
     st.write("### Add Cottage")
@@ -221,28 +222,17 @@ def show_cottage_management():
             if selected_cottage_id:
                 create_cottage_with_attributes(selected_cottage_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat)
                 st.success(f"Added Attributes to Cottage: {selected_cottage_name}")
-
-                # Show the attributes grid after adding attributes
+                
+                # Show the COTTAGE_ATTRIBUTES_RELATION table after adding attributes
                 st.write("### Cottage Attributes Relation")
-                attributes_data = get_cottage_attributes(selected_cottage_id)
-                if attributes_data:
-                    attributes_df = pd.DataFrame(attributes_data)
-                    st.dataframe(attributes_df)  # Displaying the attributes in a grid
+                cottage_attributes_data = get_cottage_attributes_relation()
+                if cottage_attributes_data:
+                    cottage_attributes_df = pd.DataFrame(cottage_attributes_data)
+                    st.dataframe(cottage_attributes_df)  # Displaying the cottage attributes in a grid
                 else:
-                    st.warning("No attributes found for the selected cottage.")
-
+                    st.warning("No cottage attributes found.")
             else:
                 st.warning("Please select a Cottage to add attributes.")
-
-    # View Cottages
-    st.write("### Cottage List")
-    cottage_data = get_cottages()
-    if cottage_data:
-        # Display cottage list in a grid format
-        cottage_df = pd.DataFrame(cottage_data)
-        st.dataframe(cottage_df)  # Displaying the cottage list in a grid
-    else:
-        st.warning("No cottages found.")
 
 # Call the show_cottage_management function to display the UI
 if __name__ == "__main__":
