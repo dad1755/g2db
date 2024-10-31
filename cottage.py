@@ -180,6 +180,7 @@ def show_cottage_management():
         if st.button("Delete Cottage"):
             delete_cottage(selected_cottage_id)
             st.success(f"Deleted Cottage: {selected_cottage_name}")
+            st.rerun()
 
    
     # Cottage Attributes
