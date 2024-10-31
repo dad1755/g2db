@@ -51,15 +51,33 @@ def fetch_data(query, params=None):
             cursor.close()
             connection.close()
 
-# Cottage Management Functions
 def delete_cottage(cot_id):
-    """Delete a cottage and its attributes."""
+    """Delete a cottage, its attributes, and associated discounts."""
+    
+    # Step 1: Get the cottage name for the given cottage ID
+    get_cottage_name_query = "SELECT cot_name FROM COTTAGE WHERE cot_id = %s"
+    cottage_name_result = execute_query(get_cottage_name_query, (cot_id,)).fetchone()
+    
+    if cottage_name_result is None:
+        print(f"Cottage with ID {cot_id} does not exist.")
+        return
+
+    cottage_name = cottage_name_result[0]  # Extract the cottage name from the result
+
+    # Step 2: Delete discounts for this cottage using cot_id
+    delete_discounts_query = "DELETE FROM DISCOUNT WHERE cot_id = %s"
+    execute_query(delete_discounts_query, (cot_id,))
+    
+    # Step 3: Delete attributes related to the cottage
     delete_attributes_query = "DELETE FROM COTTAGE_ATTRIBUTES_RELATION WHERE cot_id = %s"
     execute_query(delete_attributes_query, (cot_id,))
+    
+    # Step 4: Delete the cottage itself
     delete_cottage_query = "DELETE FROM COTTAGE WHERE cot_id = %s"
     execute_query(delete_cottage_query, (cot_id,))
-    delete_discounts_query = "DELETE FROM DISCOUNT WHERE cottage_name = %s"
-    execute_query(delete_discounts_query, (cot_name,))
+    
+    print(f"Cottage '{cottage_name}' with ID {cot_id} and its related data have been deleted.")
+
 
 def edit_cottage(cottage_id, new_name):
     """Edit an existing cottage's name."""
