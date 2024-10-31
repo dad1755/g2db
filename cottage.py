@@ -158,6 +158,7 @@ def show_cottage_management():
             create_cottage(cot_name)
             cottage_id = get_last_insert_id()
             st.success(f"Added Cottage: {cot_name} (ID: {cottage_id})")
+            st.rerun()
         else:
             st.warning("Please enter a Cottage Name.")
 
