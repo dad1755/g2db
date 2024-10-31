@@ -63,15 +63,17 @@ def fetch_data(query, params=None):
 def delete_cottage(cot_id):
     """Delete a cottage, its attributes, and associated discounts."""
     
-    # Step 1: Get the cottage details for the given cottage ID
+    # Step 1: Get the cottage name for the given cottage ID
     get_cottage_name_query = "SELECT cot_name FROM COTTAGE WHERE cot_id = %s"
     cottage_name_result = fetch_data(get_cottage_name_query, (cot_id,))
 
+    # Check if the cottage name was retrieved successfully
     if not cottage_name_result:
         st.warning(f"Cottage with ID {cot_id} does not exist.")
-        return
+        return  # Exit if the cottage does not exist
 
-    cottage_name = cottage_name_result[0]['cot_name']  # Correctly extract the cottage name
+    # Extract the cottage name
+    cottage_name = cottage_name_result[0]['cot_name']
 
     # Step 2: Check for discounts related to this cottage
     check_discounts_query = "SELECT COUNT(*) FROM DISCOUNT WHERE cot_id = %s"
@@ -94,7 +96,8 @@ def delete_cottage(cot_id):
     # Step 4: Delete the cottage itself
     delete_cottage_query = "DELETE FROM COTTAGE WHERE cot_id = %s"
     execute_query(delete_cottage_query, (cot_id,))
-    
+
+    # Use the cottage_name here, as it is guaranteed to be defined
     st.success(f"Cottage '{cottage_name}' with ID {cot_id} and its related data have been deleted.")
 
 
