@@ -47,10 +47,10 @@ def fetch_data(query):
             cursor.close()
             connection.close()
 
-# CRUD Functions for Facilities
+# CRUD Functions for Pool
 def create_pool(pool_detail):
     """Create a new pool."""
-    query = "INSERT INTO FACILITIES (pool_detail) VALUES (%s)"
+    query = "INSERT INTO POOL (pool_detail) VALUES (%s)"
     execute_query(query, (pool_detail,))
 
 def get_pool():
