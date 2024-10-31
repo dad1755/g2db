@@ -24,7 +24,7 @@ def show_management():
         show_cottage_management()  # Call the cottage management function
 
     with tabs[3]:  # Staff Tab
-        st.write("### Staff Management")
+        
         show_staff_management()  # Call the staff management function
 
 # Call the management function to display the UI
