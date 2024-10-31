@@ -22,7 +22,7 @@ def execute_query(query, params=None):
         else:
             cursor.execute(query)
         connection.commit()
-        return cursor
+        return cursor.rowcount  # Return number of affected rows
     except Error as e:
         st.error(f"Error: {e}")
         return None
@@ -30,6 +30,8 @@ def execute_query(query, params=None):
         if connection.is_connected():
             cursor.close()
             connection.close()
+
+
 def create_cottage(cot_name, cot_price):
     """Create a new cottage with a name and price."""
     query = "INSERT INTO COTTAGE (cot_name, cot_price) VALUES (%s, %s)"
@@ -89,12 +91,13 @@ def delete_cottage(cot_id):
     print(f"Cottage '{cottage_name}' with ID {cot_id} and its related data have been deleted.")
 
 
+def edit_cottage(cottage_id, new_name, new_price):
+    """Edit an existing cottage's name and price."""
+    query = "UPDATE COTTAGE SET cot_name = %s, cot_price = %s WHERE cot_id = %s"
+    execute_query(query, (new_name, new_price, cottage_id))
 
 
-def edit_cottage(cottage_id, new_name):
-    """Edit an existing cottage's name."""
-    query = "UPDATE COTTAGE SET cot_name = %s WHERE cot_id = %s"
-    execute_query(query, (new_name, cottage_id))
+
 
 def edit_cottage_attributes(cot_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat):
     """Edit attributes of an existing cottage."""
@@ -118,7 +121,12 @@ def get_last_insert_id():
     """Fetch the last inserted ID."""
     query = "SELECT LAST_INSERT_ID()"
     result = fetch_data(query)
-    return result[0]['LAST_INSERT_ID()'] if result else None
+    if result and 'LAST_INSERT_ID()' in result[0]:
+        return result[0]['LAST_INSERT_ID()']
+    return None
+
+
+
 
 def get_cottages():
     """Fetch all cottages."""
@@ -217,7 +225,8 @@ def show_cottage_management():
 
         if st.button("Delete Cottage"):
             delete_cottage(selected_cottage_id)
-            st.success(f"Deleted Cottage: {selected_cottage_name}")
+            st.success(f"Cottage '{cottage_name}' with ID {cot_id} and its related data have been deleted.")
+
             st.rerun()
 
    
