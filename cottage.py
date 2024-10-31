@@ -60,15 +60,6 @@ def edit_cottage(cottage_id, new_name):
     query = "UPDATE COTTAGE SET cot_name = %s WHERE cot_id = %s"
     execute_query(query, (new_name, cottage_id))
 
-def edit_cottage_attributes(cot_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat):
-    """Edit attributes of an existing cottage."""
-    query = """
-        UPDATE COTTAGE_ATTRIBUTES_RELATION
-        SET pool_id = %s, loc_id = %s, room_id = %s, max_pax_id = %s, ct_id = %s, ct_id_stat = %s
-        WHERE cot_id = %s
-    """
-    execute_query(query, (pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat, cot_id))
-
 def create_cottage_with_attributes(cottage_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat):
     """Link attributes to an existing cottage."""
     query = """
@@ -120,6 +111,30 @@ def get_cottage_statuses():
     data = fetch_data(query)
     return data if data is not None else []
 
+def get_cottage_attributes_relation():
+    """Fetch existing cottage attributes."""
+    query = """
+        SELECT 
+            CAR.cot_id,
+            C.cot_name,
+            P.pool_detail,
+            L.loc_details,
+            R.room_details,
+            MP.max_pax_detail,
+            CT.ct_details,
+            CS.ct_details_stat
+        FROM 
+            COTTAGE_ATTRIBUTES_RELATION CAR
+        JOIN COTTAGE C ON CAR.cot_id = C.cot_id
+        JOIN POOL P ON CAR.pool_id = P.pool_id
+        JOIN LOCATION L ON CAR.loc_id = L.loc_id
+        JOIN ROOM R ON CAR.room_id = R.room_id
+        JOIN MAXIMUM_PAX MP ON CAR.max_pax_id = MP.max_pax_id
+        JOIN COTTAGE_TYPES CT ON CAR.ct_id = CT.ct_id
+        JOIN COTTAGE_STATUS CS ON CAR.ct_id_stat = CS.ct_id_stat
+    """
+    return fetch_data(query)
+
 def show_cottage_management():
     """Streamlit UI for Cottage Management."""
     st.title("Cottage Management")
@@ -139,8 +154,7 @@ def show_cottage_management():
     if st.button("Create Cottage"):
         if cot_name:
             create_cottage(cot_name)
-            cottage_id = get_last_insert_id()
-            st.success(f"Added Cottage: {cot_name} (ID: {cottage_id})")
+            st.success(f"Added Cottage: {cot_name}")
             st.rerun()
         else:
             st.warning("Please enter a Cottage Name.")
