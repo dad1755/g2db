@@ -76,81 +76,21 @@ def get_cottages():
         return []  # Return an empty list
     return data
 
-def get_cottage_details(cot_id):
-    """Fetch detailed information for a specific cottage."""
-    if cot_id is None:
-        st.error("Cottage ID is None.")
-        return None
-    
-    query = """
-        SELECT C.*, P.pool_detail, L.loc_details, R.room_details, M.max_pax_details, CT.ct_details, CS.ct_details AS status_details
-        FROM COTTAGE C
-        LEFT JOIN COTTAGE_ATTRIBUTES_RELATION CAR ON C.cot_id = CAR.cot_id
-        LEFT JOIN POOL P ON CAR.pool_id = P.pool_id
-        LEFT JOIN LOCATION L ON CAR.loc_id = L.loc_id
-        LEFT JOIN ROOM R ON CAR.room_id = R.room_id
-        LEFT JOIN MAXIMUM_PAX M ON CAR.max_pax_id = M.max_pax_id
-        LEFT JOIN COTTAGE_TYPES CT ON CAR.ct_id = CT.ct_id
-        LEFT JOIN COTTAGE_STATUS CS ON CAR.ct_id_stat = CS.cottage_status_id
-        WHERE C.cot_id = %s
-    """
-    try:
-        result = fetch_data(query, (cot_id,))
-        if result:
-            return result[0]  # Return the first result
-        else:
-            st.warning("No details found for the selected cottage.")
-            return None
-    except Error as e:
-        st.error(f"Error fetching cottage details: {e}")
-        return None
-
-def delete_cottage(cot_id):
-    """Delete a cottage by ID."""
-    query = "DELETE FROM COTTAGE WHERE cot_id = %s"
-    execute_query(query, (cot_id,))
-
-def get_pools():
-    """Fetch all pools."""
-    query = "SELECT * FROM POOL"
-    data = fetch_data(query)
-    return data if data is not None else []
-
-def get_locations():
-    """Fetch all locations."""
-    query = "SELECT * FROM LOCATION"
-    data = fetch_data(query)
-    return data if data is not None else []
-
-def get_rooms():
-    """Fetch all rooms."""
-    query = "SELECT * FROM ROOM"
-    data = fetch_data(query)
-    return data if data is not None else []
-
-def get_maximum_pax():
-    """Fetch all maximum pax options."""
-    query = "SELECT * FROM MAXIMUM_PAX"
-    data = fetch_data(query)
-    return data if data is not None else []
-
-def get_cottage_types():
-    """Fetch all cottage types."""
-    query = "SELECT * FROM COTTAGE_TYPES"
-    data = fetch_data(query)
-    return data if data is not None else []
-
-def get_cottage_statuses():
-    """Fetch all cottage statuses."""
-    query = "SELECT * FROM COTTAGE_STATUS"
-    data = fetch_data(query)
-    return data if data is not None else []
-
 def get_cottage_attributes_relation():
     """Fetch all cottage attributes relation."""
     query = "SELECT * FROM COTTAGE_ATTRIBUTES_RELATION"
     data = fetch_data(query)
     return data if data is not None else []
+
+def delete_cottage_and_attributes(cot_id):
+    """Delete a cottage and its attributes."""
+    # First delete from COTTAGE_ATTRIBUTES_RELATION
+    delete_attributes_query = "DELETE FROM COTTAGE_ATTRIBUTES_RELATION WHERE cot_id = %s"
+    execute_query(delete_attributes_query, (cot_id,))
+
+    # Then delete from COTTAGE
+    delete_cottage_query = "DELETE FROM COTTAGE WHERE cot_id = %s"
+    execute_query(delete_cottage_query, (cot_id,))
 
 def show_cottage_management():
     """Streamlit UI for Cottage Management."""
@@ -233,6 +173,23 @@ def show_cottage_management():
                     st.warning("No cottage attributes found.")
             else:
                 st.warning("Please select a Cottage to add attributes.")
+
+    # Delete Cottage
+    st.write("### Delete Cottage")
+    cottage_data = get_cottages()  # Fetch existing cottages again
+    if cottage_data:
+        cottage_to_delete = st.selectbox("Select a Cottage to Delete", 
+                                           options=[cottage['cot_name'] for cottage in cottage_data])
+        
+        if st.button("Delete Cottage"):
+            cottage_id_to_delete = next((cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == cottage_to_delete), None)
+            if cottage_id_to_delete:
+                delete_cottage_and_attributes(cottage_id_to_delete)
+                st.success(f"Deleted Cottage: {cottage_to_delete}")
+            else:
+                st.warning("Cottage not found.")
+    else:
+        st.warning("No cottages available to delete.")
 
 # Call the show_cottage_management function to display the UI
 if __name__ == "__main__":
