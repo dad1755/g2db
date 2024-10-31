@@ -54,22 +54,21 @@ def fetch_data(query, params=None):
 
 def delete_cottage(cot_id):
     """Delete a cottage, its attributes, and associated discounts."""
-    
     # Step 1: Get the cottage name for the given cottage ID
     get_cottage_name_query = "SELECT cot_name FROM COTTAGE WHERE cot_id = %s"
-    cottage_name_result = execute_query(get_cottage_name_query, (cot_id,))
+    cottage_name_result = fetch_data(get_cottage_name_query, (cot_id,))
     
     if not cottage_name_result:
         print(f"Cottage with ID {cot_id} does not exist.")
         return
 
-    cottage_name = cottage_name_result[0][0]  # Extract the cottage name
+    cottage_name = cottage_name_result[0]['cot_name']  # Extract the cottage name
 
     # Step 2: Check for discounts related to this cottage
-    check_discounts_query = "SELECT COUNT(*) FROM DISCOUNT WHERE cot_id = %s"
-    discount_count_result = execute_query(check_discounts_query, (cot_id,))
+    check_discounts_query = "SELECT COUNT(*) as count FROM DISCOUNT WHERE cot_id = %s"
+    discount_count_result = fetch_data(check_discounts_query, (cot_id,))
     
-    discount_count = discount_count_result[0][0]  # Extract count from result
+    discount_count = discount_count_result[0]['count']  # Extract count from result
 
     if discount_count > 0:
         # If there are discounts, delete them
