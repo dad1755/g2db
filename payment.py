@@ -64,9 +64,20 @@ def create_payment_status(pay_id, pay_details, staff_id):
     query = "INSERT INTO PAYMENT_STATUS (pay_id, pay_details, staff_id) VALUES (%s, %s, %s)"
     execute_query(query, (pay_id, pay_details, staff_id))
 
+def get_payment_types():
+    query = "SELECT * FROM PAYMENT_TYPES"
+    data = fetch_data(query)
+    if data is None:
+        return []  # Return an empty list
+    return data
+
 def get_payment_statuses():
     query = "SELECT * FROM PAYMENT_STATUS"
-    return fetch_data(query)
+    data = fetch_data(query)
+    if data is None:
+        return []  # Return an empty list
+    return data
+
 
 def delete_payment_status(pay_id):
     query = "DELETE FROM PAYMENT_STATUS WHERE pay_id = %s"
@@ -126,3 +137,4 @@ def show_payment_management():
                 st.warning("Please enter a Payment Status ID to delete.")
     else:
         st.warning("No payment statuses found.")
+
