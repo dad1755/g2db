@@ -174,7 +174,7 @@ def delete_cottage_status(cottage_status_id):
     execute_query(query, (cottage_status_id,))
 
 # Streamlit UI for managing various entities
-def show_management():
+def show_facilities_management():
     """Streamlit UI for Facility, Location, Room, Maximum Pax, Cottage Types, and Cottage Status Management."""
     st.subheader("Management Dashboard")
 
