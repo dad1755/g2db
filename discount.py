@@ -17,7 +17,7 @@ def execute_query(query, params=None):
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor()
         if params:
-            cursor.execute(query, params)
+            cursor.execute(query, params)  # Using parameterized queries is good for safety
         else:
             cursor.execute(query)
         connection.commit()
@@ -30,15 +30,12 @@ def execute_query(query, params=None):
             cursor.close()
             connection.close()
 
-def fetch_data(query, params=None):
+def fetch_data(query):
     """Fetch data from the database."""
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor(dictionary=True)
-        if params:
-            cursor.execute(query, params)  # Use parameters if provided
-        else:
-            cursor.execute(query)
+        cursor.execute(query)
         rows = cursor.fetchall()
         return rows  # Return fetched rows
     except Error as e:
@@ -49,100 +46,57 @@ def fetch_data(query, params=None):
             cursor.close()
             connection.close()
 
-# Fetch cottage names
-def get_cottages():
-    """Fetch all cottages and return their names and IDs."""
-    query = "SELECT cot_id, cot_name FROM COTTAGE"
-    return fetch_data(query)
-
-# Fetch staff names
-def get_staff():
-    """Fetch all staff members and return their names and IDs."""
-    query = "SELECT staff_id, staff_name FROM STAFF"
-    return fetch_data(query)
-
-# Check if a discount already exists for the same cottage
-def discount_exists(cot_id):
-    """Check if a discount exists for the same cottage."""
-    query = "SELECT COUNT(*) AS count FROM DISCOUNT WHERE cot_id = %s"
-    result = fetch_data(query, (cot_id,))
-    return result[0]['count'] > 0 if result else False
-
-# Create discount function
-def create_discount(cot_id, dis_amount, staff_id):
-    """Create a new discount without a visible discount ID."""
-    # Generate a new discount ID (e.g., D001, D002, etc.)
-    query = "SELECT COUNT(*) AS count FROM DISCOUNT"
-    count = fetch_data(query)[0]['count']
-    dis_id = f"D{count + 1:03}"  # e.g., D001, D002, etc.
-
-    insert_query = "INSERT INTO DISCOUNT (dis_id, cot_id, dis_amount, staff_id) VALUES (%s, %s, %s, %s)"
-    execute_query(insert_query, (dis_id, cot_id, dis_amount, staff_id))
+# Discount Management Functions
+def create_discount(discount_name, discount_percentage):
+    """Create a new discount."""
+    query = "INSERT INTO DISCOUNTS (discount_name, discount_percentage) VALUES (%s, %s)"
+    execute_query(query, (discount_name, discount_percentage))
 
 def get_discounts():
-    """Fetch all discounts with cottage and staff names."""
-    query = """
-    SELECT d.dis_id, c.cot_name, d.dis_amount, s.staff_name 
-    FROM DISCOUNT d
-    JOIN COTTAGE c ON d.cot_id = c.cot_id
-    JOIN STAFF s ON d.staff_id = s.staff_id
-    """
+    """Fetch all discounts."""
+    query = "SELECT * FROM DISCOUNTS"
     return fetch_data(query)
 
-def delete_discount(dis_id):
+def delete_discount(discount_id):
     """Delete a discount by ID."""
-    query = "DELETE FROM DISCOUNT WHERE dis_id = %s"
-    execute_query(query, (dis_id,))
-    st.rerun()
+    query = "DELETE FROM DISCOUNTS WHERE discount_id = %s"
+    execute_query(query, (discount_id,))
 
-# Updated show_discount_management function
 def show_discount_management():
     """Streamlit UI for Discount Management."""
     st.subheader("Discount Management")
 
     # Add Discount
     st.write("### Add Discount")
-    
-    # Fetch and display cottages in a dropdown
-    cottages = get_cottages()
-    cottage_options = {cot['cot_name']: cot['cot_id'] for cot in cottages}
-    selected_cottage_name = st.selectbox("Select Cottage", list(cottage_options.keys()))
-    selected_cottage_id = cottage_options[selected_cottage_name]
-
-    # Fetch and display staff in a dropdown
-    staff = get_staff()
-    staff_options = {s['staff_name']: s['staff_id'] for s in staff}
-    selected_staff_name = st.selectbox("Select Staff", list(staff_options.keys()))
-    selected_staff_id = staff_options[selected_staff_name]
-
-    dis_amount = st.number_input("Discount Amount", min_value=0.0, format="%.2f")
-    
+    discount_name = st.text_input("Discount Name")
+    discount_percentage = st.number_input("Discount Percentage", min_value=0.0, max_value=100.0, step=0.1)
     if st.button("Add Discount"):
-        if dis_amount:
-            # Check if a discount already exists for the same cottage
-            if discount_exists(selected_cottage_id):
-                st.warning(f"A discount for Cottage '{selected_cottage_name}' already exists.")
-            else:
-                create_discount(selected_cottage_id, dis_amount, selected_staff_id)
-                st.success(f"Added Discount for Cottage: {selected_cottage_name} with amount: {dis_amount}")
+        if discount_name:
+            create_discount(discount_name, discount_percentage)
+            st.success(f"Added Discount: {discount_name} with {discount_percentage}%")
         else:
-            st.warning("Please enter a Discount Amount.")
+            st.warning("Please enter a Discount Name.")
 
     # View Discounts
     st.write("### Discount List")
     discount_data = get_discounts()
     if discount_data:
+        # Display discount data in a dataframe
         st.dataframe(discount_data)
 
-        # Delete Discount
+        # Prepare to delete a discount
         st.write("### Delete Discount")
-        dis_id_to_delete = st.text_input("Enter Discount ID to delete")
+        discount_names = [discount['discount_name'] for discount in discount_data]  # Extract names for selection
+        discount_name_to_delete = st.selectbox("Select Discount to Delete", options=discount_names)
+        
         if st.button("Delete Discount"):
-            if dis_id_to_delete:
-                delete_discount(dis_id_to_delete)
-                st.success(f"Deleted Discount with ID: {dis_id_to_delete}")
+            if discount_name_to_delete:
+                # Fetch the ID of the discount to delete
+                discount_id_to_delete = next(discount['discount_id'] for discount in discount_data if discount['discount_name'] == discount_name_to_delete)
+                delete_discount(discount_id_to_delete)
+                st.success(f"Deleted Discount: {discount_name_to_delete}")
             else:
-                st.warning("Please enter a Discount ID to delete.")
+                st.warning("Please select a Discount to delete.")
     else:
         st.warning("No discounts found.")
 
