@@ -55,7 +55,11 @@ def create_cottage(cot_name):
 def get_cottages():
     """Fetch all cottages."""
     query = "SELECT * FROM COTTAGE"
-    return fetch_data(query)
+    data = fetch_data(query)
+    if data is None:
+        return []  # Return an empty list
+    return data
+
 
 def delete_cottage(cot_id):
     """Delete a cottage by ID."""
@@ -80,17 +84,15 @@ def show_cottage_management():
     st.write("### Cottage List")
     cottage_data = get_cottages()
     if cottage_data:
-        # Display cottage data in a dataframe
         st.dataframe(cottage_data)
 
         # Prepare to delete a cottage
         st.write("### Delete Cottage")
-        cottage_names = [cottage['cot_name'] for cottage in cottage_data]  # Extract names for selection
+        cottage_names = [cottage['cot_name'] for cottage in cottage_data]
         cot_name_to_delete = st.selectbox("Select Cottage to Delete", options=cottage_names)
-        
+
         if st.button("Delete Cottage"):
             if cot_name_to_delete:
-                # Fetch the ID of the cottage to delete
                 cot_id_to_delete = next(cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == cot_name_to_delete)
                 delete_cottage(cot_id_to_delete)
                 st.success(f"Deleted Cottage: {cot_name_to_delete}")
@@ -98,6 +100,7 @@ def show_cottage_management():
                 st.warning("Please select a Cottage to delete.")
     else:
         st.warning("No cottages found.")
+
 
 # Call the show_cottage_management function to display the UI
 if __name__ == "__main__":
