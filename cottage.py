@@ -85,7 +85,6 @@ def show_cottage_management():
 
         # Prepare to delete a cottage
         st.write("### Delete Cottage")
-        # Let the user select a cottage to delete
         cottage_names = [cottage['cot_name'] for cottage in cottage_data]  # Extract names for selection
         cot_name_to_delete = st.selectbox("Select Cottage to Delete", options=cottage_names)
         
