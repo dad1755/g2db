@@ -48,10 +48,13 @@ def fetch_data(query, params=None):
             connection.close()
 
 # Cottage Management Functions
-def create_cottage(cot_name):
-    """Create a new cottage."""
-    query = "INSERT INTO COTTAGE (cot_name) VALUES (%s)"
-    execute_query(query, (cot_name,))
+def delete_cottage(cot_id):
+    """Delete a cottage and its attributes."""
+    delete_attributes_query = "DELETE FROM COTTAGE_ATTRIBUTES_RELATION WHERE cot_id = %s"
+    execute_query(delete_attributes_query, (cot_id,))
+    delete_cottage_query = "DELETE FROM COTTAGE WHERE cot_id = %s"
+    execute_query(delete_cottage_query, (cot_id,))
+
 
 def edit_cottage(cottage_id, new_name):
     """Edit an existing cottage's name."""
@@ -200,6 +203,7 @@ def show_cottage_management():
         current_attributes = next((attr for attr in cottage_attributes_data if attr['cot_id'] == selected_cottage_id), None)
 
         if current_attributes:
+            # Fetch options for attributes
             pool_options = get_pools()
             loc_options = get_locations()
             room_options = get_rooms()
@@ -207,6 +211,7 @@ def show_cottage_management():
             ct_options = get_cottage_types()
             ct_stat_options = get_cottage_statuses()
 
+            # Current selections
             pool_selection = st.selectbox("Select Pool", options=[f"{pool['pool_id']}: {pool['pool_detail']}" for pool in pool_options],
                                           index=[i for i, pool in enumerate(pool_options) if pool['pool_id'] == current_attributes['pool_id']][0])
             loc_selection = st.selectbox("Select Location", options=[f"{loc['loc_id']}: {loc['loc_details']}" for loc in loc_options],
@@ -232,6 +237,7 @@ def show_cottage_management():
                 st.success("Updated Cottage Attributes")
         else:
             st.warning("No attributes found for the selected cottage.")
+
 
 if __name__ == "__main__":
     show_cottage_management()
