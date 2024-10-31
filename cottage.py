@@ -30,12 +30,12 @@ def execute_query(query, params=None):
             cursor.close()
             connection.close()
 
-def fetch_data(query):
-    """Fetch data from the database."""
+def fetch_data(query, params=None):
+    """Fetch data from the database with optional parameters."""
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor(dictionary=True)
-        cursor.execute(query)
+        cursor.execute(query, params) if params else cursor.execute(query)
         rows = cursor.fetchall()
         return rows  # Return fetched rows
     except Error as e:
@@ -45,6 +45,7 @@ def fetch_data(query):
         if connection.is_connected():
             cursor.close()
             connection.close()
+
 
 # Cottage Management Functions
 def create_cottage(cot_name):
@@ -105,6 +106,7 @@ def get_cottage_details(cot_id):
     except Error as e:
         st.error(f"Error fetching cottage details: {e}")
         return None
+
 
 
 def delete_cottage(cot_id):
