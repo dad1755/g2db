@@ -58,6 +58,8 @@ def delete_cottage(cot_id):
     execute_query(delete_attributes_query, (cot_id,))
     delete_cottage_query = "DELETE FROM COTTAGE WHERE cot_id = %s"
     execute_query(delete_cottage_query, (cot_id,))
+    delete_discounts_query = "DELETE FROM DISCOUNT WHERE cottage_name = %s"
+    execute_query(delete_discounts_query, (cot_name,))
 
 def edit_cottage(cottage_id, new_name):
     """Edit an existing cottage's name."""
