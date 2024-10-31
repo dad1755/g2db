@@ -56,19 +56,27 @@ def delete_cottage(cot_id):
     
     # Step 1: Get the cottage name for the given cottage ID
     get_cottage_name_query = "SELECT cot_name FROM COTTAGE WHERE cot_id = %s"
-    cottage_name_result = execute_query(get_cottage_name_query, (cot_id,)).fetchone()
+    cottage_name_result = execute_query(get_cottage_name_query, (cot_id,))
     
-    if cottage_name_result is None:
+    if not cottage_name_result:
         print(f"Cottage with ID {cot_id} does not exist.")
         return
 
-    cottage_name = cottage_name_result[0]  # Extract the cottage name from the result
+    cottage_name = cottage_name_result[0][0]  # Extract the cottage name
 
-    # Step 2: Delete discounts for this cottage using cot_id
-    delete_discounts_query = "DELETE FROM DISCOUNT WHERE cot_id = %s"
-    execute_query(delete_discounts_query, (cot_id,))
+    # Step 2: Check for discounts related to this cottage
+    check_discounts_query = "SELECT COUNT(*) FROM DISCOUNT WHERE cot_id = %s"
+    discount_count_result = execute_query(check_discounts_query, (cot_id,))
+    
+    discount_count = discount_count_result[0][0]  # Extract count from result
 
-    # After executing this, we do not need to fetch any result, so we can safely move on
+    if discount_count > 0:
+        # If there are discounts, delete them
+        delete_discounts_query = "DELETE FROM DISCOUNT WHERE cot_id = %s"
+        execute_query(delete_discounts_query, (cot_id,))
+        print(f"Deleted {discount_count} discount(s) associated with cottage '{cottage_name}'.")
+    else:
+        print(f"No discounts found for cottage '{cottage_name}'.")
 
     # Step 3: Delete attributes related to the cottage
     delete_attributes_query = "DELETE FROM COTTAGE_ATTRIBUTES_RELATION WHERE cot_id = %s"
@@ -79,6 +87,7 @@ def delete_cottage(cot_id):
     execute_query(delete_cottage_query, (cot_id,))
     
     print(f"Cottage '{cottage_name}' with ID {cot_id} and its related data have been deleted.")
+
 
 
 
