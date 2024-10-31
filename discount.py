@@ -52,6 +52,7 @@ def create_discount(cot_id, dis_amount, staff_id):
     """Create a new discount."""
     query = "INSERT INTO DISCOUNT (cot_id, dis_amount, staff_id) VALUES (%s, %s, %s)"
     execute_query(query, (cot_id, dis_amount, staff_id))
+    update_discount_data()  # Refresh discount data
 
 def get_discounts():
     """Fetch all discounts."""
@@ -73,11 +74,13 @@ def delete_discount(discount_id):
     """Delete a discount by ID."""
     query = "DELETE FROM DISCOUNT WHERE dis_id = %s"
     execute_query(query, (discount_id,))
+    update_discount_data()  # Refresh discount data
 
 def edit_discount(dis_id, new_dis_amount, new_staff_id):
     """Edit an existing discount."""
     query = "UPDATE DISCOUNT SET dis_amount = %s, staff_id = %s WHERE dis_id = %s"
     execute_query(query, (new_dis_amount, new_staff_id, dis_id))
+    update_discount_data()  # Refresh discount data
 
 def get_cottages():
     """Fetch all cottages."""
@@ -89,9 +92,17 @@ def get_staff():
     query = "SELECT * FROM STAFF"
     return fetch_data(query) or []
 
+def update_discount_data():
+    """Update the discount data in session state."""
+    st.session_state.discount_data = get_discounts()
+
 def show_discount_management():
     """Streamlit UI for Discount Management."""
     st.subheader("Discount Management")
+
+    # Initialize session state for discounts if it doesn't exist
+    if 'discount_data' not in st.session_state:
+        update_discount_data()
 
     # Add Discount
     st.write("### Add Discount")
@@ -117,7 +128,7 @@ def show_discount_management():
 
     # View Discounts
     st.write("### Discount List")
-    discount_data = get_discounts()
+    discount_data = st.session_state.discount_data
     if discount_data:
         st.dataframe(discount_data)
 
