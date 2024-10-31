@@ -12,32 +12,24 @@ DB_CONFIG = {
     'port': 3306
 }
 
-def execute_query(query, params=None, fetch=False):
+def execute_query(query, params=None):
     """Execute a query with optional parameters."""
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor()
-        
         if params:
             cursor.execute(query, params)
         else:
             cursor.execute(query)
-
-        if fetch:
-            return cursor.fetchall()  # Return results if it's a SELECT query
-        else:
-            connection.commit()
-            return cursor.rowcount  # Return number of affected rows for INSERT/DELETE/UPDATE
+        connection.commit()
+        return cursor.rowcount  # Return number of affected rows
     except Error as e:
         st.error(f"Error: {e}")
         return None
     finally:
-        if cursor:
-            cursor.close()  # Ensure cursor is closed
         if connection.is_connected():
-            connection.close()  # Ensure connection is closed
-
-
+            cursor.close()
+            connection.close()
 
 def create_cottage(cot_name, cot_price):
     """Create a new cottage with a name and price."""
@@ -65,29 +57,27 @@ def delete_cottage(cot_id):
     
     # Step 1: Get the cottage name for the given cottage ID
     get_cottage_name_query = "SELECT cot_name FROM COTTAGE WHERE cot_id = %s"
-    cottage_name_result = fetch_data(get_cottage_name_query, (cot_id,))
-
-    # Check if the cottage name was retrieved successfully
+    cottage_name_result = execute_query(get_cottage_name_query, (cot_id,))
+    
     if not cottage_name_result:
-        st.warning(f"Cottage with ID {cot_id} does not exist.")
-        return  # Exit if the cottage does not exist
+        print(f"Cottage with ID {cot_id} does not exist.")
+        return
 
-    # Extract the cottage name
-    cottage_name = cottage_name_result[0]['cot_name']
+    cottage_name = cottage_name_result[0][0]  # Extract the cottage name
 
     # Step 2: Check for discounts related to this cottage
     check_discounts_query = "SELECT COUNT(*) FROM DISCOUNT WHERE cot_id = %s"
-    discount_count_result = fetch_data(check_discounts_query, (cot_id,))
-
-    discount_count = discount_count_result[0]['COUNT(*)'] if discount_count_result else 0
+    discount_count_result = execute_query(check_discounts_query, (cot_id,))
+    
+    discount_count = discount_count_result[0][0]  # Extract count from result
 
     if discount_count > 0:
         # If there are discounts, delete them
         delete_discounts_query = "DELETE FROM DISCOUNT WHERE cot_id = %s"
         execute_query(delete_discounts_query, (cot_id,))
-        st.success(f"Deleted {discount_count} discount(s) associated with cottage '{cottage_name}'.")
+        print(f"Deleted {discount_count} discount(s) associated with cottage '{cottage_name}'.")
     else:
-        st.warning(f"No discounts found for cottage '{cottage_name}'.")
+        print(f"No discounts found for cottage '{cottage_name}'.")
 
     # Step 3: Delete attributes related to the cottage
     delete_attributes_query = "DELETE FROM COTTAGE_ATTRIBUTES_RELATION WHERE cot_id = %s"
@@ -96,28 +86,22 @@ def delete_cottage(cot_id):
     # Step 4: Delete the cottage itself
     delete_cottage_query = "DELETE FROM COTTAGE WHERE cot_id = %s"
     execute_query(delete_cottage_query, (cot_id,))
+    
+    print(f"Cottage '{cottage_name}' with ID {cot_id} and its related data have been deleted.")
 
-    # Use the cottage_name here, as it is guaranteed to be defined
-    st.success(f"Cottage '{cottage_name}' with ID {cot_id} and its related data have been deleted.")
 
 
+
+def edit_cottage(cottage_id, new_name):
+    """Edit an existing cottage's name."""
+    query = "UPDATE COTTAGE SET cot_name = %s WHERE cot_id = %s"
+    execute_query(query, (new_name, cottage_id))
 
 def edit_cottage(cottage_id, new_name, new_price):
     """Edit an existing cottage's name and price."""
     query = "UPDATE COTTAGE SET cot_name = %s, cot_price = %s WHERE cot_id = %s"
     execute_query(query, (new_name, new_price, cottage_id))
 
-
-
-
-def edit_cottage_attributes(cot_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat):
-    """Edit attributes of an existing cottage."""
-    query = """
-        UPDATE COTTAGE_ATTRIBUTES_RELATION
-        SET pool_id = %s, loc_id = %s, room_id = %s, max_pax_id = %s, ct_id = %s, ct_id_stat = %s
-        WHERE cot_id = %s
-    """
-    execute_query(query, (pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat, cot_id))
 
 def create_cottage_with_attributes(cottage_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat):
     """Link attributes to an existing cottage."""
@@ -135,8 +119,6 @@ def get_last_insert_id():
     if result and 'LAST_INSERT_ID()' in result[0]:
         return result[0]['LAST_INSERT_ID()']
     return None
-
-
 
 
 def get_cottages():
@@ -236,8 +218,7 @@ def show_cottage_management():
 
         if st.button("Delete Cottage"):
             delete_cottage(selected_cottage_id)
-            st.success(f"Cottage '{cottage_name}' with ID {cot_id} and its related data have been deleted.")
-
+            st.success(f"Deleted Cottage: {selected_cottage_name}")
             st.rerun()
 
    
