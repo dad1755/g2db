@@ -3,6 +3,7 @@ from staff import show_staff_management
 from cottage import show_cottage_management  # Importing cottage management function
 from discount import show_discount_management
 from facilities import show_facilities_management
+from payment import show_payment_management
 
 def show_management():
     """Display the management section with tabs for different functionalities."""
@@ -13,8 +14,7 @@ def show_management():
     tabs = st.tabs(["Payment", "Discount", "Cottage", "Cottage Details", "Staff"])  # Added comma
 
     with tabs[0]:  # Payment Tab
-        # Implement Payment Management functionality here
-        st.warning("Payment management functionality not implemented yet.")
+        show_payment_management()
 
     with tabs[1]:  # Discount Tab
         show_discount_management()
