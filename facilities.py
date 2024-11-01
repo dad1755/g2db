@@ -80,6 +80,7 @@ def edit_cottage_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_ro
     params = (new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_stat_id, selected_cottage_id)
     execute_query(query, params)
 
+
 # CRUD Functions for Pool
 def create_pool(pool_detail):
     """Create a new pool."""
@@ -278,7 +279,6 @@ def show_cottage_management():
                 new_ct_stat_id = st.number_input("New Cottage Status ID", value=selected_cottage_data['ct_id_stat'])
 
                 if st.button("Update Cottage Attributes"):
-                    st.write("Preparing to update attributes...")
                     st.write("Selected Cottage ID:", selected_cottage_id)
                     st.write("New Pool ID:", new_pool_id)
                     st.write("New Location ID:", new_loc_id)
@@ -286,9 +286,10 @@ def show_cottage_management():
                     st.write("New Maximum Pax ID:", new_max_pax_id)
                     st.write("New Cottage Type ID:", new_ct_id)
                     st.write("New Cottage Status ID:", new_ct_stat_id)
-
+                
                     edit_cottage_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_stat_id)
                     st.success(f"Updated attributes for Cottage ID: {selected_cottage_id}")
+
 
 def main():
     st.title("Cottage Management System")
