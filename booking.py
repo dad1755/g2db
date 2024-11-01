@@ -120,7 +120,7 @@ def show_booking():
     # Fetch cottage options from database
     cottage_options = fetch_cottages()
     if not cottage_options:
-        st.error("No cottages available. Please check your database.")
+        st.error("No cottages available. Please check again later.")
         return
 
     # Fetch payment options from database
