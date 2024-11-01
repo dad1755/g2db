@@ -28,7 +28,7 @@ def fetch_cottages():
     cottages = []
     if connection:
         cursor = connection.cursor()
-        cursor.execute("SELECT cot_id, cot_name FROM COTTAGE")  # Fetching cot_id as well
+        cursor.execute("SELECT cot_id, cot_name, cot_price FROM COTTAGE")  # Fetching cot_id and cot_price as well
         cottages = cursor.fetchall()  # Fetch all results
         cursor.close()
         connection.close()
@@ -71,6 +71,18 @@ def fetch_discounts(cottage_id):
         cursor.close()
         connection.close()
     return discounts
+
+# Function to fetch the price of a specific cottage
+def fetch_cottage_price(cottage_id):
+    connection = create_connection()
+    price = None
+    if connection:
+        cursor = connection.cursor()
+        cursor.execute("SELECT cot_price FROM COTTAGE WHERE cot_id = %s", (cottage_id,))
+        price = cursor.fetchone()  # Fetch the price
+        cursor.close()
+        connection.close()
+    return price[0] if price else None
 
 # Function to insert booking into the database
 def insert_booking(cust_id, cottage_id, check_in, check_out, payment_type_id):
@@ -115,7 +127,7 @@ def show_booking():
         st.write("### Booking Details")
         
         # Cottage selection with ID extraction
-        cottage_options_dict = {f"{name} (ID: {id})": id for id, name in cottage_options}
+        cottage_options_dict = {f"{name} (ID: {id}, Price: ${price})": id for id, name, price in cottage_options}
         cottage = st.selectbox("Cottage", options=list(cottage_options_dict.keys()))  # Display cottage names with IDs
         cottage_id = cottage_options_dict[cottage]  # Directly get cot_id from the dictionary
 
@@ -131,12 +143,21 @@ def show_booking():
         payment_type = st.selectbox("Payment Type", options=list(payment_options_dict.keys()))  # Display payment details with IDs
         payment_type_id = payment_options_dict[payment_type]  # Directly get pt_id from the dictionary
 
+        # Fetch cottage price
+        cottage_price = fetch_cottage_price(cottage_id)
+        total_price = cottage_price * nights if cottage_price is not None else 0
+        st.write(f"Total Price (without discount): ${total_price:.2f}")
+
         # Fetch and display discounts for the selected cottage
         discounts = fetch_discounts(cottage_id)
         if discounts:
             st.write("### Available Discounts")
             for dis_id, dis_amount in discounts:
-                st.write(f"Discount ID: {dis_id}, Amount: ${dis_amount}")
+                st.write(f"Discount ID: {dis_id}, Amount: ${dis_amount:.2f}")
+                total_price -= dis_amount  # Apply the discount to total price
+
+        # Display the final price after discount
+        st.write(f"Total Price after discount: ${total_price:.2f}")
 
     # Booking form submission
     with st.form(key='booking_form'):
@@ -151,6 +172,7 @@ def show_booking():
                 st.success(f"Customer '{name}' added with ID: {cust_id}")
                 st.success(f"Booking confirmed for {name} in {cottage.split(' (ID: ')[0]} from {check_in_date} to {check_out_date} for {nights} night(s).")
                 st.success(f"Payment Type: {payment_type.split(' (ID: ')[0]}")
+                st.success(f"Final Price after discount: ${total_price:.2f}")  # Show final price
             else:
                 st.error("Error adding customer details. Please try again.")
 
