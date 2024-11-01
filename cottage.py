@@ -207,9 +207,24 @@ def show_cottage_management():
             
             ct_id = st.selectbox("Cottage Type", options=[f"{ct['ct_id']} : {ct['ct_details']}" for ct in cottage_types], 
                                    index=cottage_types.index(next(filter(lambda x: x['ct_id'] == current_attributes['ct_id'], cottage_types))) if cottage_types else None)
-            ct_id_stat = st.selectbox("Cottage Status", options=[f"{cs['cottage_status_id']} : {cs['ct_status_details']}" for cs in cottage_statuses], 
-                                   index=cottage_statuses.index(next(filter(lambda x: x['cottage_status_id'] == current_attributes['cottage_status_id'], cottage_statuses))) if cottage_statuses else None)    
+  #         ct_id_stat = st.selectbox("Cottage Status", options=[f"{cs['cottage_status_id']} : {cs['ct_status_details']}" for cs in cottage_statuses], 
+   #                                index=cottage_statuses.index(next(filter(lambda x: x['cottage_status_id'] == current_attributes['cottage_status_id'], cottage_statuses))) if cottage_statuses else None)    
             
+            if cottage_statuses:
+                try:
+                    # Assuming current_attributes['ct_status_id'] holds the correct ID for comparison
+                    current_status = next(filter(lambda x: x['cottage_status_id'] == current_attributes['ct_status_id'], cottage_statuses))
+                    index = cottage_statuses.index(current_status)
+                except StopIteration:
+                    index = 0  # Default to first option if no matching status
+                except ValueError:
+                    index = 0  # Handle case where the current status isn't found in the list
+            else:
+                index = 0  # Default index if there are no statuses available
+            
+            ct_id_stat = st.selectbox("Cottage Status", options=[f"{cs['cottage_status_id']} : {cs['ct_status_details']}" for cs in cottage_statuses], 
+                                       index=index)
+
             if st.button("Update Attributes"):
                 update_cottage_attributes(selected_cottage_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat)
                 st.success("Cottage attributes updated successfully.")
