@@ -66,12 +66,20 @@ def confirm_payment(book_id, staff_id, cottage_id):
     """Confirm payment for a booking, update booking and cottage status."""
     
     try:
+        # Convert to Python int to avoid MySQLInterfaceError
+        book_id = int(book_id)
+        staff_id = int(staff_id)
+        cottage_id = int(cottage_id)
+
         # Insert a new record into PAYMENT_CONFIRMATION
         payment_query = """
             INSERT INTO PAYMENT_CONFIRMATION (book_id, staff_id)
             VALUES (%s, %s)
         """
         execute_query(payment_query, (book_id, staff_id))
+
+        # Debugging: Log the values of cottage_id and book_id
+        st.write(f"Checking existing bookings with cottage_id: {cottage_id} and book_id: {book_id}")
 
         # Check for existing bookings to delete
         check_query = "SELECT * FROM BOOKING WHERE cot_id = %s AND book_id != %s"
@@ -99,6 +107,7 @@ def confirm_payment(book_id, staff_id, cottage_id):
 
     except Error as e:
         st.error(f"Error confirming payment: {e}")
+
 
 # Streamlit UI for displaying booking details
 def show_approve_management():
