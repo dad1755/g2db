@@ -59,7 +59,7 @@ def delete_payment_type(pt_id):
     query = "DELETE FROM PAYMENT_TYPES WHERE pt_id = %s"
     execute_query(query, (pt_id,))
 
-# PAYMENT STATUS TABLE CRUD FUNCTIONS (Updated)
+# PAYMENT STATUS TABLE CRUD FUNCTIONS
 def create_payment_status(pay_details):
     query = "INSERT INTO PAYMENT_STATUS (pay_details) VALUES (%s)"
     execute_query(query, (pay_details,))
@@ -81,8 +81,8 @@ def show_payment_management():
 
     # Payment Types Management
     st.write("### Payment Types")
-    pt_details = st.text_input("Payment Type Details")
-    if st.button("Add Payment Type"):
+    pt_details = st.text_input("Payment Type Details", key="pt_details")
+    if st.button("Add Payment Type", key="add_payment_type"):
         if pt_details:
             create_payment_type(pt_details)
             st.success(f"Added Payment Type: {pt_details}")
@@ -93,8 +93,8 @@ def show_payment_management():
     payment_types_data = get_payment_types()
     if payment_types_data:
         st.dataframe(payment_types_data)
-        pt_id_to_delete = st.text_input("Enter Payment Type ID to delete")
-        if st.button("Delete Payment Type"):
+        pt_id_to_delete = st.text_input("Enter Payment Type ID to delete", key="pt_id_to_delete")
+        if st.button("Delete Payment Type", key="delete_payment_type"):
             if pt_id_to_delete:
                 delete_payment_type(pt_id_to_delete)
                 st.success(f"Deleted Payment Type with ID: {pt_id_to_delete}")
@@ -105,8 +105,8 @@ def show_payment_management():
 
     # Payment Status Management
     st.write("### Payment Status")
-    pay_details = st.text_input("Payment Status Details")  # Only 'Payment Status Details' is displayed
-    if st.button("Add Payment Status"):
+    pay_details = st.text_input("Payment Status Details", key="pay_details")  # Only 'Payment Status Details' is displayed
+    if st.button("Add Payment Status", key="add_payment_status"):
         if pay_details:
             create_payment_status(pay_details)
             st.success(f"Added Payment Status: {pay_details}")
@@ -117,8 +117,8 @@ def show_payment_management():
     payment_status_data = get_payment_statuses()
     if payment_status_data:
         st.dataframe(payment_status_data)
-        pay_id_to_delete = st.text_input("Enter Payment Status ID to delete")
-        if st.button("Delete Payment Status"):
+        pay_id_to_delete = st.text_input("Enter Payment Status ID to delete", key="pay_id_to_delete")
+        if st.button("Delete Payment Status", key="delete_payment_status"):
             if pay_id_to_delete:
                 delete_payment_status(pay_id_to_delete)
                 st.success(f"Deleted Payment Status with ID: {pay_id_to_delete}")
