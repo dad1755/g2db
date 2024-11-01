@@ -103,6 +103,26 @@ def show_housekeeping():
     else:
         st.warning("No booking data found.")
 
+    # Fetch and display staff list for assignment, regardless of housekeeping tasks
+    staff_list = get_staff_list()
+    if staff_list:
+        staff_df = pd.DataFrame(staff_list)
+
+        # Display dropdowns for task assignment immediately after booking data
+        st.write("### Assign Staff to Housekeeping Task")
+        selected_task_id_to_assign = st.selectbox("Select Task ID to Assign Staff", [])
+        selected_staff_id = st.selectbox(
+            "Select Staff Member",
+            staff_df['staff_id'].values,
+            format_func=lambda x: staff_df[staff_df['staff_id'] == x]['staff_name'].values[0]
+        )
+
+        if st.button("Assign"):
+            assign_task_to_staff(selected_task_id_to_assign, selected_staff_id)
+            st.experimental_rerun()
+    else:
+        st.warning("No staff data found.")
+
     # Display housekeeping tasks
     st.write("### Housekeeping Tasks (Housekeeping Table)")
     housekeeping_data = get_housekeeping_tasks()
@@ -116,21 +136,6 @@ def show_housekeeping():
         if st.button("Mark Task Complete"):
             mark_task_complete(selected_task_id)
             st.experimental_rerun()
-
-        # Fetch staff list for assignment
-        staff_list = get_staff_list()
-        if staff_list:
-            staff_df = pd.DataFrame(staff_list)
-            
-            # Select task and staff member to assign
-            selected_task_id_to_assign = st.selectbox("Select Task ID to Assign Staff", housekeeping_df['housekeep_id'].values)
-            selected_staff_id = st.selectbox("Select Staff Member", staff_df['staff_id'].values, format_func=lambda x: staff_df[staff_df['staff_id'] == x]['staff_name'].values[0])
-
-            if st.button("Assign"):
-                assign_task_to_staff(selected_task_id_to_assign, selected_staff_id)
-                st.experimental_rerun()
-        else:
-            st.warning("No staff data found.")
     else:
         st.warning("No housekeeping tasks found.")
 
@@ -138,6 +143,3 @@ def show_housekeeping():
 if __name__ == "__main__":
     show_housekeeping()
 
-# Run this function if the script is executed directly
-if __name__ == "__main__":
-    show_housekeeping()
