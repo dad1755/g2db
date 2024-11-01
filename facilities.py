@@ -439,7 +439,8 @@ def show_cottage_management():
             selected_cottage_data = next((cottage for cottage in cottages if cottage['id'] == selected_cottage_id), None)
 
             if selected_cottage_data:
-                new_pool_id = st.text_input("New Pool ID", value=selected_cottage_data['pool_id'])  # Pre-fill current pool ID
+                # Use text_input but validate or convert inputs
+                new_pool_id = st.text_input("New Pool ID", value=selected_cottage_data['pool_id'])
                 new_loc_id = st.text_input("New Location ID", value=selected_cottage_data['loc_id'])
                 new_room_id = st.text_input("New Room ID", value=selected_cottage_data['room_id'])
                 new_max_pax_id = st.text_input("New Maximum Pax ID", value=selected_cottage_data['max_pax_id'])
@@ -447,8 +448,23 @@ def show_cottage_management():
                 new_ct_stat_id = st.text_input("New Cottage Status ID", value=selected_cottage_data['ct_id_stat'])
 
                 if st.button("Update Cottage Attributes"):
-                    edit_cottage_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_stat_id)
-                    st.success(f"Updated attributes for Cottage ID: {selected_cottage_id}")
+                    # Ensure all inputs are valid before proceeding
+                    try:
+                        # Convert IDs to integers
+                        new_pool_id = int(new_pool_id)
+                        new_loc_id = int(new_loc_id)
+                        new_room_id = int(new_room_id)
+                        new_max_pax_id = int(new_max_pax_id)
+                        new_ct_id = int(new_ct_id)
+                        new_ct_stat_id = int(new_ct_stat_id)
+
+                        edit_cottage_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_stat_id)
+                        st.success(f"Updated attributes for Cottage ID: {selected_cottage_id}")
+                    except ValueError:
+                        st.error("Please ensure all ID fields are valid integers.")
+                    except Exception as e:
+                        st.error(f"An error occurred: {e}")
+
 
 # Main application
 def main():
