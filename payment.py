@@ -47,9 +47,9 @@ def fetch_data(query):
             connection.close()
 
 # PAYMENT TYPES TABLE CRUD FUNCTIONS
-def create_payment_type(pt_id, pt_details):
-    query = "INSERT INTO PAYMENT_TYPES (pt_id, pt_details) VALUES (%s, %s)"
-    execute_query(query, (pt_id, pt_details))
+def create_payment_type(pt_details):
+    query = "INSERT INTO PAYMENT_TYPES (pt_details) VALUES (%s)"
+    execute_query(query, (pt_details,))
 
 def get_payment_types():
     query = "SELECT * FROM PAYMENT_TYPES"
@@ -64,20 +64,12 @@ def create_payment_status(pay_id, pay_details, staff_id):
     query = "INSERT INTO PAYMENT_STATUS (pay_id, pay_details, staff_id) VALUES (%s, %s, %s)"
     execute_query(query, (pay_id, pay_details, staff_id))
 
-def get_payment_types():
-    query = "SELECT * FROM PAYMENT_TYPES"
-    data = fetch_data(query)
-    if data is None:
-        return []  # Return an empty list
-    return data
-
 def get_payment_statuses():
     query = "SELECT * FROM PAYMENT_STATUS"
     data = fetch_data(query)
     if data is None:
         return []  # Return an empty list
     return data
-
 
 def delete_payment_status(pay_id):
     query = "DELETE FROM PAYMENT_STATUS WHERE pay_id = %s"
@@ -89,14 +81,13 @@ def show_payment_management():
 
     # Payment Types Management
     st.write("### Payment Types")
-    pt_id = st.text_input("Payment Type ID")
     pt_details = st.text_input("Payment Type Details")
     if st.button("Add Payment Type"):
-        if pt_id and pt_details:
-            create_payment_type(pt_id, pt_details)
+        if pt_details:
+            create_payment_type(pt_details)
             st.success(f"Added Payment Type: {pt_details}")
         else:
-            st.warning("Please enter both Payment Type ID and Details.")
+            st.warning("Please enter Payment Type Details.")
 
     st.write("### Available Payment Types")
     payment_types_data = get_payment_types()
@@ -137,4 +128,3 @@ def show_payment_management():
                 st.warning("Please enter a Payment Status ID to delete.")
     else:
         st.warning("No payment statuses found.")
-
