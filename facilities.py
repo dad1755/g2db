@@ -52,7 +52,7 @@ def fetch_data(query):
         if connection and connection.is_connected():
             connection.close()
 def edit_cottage_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_stat_id):
-    # Example implementation
+    """Edit attributes of a cottage."""
     query = """
     UPDATE COTTAGES 
     SET pool_id = %s, loc_id = %s, room_id = %s, max_pax_id = %s, ct_id = %s, ct_status_id = %s 
@@ -60,6 +60,7 @@ def edit_cottage_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_ro
     """
     params = (new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_stat_id, selected_cottage_id)
     execute_query(query, params)
+
 
 # CRUD Functions for Pool
 def create_pool(pool_detail):
