@@ -141,7 +141,7 @@ def show_approve_management():
             confirm_payment(selected_book_id, selected_staff_id, selected_cottage_id)
             
     else:
-        st.warning("No bookings found with payment status = 1.")
+        st.warning("All bookings with confirm payment status = 1.")
 
 # Run this function only if this script is executed directly
 if __name__ == "__main__":
