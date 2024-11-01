@@ -113,7 +113,7 @@ def confirm_payment(book_id, staff_id, cottage_id):
 # Streamlit UI for displaying booking details
 def show_approve_management():
     st.subheader("Booking Management")
-    st.write("### Available Bookings (Pending Confirmation)")
+    st.write("Available Bookings (Pending Confirmation Will Be List Here)")
     
     bookings_data = get_bookings()
     if bookings_data:
