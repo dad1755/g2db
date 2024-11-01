@@ -243,17 +243,17 @@ def show_facilities_management():
 
     # Update Cottage Attributes
     st.write("###### Update Cottage Attributes")
-
+    
     # Fetch cottages to select one for updating
-    cottages_data = fetch_data("SELECT * FROM COTTAGES")  # Make sure this is defined correctly
-
+    cottages_data = fetch_data("SELECT * FROM COTTAGE_ATTRIBUTES_RELATION")  # Updated
+    
     if cottages_data:
-        cottage_names = [f"{cottage['cottage_id']} - {cottage['cottage_name']}" for cottage in cottages_data]
+        cottage_names = [f"{cottage['cottage_id']} - {cottage['cottage_name']}" for cottage in cottages_data]  # Ensure these keys exist
         selected_cottage_name = st.selectbox("Select Cottage to Update", options=cottage_names)
-
+    
         if selected_cottage_name:
             selected_cottage_id = int(selected_cottage_name.split(" - ")[0])  # Extract ID
-
+    
             # Assuming you have dropdowns for the new values
             new_pool_id = st.selectbox("New Pool ID", options=[pool['pool_id'] for pool in get_pool()])
             new_loc_id = st.selectbox("New Location ID", options=[location['loc_id'] for location in get_locations()])
@@ -261,7 +261,7 @@ def show_facilities_management():
             new_max_pax_id = st.selectbox("New Maximum Pax ID", options=[max_pax['max_pax_id'] for max_pax in get_maximum_pax()])
             new_ct_id = st.selectbox("New Cottage Type ID", options=[ct['ct_id'] for ct in get_cottage_types()])
             new_ct_stat_id = st.selectbox("New Cottage Status ID", options=[cs['cottage_status_id'] for cs in get_cottage_statuses()])
-
+    
             if st.button("Update Cottage Attributes"):
                 edit_cottage_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_stat_id)
                 st.success(f"Updated attributes for Cottage ID: {selected_cottage_id}")
