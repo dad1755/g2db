@@ -1,4 +1,3 @@
-# facilities.py
 import streamlit as st
 import mysql.connector
 from mysql.connector import Error
@@ -14,6 +13,8 @@ DB_CONFIG = {
 
 def execute_query(query, params=None):
     """Execute a query with optional parameters."""
+    connection = None
+    cursor = None
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor()
@@ -27,12 +28,15 @@ def execute_query(query, params=None):
         st.error(f"Error: {e}")
         return None
     finally:
-        if connection.is_connected():
+        if cursor:
             cursor.close()
+        if connection and connection.is_connected():
             connection.close()
 
 def fetch_data(query):
     """Fetch data from the database."""
+    connection = None
+    cursor = None
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor(dictionary=True)
@@ -43,8 +47,9 @@ def fetch_data(query):
         st.error(f"Error: {e}")
         return None
     finally:
-        if connection.is_connected():
+        if cursor:
             cursor.close()
+        if connection and connection.is_connected():
             connection.close()
 
 # CRUD Functions for Pool
@@ -227,82 +232,53 @@ def show_facilities_management():
     st.write("###### Available Locations in Database")
     locations_data = get_locations()
     
-    # Display the data structure for debugging purposes
-    st.write("Locations Data:", locations_data)  # Debugging line
-    
     if locations_data:
         st.dataframe(locations_data)
     
         # Update Location
         st.write("###### Function to Update Location")
         location_names = [
-            f"{location['location_detail']} (ID: {location['location_id']})"
+            f"{location['loc_details']} (ID: {location['loc_id']})"
             for location in locations_data
-            if 'location_detail' in location and 'location_id' in location  # Only include valid entries
         ]
     
         location_name_to_update = st.selectbox("Select Location to Update", options=location_names)
     
         if location_name_to_update:
-            # Extract ID safely
-            location_id_to_update_str = location_name_to_update.split("(ID: ")[-1][:-1]  # Extract ID part
-            try:
-                location_id_to_update = int(location_id_to_update_str)  # Convert to integer
-            except ValueError:
-                st.warning("Invalid location ID selected. Please try again.")
-                location_id_to_update = None  # Reset to None if the conversion fails
-    
-            selected_location = next((location for location in locations_data if location.get('location_id') == location_id_to_update), None)
+            location_id_to_update = int(location_name_to_update.split("(ID: ")[-1][:-1])  # Extract ID
+            selected_location = next((location for location in locations_data if location['loc_id'] == location_id_to_update), None)
     
             if selected_location:
-                updated_location_detail = st.text_input("Updated Location Detail", value=selected_location.get('location_detail', ''))
+                updated_location_detail = st.text_input("Updated Location Detail", value=selected_location['loc_details'])
     
                 if st.button("Update Location"):
                     update_location(location_id_to_update, updated_location_detail)
                     st.success(f"Updated Location: {updated_location_detail}")
-    
+
         # Delete Location
         st.write("###### Function to Delete Location")
         location_name_to_delete = st.selectbox("Select Location to Delete", options=location_names)
     
         if st.button("Delete Location"):
             if location_name_to_delete:
-                # Extract ID safely
-                location_id_to_delete_str = location_name_to_delete.split("(ID: ")[-1][:-1]  # Extract ID part
-                try:
-                    location_id_to_delete = int(location_id_to_delete_str)  # Convert to integer
-                except ValueError:
-                    st.warning("Invalid location ID selected. Please try again.")
-                    location_id_to_delete = None  # Reset to None if the conversion fails
-    
-                if location_id_to_delete is not None:
-                    delete_location(location_id_to_delete)
-                    st.success(f"Deleted Location: {location_name_to_delete}")
+                location_id_to_delete = int(location_name_to_delete.split("(ID: ")[-1][:-1])  # Extract ID
+                delete_location(location_id_to_delete)
+                st.success(f"Deleted Location: {location_name_to_delete}")
             else:
                 st.warning("Please select a Location to delete.")
     else:
         st.warning("No locations found.")
 
-
-    # Add Room
-    st.write("###### Function to Add New Room")
-    room_detail = st.text_input("Room Detail")
-    if st.button("Add Room"):
-        if room_detail:
-            create_room(room_detail)
-            st.success(f"Added Room: {room_detail}")
-        else:
-            st.warning("Please fill in the Room Detail.")
-
     # View Rooms
     st.write("###### Available Rooms in Database")
     rooms_data = get_rooms()
+    
     if rooms_data:
         st.dataframe(rooms_data)
 
         # Update Room
         st.write("###### Function to Update Room")
-        room_names = [f"{room['room_detail']} (ID: {room['room_id']})" for room in rooms_data]
+        room_names = [f"{room['room_details']} (ID: {room['room_id']})" for room in rooms_data]
         room_name_to_update = st.selectbox("Select Room to Update", options=room_names)
 
         if room_name_to_update:
@@ -310,7 +286,7 @@ def show_facilities_management():
             selected_room = next((room for room in rooms_data if room['room_id'] == room_id_to_update), None)
 
             if selected_room:
-                updated_room_detail = st.text_input("Updated Room Detail", value=selected_room['room_detail'])
+                updated_room_detail = st.text_input("Updated Room Detail", value=selected_room['room_details'])
 
                 if st.button("Update Room"):
                     update_room(room_id_to_update, updated_room_detail)
@@ -330,86 +306,68 @@ def show_facilities_management():
     else:
         st.warning("No rooms found.")
 
-    # Add Maximum Pax
-    st.write("###### Function to Add New Maximum Pax")
-    maximum_pax_detail = st.text_input("Maximum Pax Detail")
-    if st.button("Add Maximum Pax"):
-        if maximum_pax_detail:
-            create_maximum_pax(maximum_pax_detail)
-            st.success(f"Added Maximum Pax: {maximum_pax_detail}")
-        else:
-            st.warning("Please fill in the Maximum Pax Detail.")
-
     # View Maximum Pax
     st.write("###### Available Maximum Pax in Database")
     maximum_pax_data = get_maximum_pax()
+
     if maximum_pax_data:
         st.dataframe(maximum_pax_data)
 
         # Update Maximum Pax
         st.write("###### Function to Update Maximum Pax")
-        maximum_pax_names = [f"{maximum_pax['maximum_pax_detail']} (ID: {maximum_pax['maximum_pax_id']})" for maximum_pax in maximum_pax_data]
-        maximum_pax_name_to_update = st.selectbox("Select Maximum Pax to Update", options=maximum_pax_names)
+        max_pax_names = [f"{max_pax['max_pax_details']} (ID: {max_pax['max_pax_id']})" for max_pax in maximum_pax_data]
+        max_pax_name_to_update = st.selectbox("Select Maximum Pax to Update", options=max_pax_names)
 
-        if maximum_pax_name_to_update:
-            maximum_pax_id_to_update = int(maximum_pax_name_to_update.split("(ID: ")[-1][:-1])  # Extract ID
-            selected_maximum_pax = next((maximum_pax for maximum_pax in maximum_pax_data if maximum_pax['maximum_pax_id'] == maximum_pax_id_to_update), None)
+        if max_pax_name_to_update:
+            max_pax_id_to_update = int(max_pax_name_to_update.split("(ID: ")[-1][:-1])  # Extract ID
+            selected_max_pax = next((max_pax for max_pax in maximum_pax_data if max_pax['max_pax_id'] == max_pax_id_to_update), None)
 
-            if selected_maximum_pax:
-                updated_maximum_pax_detail = st.text_input("Updated Maximum Pax Detail", value=selected_maximum_pax['maximum_pax_detail'])
+            if selected_max_pax:
+                updated_max_pax_detail = st.text_input("Updated Maximum Pax Detail", value=selected_max_pax['max_pax_details'])
 
                 if st.button("Update Maximum Pax"):
-                    update_maximum_pax(maximum_pax_id_to_update, updated_maximum_pax_detail)
-                    st.success(f"Updated Maximum Pax: {updated_maximum_pax_detail}")
+                    update_maximum_pax(max_pax_id_to_update, updated_max_pax_detail)
+                    st.success(f"Updated Maximum Pax: {updated_max_pax_detail}")
 
         # Delete Maximum Pax
         st.write("###### Function to Delete Maximum Pax")
-        maximum_pax_name_to_delete = st.selectbox("Select Maximum Pax to Delete", options=maximum_pax_names)
+        max_pax_name_to_delete = st.selectbox("Select Maximum Pax to Delete", options=max_pax_names)
 
         if st.button("Delete Maximum Pax"):
-            if maximum_pax_name_to_delete:
-                maximum_pax_id_to_delete = int(maximum_pax_name_to_delete.split("(ID: ")[-1][:-1])  # Extract ID
-                delete_maximum_pax(maximum_pax_id_to_delete)
-                st.success(f"Deleted Maximum Pax: {maximum_pax_name_to_delete}")
+            if max_pax_name_to_delete:
+                max_pax_id_to_delete = int(max_pax_name_to_delete.split("(ID: ")[-1][:-1])  # Extract ID
+                delete_maximum_pax(max_pax_id_to_delete)
+                st.success(f"Deleted Maximum Pax: {max_pax_name_to_delete}")
             else:
                 st.warning("Please select a Maximum Pax to delete.")
     else:
         st.warning("No maximum pax found.")
 
-    # Add Cottage Type
-    st.write("###### Function to Add New Cottage Type")
-    ct_detail = st.text_input("Cottage Type Detail")
-    if st.button("Add Cottage Type"):
-        if ct_detail:
-            create_cottage_type(ct_detail)
-            st.success(f"Added Cottage Type: {ct_detail}")
-        else:
-            st.warning("Please fill in the Cottage Type Detail.")
-
     # View Cottage Types
-    st.write("###### Cottage Types Available in Database")
+    st.write("###### Available Cottage Types in Database")
     cottage_types_data = get_cottage_types()
+
     if cottage_types_data:
         st.dataframe(cottage_types_data)
 
         # Update Cottage Type
-        st.write("###### Function To Update Cottage Type")
-        ct_names = [f"{cottage_type['ct_details']} (ID: {cottage_type['ct_id']})" for cottage_type in cottage_types_data]
+        st.write("###### Function to Update Cottage Type")
+        ct_names = [f"{ct['ct_details']} (ID: {ct['ct_id']})" for ct in cottage_types_data]
         ct_name_to_update = st.selectbox("Select Cottage Type to Update", options=ct_names)
 
         if ct_name_to_update:
             ct_id_to_update = int(ct_name_to_update.split("(ID: ")[-1][:-1])  # Extract ID
-            selected_cottage_type = next((cottage_type for cottage_type in cottage_types_data if cottage_type['ct_id'] == ct_id_to_update), None)
+            selected_ct = next((ct for ct in cottage_types_data if ct['ct_id'] == ct_id_to_update), None)
 
-            if selected_cottage_type:
-                updated_ct_detail = st.text_input("Updated Cottage Type Detail", value=selected_cottage_type['ct_details'])
+            if selected_ct:
+                updated_ct_detail = st.text_input("Updated Cottage Type Detail", value=selected_ct['ct_details'])
 
                 if st.button("Update Cottage Type"):
                     update_cottage_type(ct_id_to_update, updated_ct_detail)
                     st.success(f"Updated Cottage Type: {updated_ct_detail}")
 
         # Delete Cottage Type
-        st.write("###### Function To Delete Cottage Type")
+        st.write("###### Function to Delete Cottage Type")
         ct_name_to_delete = st.selectbox("Select Cottage Type to Delete", options=ct_names)
 
         if st.button("Delete Cottage Type"):
@@ -422,30 +380,23 @@ def show_facilities_management():
     else:
         st.warning("No cottage types found.")
 
-    # Add Cottage Status
-    st.write("###### Function To Add New Cottage Status")
-    cottage_status_detail = st.text_input("Cottage Status Detail")
-    if st.button("Add Cottage Status"):
-        if cottage_status_detail:
-            create_cottage_status(cottage_status_detail)
-            st.success(f"Added Cottage Status: {cottage_status_detail}")
-        else:
-            st.warning("Please fill in the Cottage Status Detail.")
-
-    # View Cottage Statuses
+    # View Cottage Status
     st.write("###### Available Cottage Status in Database")
-    cottage_statuses_data = get_cottage_statuses()
-    if cottage_statuses_data:
-        st.dataframe(cottage_statuses_data)
+    cottage_status_data = get_cottage_statuses()
+
+    if cottage_status_data:
+        st.dataframe(cottage_status_data)
 
         # Update Cottage Status
-        st.write("###### Function To Update Cottage Status")
-        cottage_status_names = [f"{cottage_status['ct_details']} (ID: {cottage_status['cottage_status_id']})" for cottage_status in cottage_statuses_data]
+        st.write("###### Function to Update Cottage Status")
+        cottage_status_names = [
+            f"{cs['ct_details']} (ID: {cs['cottage_status_id']})" for cs in cottage_status_data
+        ]
         cottage_status_name_to_update = st.selectbox("Select Cottage Status to Update", options=cottage_status_names)
 
         if cottage_status_name_to_update:
             cottage_status_id_to_update = int(cottage_status_name_to_update.split("(ID: ")[-1][:-1])  # Extract ID
-            selected_cottage_status = next((cottage_status for cottage_status in cottage_statuses_data if cottage_status['cottage_status_id'] == cottage_status_id_to_update), None)
+            selected_cottage_status = next((cs for cs in cottage_status_data if cs['cottage_status_id'] == cottage_status_id_to_update), None)
 
             if selected_cottage_status:
                 updated_cottage_status_detail = st.text_input("Updated Cottage Status Detail", value=selected_cottage_status['ct_details'])
@@ -468,6 +419,7 @@ def show_facilities_management():
     else:
         st.warning("No cottage statuses found.")
 
-# Main Application
+# Run the app
 if __name__ == "__main__":
+    st.title("Facility Management System")
     show_facilities_management()
