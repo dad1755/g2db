@@ -26,7 +26,7 @@ def execute_query(query, params=None):
         st.success("Query executed successfully.")  # Debug message
         return cursor  # Return cursor for further processing
     except Error as e:
-        st.error(f"Error: {e}")
+        st.error(f"Error executing query: {query} with params: {params} | Error: {e}")
         return None
     finally:
         if cursor:
@@ -237,56 +237,69 @@ def show_facilities_management():
 
             if selected_pool:
                 updated_pool_detail = st.text_input("Updated Pool Detail", value=selected_pool['pool_detail'])
-
                 if st.button("Update Pool"):
                     update_pool(pool_id_to_update, updated_pool_detail)
-                    st.success(f"Updated Pool: {updated_pool_detail}")
+                    st.success("Updated Pool successfully!")
 
         # Delete Pool
         st.write("###### Function to Delete Pool")
         pool_name_to_delete = st.selectbox("Select Pool to Delete", options=pool_names)
-
         if st.button("Delete Pool"):
-            if pool_name_to_delete:
-                pool_id_to_delete = int(pool_name_to_delete.split("(ID: ")[-1][:-1])  # Extract ID
-                delete_pool(pool_id_to_delete)
-                st.success(f"Deleted Pool: {pool_name_to_delete}")
+            pool_id_to_delete = int(pool_name_to_delete.split("(ID: ")[-1][:-1])
+            delete_pool(pool_id_to_delete)
+            st.success("Deleted Pool successfully!")
 
-    else:
-        st.warning("No pools available in the database.")
+    # Repeat similar blocks for Location, Room, Maximum Pax, Cottage Types, Cottage Status
 
-    # Repeat the above structure for Locations, Rooms, Maximum Pax, Cottage Types, and Cottage Status
-    # For brevity, I'm not duplicating the code for each section, but they would follow the same pattern.
+def show_cottage_management():
+    """Streamlit UI for managing Cottages."""
+    st.write("### Cottage Management 🏡")
 
-    # Update Cottage Attributes
-    st.write("###### Update Cottage Attributes")
-    
-    # Fetch cottages to select one for updating
-    # Fetch cottages with attributes
-    cottages_data = fetch_cottages_with_attributes()
-    
-    if cottages_data:
-        cottage_names = [f"{cottage['id']} - {cottage['cottage_name']}" for cottage in cottages_data]  # Ensure keys match the fetch result
-        selected_cottage_name = st.selectbox("Select Cottage to Update", options=cottage_names)
-    
-        if selected_cottage_name:
-            selected_cottage_id = int(selected_cottage_name.split(" - ")[0])  # Extract ID
-            # Dropdowns for the new values remain the same
-            new_pool_id = st.selectbox("New Pool ID", options=[pool['pool_id'] for pool in get_pool()])
-            new_loc_id = st.selectbox("New Location ID", options=[location['loc_id'] for location in get_locations()])
-            new_room_id = st.selectbox("New Room ID", options=[room['room_id'] for room in get_rooms()])
-            new_max_pax_id = st.selectbox("New Maximum Pax ID", options=[max_pax['max_pax_id'] for max_pax in get_maximum_pax()])
-            new_ct_id = st.selectbox("New Cottage Type ID", options=[ct['ct_id'] for ct in get_cottage_types()])
-            new_ct_stat_id = st.selectbox("New Cottage Status ID", options=[cs['cottage_status_id'] for cs in get_cottage_statuses()])
-    
-            if st.button("Update Cottage Attributes"):
-                # Update function to edit cottage attributes in the COTTAGE_ATTRIBUTES_RELATION table
-                edit_cottage_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_stat_id)
-                st.success(f"Updated attributes for Cottage ID: {selected_cottage_id}")
-    else:
-        st.warning("No cottages available to update.")
+    cottages = fetch_cottages_with_attributes()
+    if cottages:
+        st.write("###### Cottages with Attributes")
+        st.dataframe(cottages)
 
+        # Editing Cottage Attributes
+        st.write("###### Edit Cottage Attributes")
+        cottage_names = [f"{cottage['cottage_name']} (ID: {cottage['id']})" for cottage in cottages]
+        selected_cottage = st.selectbox("Select Cottage to Edit", options=cottage_names)
 
-# Run the application
+        if selected_cottage:
+            selected_cottage_id = int(selected_cottage.split("(ID: ")[-1][:-1])
+            selected_cottage_data = next((cottage for cottage in cottages if cottage['id'] == selected_cottage_id), None)
+
+            if selected_cottage_data:
+                new_pool_id = st.number_input("New Pool ID", value=selected_cottage_data['pool_id'])
+                new_loc_id = st.number_input("New Location ID", value=selected_cottage_data['loc_id'])
+                new_room_id = st.number_input("New Room ID", value=selected_cottage_data['room_id'])
+                new_max_pax_id = st.number_input("New Maximum Pax ID", value=selected_cottage_data['max_pax_id'])
+                new_ct_id = st.number_input("New Cottage Type ID", value=selected_cottage_data['ct_id'])
+                new_ct_stat_id = st.number_input("New Cottage Status ID", value=selected_cottage_data['ct_id_stat'])
+
+                if st.button("Update Cottage Attributes"):
+                    st.write("Preparing to update attributes...")
+                    st.write("Selected Cottage ID:", selected_cottage_id)
+                    st.write("New Pool ID:", new_pool_id)
+                    st.write("New Location ID:", new_loc_id)
+                    st.write("New Room ID:", new_room_id)
+                    st.write("New Maximum Pax ID:", new_max_pax_id)
+                    st.write("New Cottage Type ID:", new_ct_id)
+                    st.write("New Cottage Status ID:", new_ct_stat_id)
+
+                    edit_cottage_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_stat_id)
+                    st.success(f"Updated attributes for Cottage ID: {selected_cottage_id}")
+
+def main():
+    st.title("Cottage Management System")
+
+    menu = ["Manage Facilities", "Manage Cottages"]
+    choice = st.sidebar.selectbox("Select Activity", menu)
+
+    if choice == "Manage Facilities":
+        show_facilities_management()
+    elif choice == "Manage Cottages":
+        show_cottage_management()
+
 if __name__ == "__main__":
-    show_facilities_management()
+    main()
