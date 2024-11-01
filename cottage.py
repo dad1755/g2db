@@ -120,7 +120,16 @@ def show_cottage_management():
         if st.button("Delete Cottage"):
             delete_cottage(selected_cottage_id)
             st.rerun()
-
+    # View Cottage Attributes
+    st.write("#### Cottage Attributes Management 📦")
+    cottage_attributes_data = get_cottage_attributes_relation()
+    if cottage_attributes_data:
+        attributes_df = pd.DataFrame(cottage_attributes_data)
+        st.dataframe(attributes_df)
+    else:
+        st.warning("No cottage attributes found. Displaying an empty grid.")
+        empty_df = pd.DataFrame(columns=["cot_id", "pool_id", "loc_id", "room_id", "max_pax_id", "ct_id", "ct_id_stat"])
+        st.dataframe(empty_df)
     # Update Cottage Attributes
     st.write("#### Update Cottage Attributes ✏️")
     if cottage_data:
@@ -149,16 +158,7 @@ def show_cottage_management():
         else:
             st.warning("No attributes found for the selected cottage.")
 
-    # View Cottage Attributes
-    st.write("#### Cottage Attributes Management 📦")
-    cottage_attributes_data = get_cottage_attributes_relation()
-    if cottage_attributes_data:
-        attributes_df = pd.DataFrame(cottage_attributes_data)
-        st.dataframe(attributes_df)
-    else:
-        st.warning("No cottage attributes found. Displaying an empty grid.")
-        empty_df = pd.DataFrame(columns=["cot_id", "pool_id", "loc_id", "room_id", "max_pax_id", "ct_id", "ct_id_stat"])
-        st.dataframe(empty_df)
+
 
 # Run the application
 if __name__ == "__main__":
