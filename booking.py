@@ -113,8 +113,11 @@ def show_booking():
     # Booking Details section
     with st.container():
         st.write("### Booking Details")
-        cottage = st.selectbox("Cottage", options=[f"{name} (ID: {id})" for id, name in cottage_options])  # Display cottage name and ID
-        cottage_id = cottage_options[cottage_options.index((cottage.split(' (ID: ')[0], int(cottage.split(' (ID: ')[1][:-1])))][0]  # Extract cot_id
+        
+        # Cottage selection with ID extraction
+        cottage_options_dict = {f"{name} (ID: {id})": id for id, name in cottage_options}
+        cottage = st.selectbox("Cottage", options=list(cottage_options_dict.keys()))  # Display cottage names with IDs
+        cottage_id = cottage_options_dict[cottage]  # Directly get cot_id from the dictionary
 
         check_in_date = st.date_input("Check-in Date")
         nights = st.number_input("Number of Nights", min_value=1)
@@ -123,9 +126,10 @@ def show_booking():
         check_out_date = check_in_date + timedelta(days=nights)
         st.write(f"Check-out Date: {check_out_date}")
 
-        # Payment Type selection
-        payment_type = st.selectbox("Payment Type", options=[f"{details} (ID: {id})" for id, details in payment_options])  # Display details and ID
-        payment_type_id = payment_options[payment_options.index((payment_type.split(' (ID: ')[0], int(payment_type.split(' (ID: ')[1][:-1])))][0]  # Extract pt_id
+        # Payment Type selection with ID extraction
+        payment_options_dict = {f"{details} (ID: {id})": id for id, details in payment_options}  # Dictionary for payment types
+        payment_type = st.selectbox("Payment Type", options=list(payment_options_dict.keys()))  # Display payment details with IDs
+        payment_type_id = payment_options_dict[payment_type]  # Directly get pt_id from the dictionary
 
         # Fetch and display discounts for the selected cottage
         discounts = fetch_discounts(cottage_id)
@@ -151,4 +155,5 @@ def show_booking():
                 st.error("Error adding customer details. Please try again.")
 
 # Run the function to display booking form on Streamlit app
-show_booking()
+if __name__ == "__main__":
+    show_booking()
