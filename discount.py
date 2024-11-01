@@ -123,6 +123,7 @@ def show_discount_management():
                 staff_id = int(selected_staff.split(" - ")[0])
                 create_discount(cot_id, discount_amount, staff_id)
                 st.success(f"Added Discount: {discount_amount} for {selected_cot} by {selected_staff}")
+                update_discount_data()
             else:
                 st.warning("Please select a Cottage and Staff.")
 
@@ -141,6 +142,7 @@ def show_discount_management():
             if discount_ids_to_delete:
                 delete_discount(discount_ids_to_delete)
                 st.success(f"Deleted Discount ID: {discount_ids_to_delete}")
+                update_discount_data()
             else:
                 st.warning("Please select a Discount to delete.")
 
@@ -168,6 +170,7 @@ def show_discount_management():
                     new_staff_id = int(new_selected_staff.split(" - ")[0])  # Get the selected staff ID
                     edit_discount(discount_to_edit, new_discount_amount, new_staff_id)
                     st.success(f"Updated Discount ID: {discount_to_edit}")
+                    update_discount_data()
                 else:
                     st.warning("Please select a new Staff.")
     else:
