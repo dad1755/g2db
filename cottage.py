@@ -188,14 +188,26 @@ def show_cottage_management():
             cottage_types = get_cottage_types()
             cottage_statuses = get_cottage_statuses()
     
-            # Create input fields for attributes
-            pool_id = st.selectbox("Pool ID", options=[pool['pool_id'] for pool in pools], index=pools.index(next(filter(lambda x: x['pool_id'] == current_attributes['pool_id'], pools))) if pools else None)
-            loc_id = st.selectbox("Location ID", options=[location['loc_id'] for location in locations], index=locations.index(next(filter(lambda x: x['loc_id'] == current_attributes['loc_id'], locations))) if locations else None)
-            room_id = st.selectbox("Room ID", options=[room['room_id'] for room in rooms], index=rooms.index(next(filter(lambda x: x['room_id'] == current_attributes['room_id'], rooms))) if rooms else None)
-            max_pax_id = st.selectbox("Max Pax ID", options=[max_pax['max_pax_id'] for max_pax in maximum_pax], index=maximum_pax.index(next(filter(lambda x: x['max_pax_id'] == current_attributes['max_pax_id'], maximum_pax))) if maximum_pax else None)
-            ct_id = st.selectbox("Cottage Type ID", options=[ct['ct_id'] for ct in cottage_types], index=cottage_types.index(next(filter(lambda x: x['ct_id'] == current_attributes['ct_id'], cottage_types))) if cottage_types else None)
-            ct_id_stat = st.selectbox("Cottage Status ID", options=[cs['cottage_status_id'] for cs in cottage_statuses], index=cottage_statuses.index(next(filter(lambda x: x['cottage_status_id'] == current_attributes['ct_id_stat'], cottage_statuses))) if cottage_statuses else None)
-    
+#            # Create input fields for attributes
+#            pool_id = st.selectbox("Pool ID", options=[pool['pool_id'] for pool in pools], index=pools.index(next(filter(lambda x: x['pool_id'] == current_attributes['pool_id'], pools))) if pools else None)
+#            loc_id = st.selectbox("Location ID", options=[location['loc_id'] for location in locations], index=locations.index(next(filter(lambda x: x['loc_id'] == current_attributes['loc_id'], locations))) if locations else None)
+#            room_id = st.selectbox("Room ID", options=[room['room_id'] for room in rooms], index=rooms.index(next(filter(lambda x: x['room_id'] == current_attributes['room_id'], rooms))) if rooms else None)
+#            max_pax_id = st.selectbox("Max Pax ID", options=[max_pax['max_pax_id'] for max_pax in maximum_pax], index=maximum_pax.index(next(filter(lambda x: x['max_pax_id'] == current_attributes['max_pax_id'], maximum_pax))) if maximum_pax else None)
+#            ct_id = st.selectbox("Cottage Type ID", options=[ct['ct_id'] for ct in cottage_types], index=cottage_types.index(next(filter(lambda x: x['ct_id'] == current_attributes['ct_id'], cottage_types))) if cottage_types else None)
+#            ct_id_stat = st.selectbox("Cottage Status ID", options=[cs['cottage_status_id'] for cs in cottage_statuses], index=cottage_statuses.index(next(filter(lambda x: x['cottage_status_id'] == current_attributes['ct_id_stat'], cottage_statuses))) if cottage_statuses else None)
+            # Create input fields for attributes with descriptive dropdowns
+            pool_id = st.selectbox("Pool", options=[f"{pool['pool_id']} : {pool['pool_info']}" for pool in pools], 
+                                   index=pools.index(next(filter(lambda x: x['pool_id'] == current_attributes['pool_id'], pools))) if pools else None)
+            loc_id = st.selectbox("Location", options=[f"{location['loc_id']} : {location['loc_info']}" for location in locations], 
+                                   index=locations.index(next(filter(lambda x: x['loc_id'] == current_attributes['loc_id'], locations))) if locations else None)
+            room_id = st.selectbox("Room", options=[f"{room['room_id']} : {room['room_info']}" for room in rooms], 
+                                   index=rooms.index(next(filter(lambda x: x['room_id'] == current_attributes['room_id'], rooms))) if rooms else None)
+            max_pax_id = st.selectbox("Max Pax", options=[f"{max_pax['max_pax_id']} : {max_pax['max_pax_info']}" for max_pax in maximum_pax], 
+                                   index=maximum_pax.index(next(filter(lambda x: x['max_pax_id'] == current_attributes['max_pax_id'], maximum_pax))) if maximum_pax else None)
+            ct_id = st.selectbox("Cottage Type", options=[f"{ct['ct_id']} : {ct['ct_info']}" for ct in cottage_types], 
+                                   index=cottage_types.index(next(filter(lambda x: x['ct_id'] == current_attributes['ct_id'], cottage_types))) if cottage_types else None)
+            ct_id_stat = st.selectbox("Cottage Status", options=[f"{cs['cottage_status_id']} : {cs['status_info']}" for cs in cottage_statuses], 
+                                   index=cottage_statuses.index(next(filter(lambda x: x['cottage_status_id'] == current_attributes['ct_id_stat'], cottage_statuses))) if cottage_statuses else None)    
             if st.button("Update Attributes"):
                 update_cottage_attributes(selected_cottage_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat)
                 st.success("Cottage attributes updated successfully.")
