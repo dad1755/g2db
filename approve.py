@@ -77,6 +77,7 @@ def confirm_payment(book_id, staff_id, cottage_id):
         update_status_query = """
             UPDATE COTTAGE_STATUS SET ct_details = 'Unavailable' WHERE cottage_status_id = %s
         """
+        # Here you need to use `cottage_id` instead of `cottage_status_id`
         execute_query(update_status_query, (cottage_id,))
         
         st.success("Payment confirmed and cottage status updated.")
@@ -94,7 +95,7 @@ def show_approve_management():
         # Display bookings as a DataFrame for a cleaner output
         bookings_df = pd.DataFrame(bookings_data)
         st.dataframe(bookings_df)
-        
+
         # Payment confirmation form
         st.write("### Confirm Payment")
         selected_book_id = st.selectbox("Select Booking ID to Confirm", bookings_df['book_id'].values)
@@ -102,6 +103,12 @@ def show_approve_management():
         
         # Retrieve cottage ID based on selected booking
         selected_booking = bookings_df[bookings_df['book_id'] == selected_book_id].iloc[0]
+        
+        # Ensure 'cottage_id' exists
+        if 'cottage_id' not in selected_booking:
+            st.error("The selected booking does not have an associated cottage ID.")
+            st.stop()
+        
         selected_cottage_id = selected_booking['cottage_id']
         
         if st.button("CONFIRM"):
