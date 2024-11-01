@@ -3,9 +3,6 @@ import mysql.connector
 from mysql.connector import Error
 import pandas as pd
 
-# Import the update_attributes module
-from update_attributes import update_cottage_attributes
-
 # Database configuration
 DB_CONFIG = {
     'host': 'sql12.freemysqlhosting.net',
@@ -76,9 +73,6 @@ def delete_cottage(cot_id):
     st.success(f"Cottage with ID {cot_id} and its related data have been deleted.")
     st.rerun()
 
-# Import the update_attributes module
-from update_attributes import update_cottage_attributes
-
 def show_cottage_management():
     """Streamlit UI for Cottage Management."""
     st.write("#### Cottage Management 💡")
@@ -118,16 +112,35 @@ def show_cottage_management():
         selected_cottage_name = st.selectbox("Select Cottage to Update Attributes", options=[cottage['cot_name'] for cottage in cottage_data])
         selected_cottage_id = next((cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == selected_cottage_name), None)
 
-        # Fetch current attributes to pass them to the update function
+        # Fetch current attributes to allow editing
         current_attributes_query = "SELECT * FROM COTTAGE_ATTRIBUTES_RELATION WHERE cot_id = %s"
         current_attributes = fetch_data(current_attributes_query, (selected_cottage_id,))
+        
         if current_attributes:
             current_attributes = current_attributes[0]  # Assuming one row is returned
-            if st.button("Update Attributes"):
-                update_cottage_attributes(selected_cottage_id, current_attributes)
-                st.rerun()
+            
+            # Create input fields for attributes
+            pool_id = st.number_input("Pool ID", value=current_attributes['pool_id'], min_value=0)
+            loc_id = st.number_input("Location ID", value=current_attributes['loc_id'], min_value=0)
+            room_id = st.number_input("Room ID", value=current_attributes['room_id'], min_value=0)
+            max_pax_id = st.number_input("Max Pax ID", value=current_attributes['max_pax_id'], min_value=0)
+            ct_id = st.number_input("Cottage Type ID", value=current_attributes['ct_id'], min_value=0)
+            ct_id_stat = st.number_input("Cottage Status ID", value=current_attributes['ct_id_stat'], min_value=0)
 
-    # View Cottage Attributes after Deletion
+            if st.button("Update Attributes"):
+                update_query = """
+                    UPDATE COTTAGE_ATTRIBUTES_RELATION
+                    SET pool_id = %s, loc_id = %s, room_id = %s, max_pax_id = %s, ct_id = %s, ct_id_stat = %s
+                    WHERE cot_id = %s
+                """
+                params = (pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat, selected_cottage_id)
+                execute_query(update_query, params)
+                st.success("Cottage attributes updated successfully.")
+                st.rerun()  # Optionally rerun to refresh the UI after the update
+        else:
+            st.warning("No attributes found for the selected cottage.")
+
+    # View Cottage Attributes
     st.write("#### Cottage Attributes Management 📦")
     cottage_attributes_data = get_cottage_attributes_relation()
     if cottage_attributes_data:
@@ -137,11 +150,6 @@ def show_cottage_management():
         st.warning("No cottage attributes found. Displaying an empty grid.")
         empty_df = pd.DataFrame(columns=["cot_id", "pool_id", "loc_id", "room_id", "max_pax_id", "ct_id", "ct_id_stat"])
         st.dataframe(empty_df)
-
-# Run the application
-if __name__ == "__main__":
-    show_cottage_management()
-
 
 # Run the application
 if __name__ == "__main__":
