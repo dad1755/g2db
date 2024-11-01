@@ -56,6 +56,12 @@ def get_bookings():
 
     return bookings
 
+def get_staff():
+    """Retrieve all staff members."""
+    query = "SELECT staff_id, staff_name FROM STAFF"
+    staff = fetch_data(query)
+    return staff
+
 def confirm_payment(book_id, staff_id, cottage_id):
     """Confirm payment for a booking, update booking and cottage status."""
     
@@ -105,15 +111,20 @@ def show_approve_management():
         bookings_df = pd.DataFrame(bookings_data)
         st.dataframe(bookings_df)
 
+        # Fetch staff data for selection
+        staff_data = get_staff()
+        staff_options = {f"{staff['staff_name']} (ID: {staff['staff_id']})": staff['staff_id'] for staff in staff_data}
+
         # Payment confirmation form
         st.write("### Confirm Payment")
         selected_book_id = st.selectbox("Select Booking ID to Confirm", bookings_df['book_id'].values)
-        selected_staff_id = st.number_input("Enter Staff ID", min_value=1, step=1)
+        
+        # Staff selection
+        selected_staff_name = st.selectbox("Select Staff", options=list(staff_options.keys()))
+        selected_staff_id = staff_options[selected_staff_name]  # Get the ID based on the selected name
         
         # Retrieve cottage ID based on selected booking
         selected_booking = bookings_df[bookings_df['book_id'] == selected_book_id].iloc[0]
-        
-        # Access the correct column name 'cot_id'
         selected_cottage_id = selected_booking['cot_id']  # Ensure it's using cot_id
         
         if st.button("CONFIRM"):
