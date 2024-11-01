@@ -3,6 +3,9 @@ import mysql.connector
 from mysql.connector import Error
 import pandas as pd
 
+# Import the update_attributes module
+from update_attributes import update_cottage_attributes
+
 # Database configuration
 DB_CONFIG = {
     'host': 'sql12.freemysqlhosting.net',
@@ -116,6 +119,16 @@ def show_cottage_management():
         st.warning("No cottage attributes found. Displaying an empty grid.")
         empty_df = pd.DataFrame(columns=["cot_id", "pool_id", "loc_id", "room_id", "max_pax_id", "ct_id", "ct_id_stat"])
         st.dataframe(empty_df)
+
+    # Within the show_cottage_management function, after the delete functionality, add:
+    st.write("#### Update Cottage Attributes ✏️")
+    if cottage_data:
+        selected_cottage_name = st.selectbox("Select Cottage to Update Attributes", options=[cottage['cot_name'] for cottage in cottage_data])
+        selected_cottage_id = next((cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == selected_cottage_name), None)
+    
+        if st.button("Update Attributes"):
+            update_cottage_attributes(selected_cottage_id)
+            st.rerun()
 
 # Run the application
 if __name__ == "__main__":
