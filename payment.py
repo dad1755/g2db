@@ -113,4 +113,7 @@ def show_payment_management():
         st.warning("No payment statuses found. Consider adding one.")
 
 # Run the payment management function to show the UI
-show_payment_management()
+
+# Run the application
+if __name__ == "__main__":
+    show_payment_management()
