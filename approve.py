@@ -44,7 +44,7 @@ def fetch_data(query, params=None):
 
 def get_bookings():
     """Retrieve all bookings with formatted dates for readability."""
-    query = "SELECT * FROM BOOKING"
+    query = "SELECT * FROM BOOKING WHERE payment_status = 'Pending'"
     bookings = fetch_data(query)
     
     # Format dates to readable string format
@@ -64,7 +64,6 @@ def get_staff():
 
 def confirm_payment(book_id, staff_id, cottage_id):
     """Confirm payment for a booking, update booking and cottage status."""
-    
     try:
         book_id = int(book_id)
         staff_id = int(staff_id)
@@ -76,9 +75,6 @@ def confirm_payment(book_id, staff_id, cottage_id):
             VALUES (%s, %s)
         """
         execute_query(payment_query, (book_id, staff_id))
-
-        # Debugging: Log the values of cottage_id and book_id
-        st.write(f"Checking existing bookings with cottage_id: {cottage_id} and book_id: {book_id}")
 
         # Check for existing bookings to delete
         check_query = "SELECT * FROM BOOKING WHERE cot_id = %s AND book_id != %s"
@@ -94,8 +90,6 @@ def confirm_payment(book_id, staff_id, cottage_id):
             execute_query(delete_payment_query, (book_id,))
             
             # Now delete overlapping bookings with the same cot_id
-            st.write(f"Deleting bookings with cottage_id: {cottage_id} and book_id: {book_id}")
-
             delete_query = """
                 DELETE FROM BOOKING WHERE cot_id = %s AND book_id != %s
             """
@@ -111,7 +105,6 @@ def confirm_payment(book_id, staff_id, cottage_id):
 
     except Error as e:
         st.error(f"Error confirming payment: {e}")
-
 
 # Streamlit UI for displaying booking details
 def show_approve_management():
