@@ -99,20 +99,20 @@ def get_cottage_ids():
     cottage_ids = fetch_data(query)
     return [item['cot_id'] for item in cottage_ids]  # Return only `cot_id` values as a list
 
-def get_assigned_booking_ids():
-    """Retrieve booking IDs that are already assigned tasks in the HOUSEKEEPING table."""
+def get_assigned_cottage_ids():
+    """Retrieve cottage IDs that are already assigned tasks in the HOUSEKEEPING table."""
     query = """
-        SELECT DISTINCT book_id
+        SELECT DISTINCT cot_id
         FROM HOUSEKEEPING
     """
-    assigned_booking_ids = fetch_data(query)
-    return [item['book_id'] for item in assigned_booking_ids]  # Return only `book_id` values as a list
+    assigned_cottage_ids = fetch_data(query)
+    return [item['cot_id'] for item in assigned_cottage_ids]  # Return only `cot_id` values as a list
 
 def show_housekeeping():
     st.subheader("Booking and Housekeeping Management")
 
-    # Get assigned booking IDs
-    assigned_booking_ids = get_assigned_booking_ids()
+    # Get assigned cottage IDs
+    assigned_cottage_ids = get_assigned_cottage_ids()
 
     # Display booking information
     st.write("### Booked Cottages (Booking Table)")
@@ -121,10 +121,10 @@ def show_housekeeping():
     if booking_data:
         booking_df = pd.DataFrame(booking_data)
 
-        # Filter out bookings that have already been assigned tasks
-        available_bookings = booking_df[~booking_df['book_id'].isin(assigned_booking_ids)]
+        # Filter out cottages that have already been assigned tasks
+        available_bookings = booking_df[~booking_df['cot_id'].isin(assigned_cottage_ids)]
         
-        st.dataframe(booking_df)
+        st.dataframe(available_bookings)
 
         if not available_bookings.empty:
             # Fetch and display staff list for assignment
@@ -155,9 +155,9 @@ def show_housekeeping():
                 else:
                     st.warning("No staff data found.")
             else:
-                st.warning("No available bookings for assignment.")
+                st.warning("No staff data found.")
         else:
-            st.warning("All bookings have already been assigned tasks.")
+            st.warning("All cottages have already been assigned tasks.")
 
     else:
         st.warning("No booking data found.")
@@ -177,6 +177,7 @@ def show_housekeeping():
             st.rerun()
     else:
         st.warning("No housekeeping tasks found.")
+
 
 
 
