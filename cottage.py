@@ -173,10 +173,10 @@ def cottage_has_attributes(cot_id):
 
 def show_cottage_management():
     """Streamlit UI for Cottage Management."""
-    st.title("### Cottage Management 💡")
+    st.write("### Cottage Management 💡")
 
     # View Cottages
-    st.subheader("###### Cottage List Available in Database")
+    st.write("###### Cottage List Available in Database")
     cottage_data = get_cottages()
     if cottage_data:
         cottage_df = pd.DataFrame(cottage_data)
