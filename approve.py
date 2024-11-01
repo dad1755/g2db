@@ -59,5 +59,6 @@ def show_approve_management():
     else:
         st.warning("No bookings found.")
 
-# Execute the booking management function to show the UI
-show_approve_management()
+# Only run the function directly if approve.py is executed as a standalone script
+if __name__ == "__main__":
+    show_approve_management()
