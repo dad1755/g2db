@@ -189,7 +189,7 @@ def show_facilities_management():
 
     # View Pools
     st.write("###### Available Pools in Database")
-    pools_data = get_pools()
+    pools_data = get_pool()
     if pools_data:
         st.dataframe(pools_data)
 
