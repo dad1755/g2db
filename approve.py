@@ -50,9 +50,18 @@ def get_bookings():
 # Streamlit UI for displaying booking details
 def show_booking_management():
     st.subheader("Booking Management")
-
     st.write("### Available Bookings")
     bookings_data = get_bookings()
+    if bookings_data:
+        st.dataframe(bookings_data)
+    else:
+        st.warning("No bookings found.")
+
+# Add the approve management function
+def show_approve_management():
+    st.subheader("Approve Management")
+    st.write("### Manage Approvals")
+    bookings_data = get_bookings()  # Use the existing function to fetch bookings
     if bookings_data:
         st.dataframe(bookings_data)
     else:
