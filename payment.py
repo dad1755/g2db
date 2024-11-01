@@ -12,69 +12,52 @@ DB_CONFIG = {
 }
 
 def execute_query(query, params=None):
-    """Execute a query with optional parameters and return the cursor."""
+    """Execute a query with optional parameters."""
+    connection = None
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor()
         cursor.execute(query, params if params else ())
         connection.commit()
-        return cursor  # Return cursor for further processing if needed
+        return cursor
     except Error as e:
-        st.error(f"Error: {e}")
-        return None
+        st.error(f"Database Error: {e}")
     finally:
-        if connection.is_connected():
+        if connection:
             cursor.close()
             connection.close()
 
 def fetch_data(query, params=None):
     """Fetch data from the database and return it as a list of dictionaries."""
+    connection = None
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor(dictionary=True)
         cursor.execute(query, params if params else ())
-        rows = cursor.fetchall()
-        return rows
+        return cursor.fetchall()
     except Error as e:
-        st.error(f"Error: {e}")
-        return None
+        st.error(f"Database Error: {e}")
+        return []
     finally:
-        if connection.is_connected():
+        if connection:
             cursor.close()
             connection.close()
 
-# PAYMENT TYPES CRUD FUNCTIONS
-def create_payment_type(pt_details):
-    """Add a new payment type."""
-    query = "INSERT INTO PAYMENT_TYPES (pt_details) VALUES (%s)"
-    execute_query(query, (pt_details,))
+# Generic CRUD Functions
+def create_record(table, column, value):
+    """Add a new record to the specified table."""
+    query = f"INSERT INTO {table} ({column}) VALUES (%s)"
+    execute_query(query, (value,))
 
-def get_payment_types():
-    """Retrieve all payment types."""
-    query = "SELECT * FROM PAYMENT_TYPES"
+def delete_record(table, id_column, record_id):
+    """Delete a record from the specified table by ID."""
+    query = f"DELETE FROM {table} WHERE {id_column} = %s"
+    execute_query(query, (record_id,))
+
+def get_records(table):
+    """Retrieve all records from the specified table."""
+    query = f"SELECT * FROM {table}"
     return fetch_data(query)
-
-def delete_payment_type(pt_id):
-    """Delete a payment type by ID."""
-    query = "DELETE FROM PAYMENT_TYPES WHERE pt_id = %s"
-    execute_query(query, (pt_id,))
-
-# PAYMENT STATUS CRUD FUNCTIONS
-def create_payment_status(pay_details):
-    """Add a new payment status."""
-    query = "INSERT INTO PAYMENT_STATUS (pay_details) VALUES (%s)"
-    execute_query(query, (pay_details,))
-
-def get_payment_statuses():
-    """Retrieve all payment statuses."""
-    query = "SELECT * FROM PAYMENT_STATUS"
-    data = fetch_data(query)
-    return data if data else []
-
-def delete_payment_status(pay_id):
-    """Delete a payment status by ID."""
-    query = "DELETE FROM PAYMENT_STATUS WHERE pay_id = %s"
-    execute_query(query, (pay_id,))
 
 # Streamlit UI for Payment Management
 def show_payment_management():
@@ -82,51 +65,53 @@ def show_payment_management():
 
     # Payment Types Management
     st.write("### Payment Types")
-    ptype2_details_input = st.text_input("Payment Type Details")  # Unique key
-    if st.button("Add Payment Type", key="add_payment_type_button"):  # Unique key
-        if ptype2_details_input:
-            create_payment_type(ptype2_details_input)
-            st.success(f"Added Payment Type: {ptype2_details_input}")
+    payment_type_details = st.text_input("Payment Type Details")
+    if st.button("Add Payment Type"):
+        if payment_type_details:
+            create_record("PAYMENT_TYPES", "pt_details", payment_type_details)
+            st.success(f"Added Payment Type: {payment_type_details}")
+            payment_type_details = ""  # Clear input after success
         else:
             st.warning("Please enter Payment Type Details.")
 
     st.write("### Available Payment Types")
-    payment_types_data = get_payment_types()
+    payment_types_data = get_records("PAYMENT_TYPES")
     if payment_types_data:
         st.dataframe(payment_types_data)
-        pt_id_to_delete_input = st.text_input("Enter Payment Type ID to delete", key="pt_id_to_delete_input")  # Unique key
-        if st.button("Delete Payment Type", key="delete_payment_type_button"):  # Unique key
-            if pt_id_to_delete_input.isdigit():
-                delete_payment_type(int(pt_id_to_delete_input))
-                st.success(f"Deleted Payment Type with ID: {pt_id_to_delete_input}")
+        pt_id_to_delete = st.text_input("Enter Payment Type ID to delete")
+        if st.button("Delete Payment Type"):
+            if pt_id_to_delete.isdigit():
+                delete_record("PAYMENT_TYPES", "pt_id", int(pt_id_to_delete))
+                st.success(f"Deleted Payment Type with ID: {pt_id_to_delete}")
             else:
                 st.warning("Please enter a valid numeric Payment Type ID to delete.")
     else:
-        st.warning("No payment types found.")
+        st.warning("No payment types found. Consider adding one.")
 
     # Payment Status Management
     st.write("### Payment Status")
-    pay_details_input = st.text_input("Payment Status Details", key="pay_details_input_status")  # Unique key
-    if st.button("Add Payment Status", key="add_payment_status_button"):  # Unique key
-        if pay_details_input:
-            create_payment_status(pay_details_input)
-            st.success(f"Added Payment Status: {pay_details_input}")
+    payment_status_details = st.text_input("Payment Status Details")
+    if st.button("Add Payment Status"):
+        if payment_status_details:
+            create_record("PAYMENT_STATUS", "pay_details", payment_status_details)
+            st.success(f"Added Payment Status: {payment_status_details}")
+            payment_status_details = ""  # Clear input after success
         else:
             st.warning("Please enter Payment Status Details.")
 
     st.write("### Available Payment Statuses")
-    payment_status_data = get_payment_statuses()
+    payment_status_data = get_records("PAYMENT_STATUS")
     if payment_status_data:
         st.dataframe(payment_status_data)
-        pay_id_to_delete_input = st.text_input("Enter Payment Status ID to delete", key="pay_id_to_delete_input_status")  # Unique key
-        if st.button("Delete Payment Status", key="delete_payment_status_button"):  # Unique key
-            if pay_id_to_delete_input.isdigit():
-                delete_payment_status(int(pay_id_to_delete_input))
-                st.success(f"Deleted Payment Status with ID: {pay_id_to_delete_input}")
+        pay_id_to_delete = st.text_input("Enter Payment Status ID to delete")
+        if st.button("Delete Payment Status"):
+            if pay_id_to_delete.isdigit():
+                delete_record("PAYMENT_STATUS", "pay_id", int(pay_id_to_delete))
+                st.success(f"Deleted Payment Status with ID: {pay_id_to_delete}")
             else:
                 st.warning("Please enter a valid numeric Payment Status ID to delete.")
     else:
-        st.warning("No payment statuses found.")
+        st.warning("No payment statuses found. Consider adding one.")
 
 # Run the payment management function to show the UI
 show_payment_management()
