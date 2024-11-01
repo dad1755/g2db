@@ -28,12 +28,11 @@ def fetch_cottages():
     cottages = []
     if connection:
         cursor = connection.cursor()
-        # Modified query to include status filter
+        # Query to select cottages with status = 2 (Available)
         query = """
             SELECT c.cot_id, c.cot_name, c.cot_price 
             FROM COTTAGE c
-            JOIN COTTAGE_STATUS cs ON c.cottage_status_id = cs.cottage_status_id 
-            WHERE cs.cottage_status_id = 2
+            WHERE c.cottage_status_id = 2  -- Filter for available cottages
         """
         cursor.execute(query)  # Execute the query
         cottages = cursor.fetchall()  # Fetch all results
