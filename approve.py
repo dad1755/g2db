@@ -68,6 +68,14 @@ def confirm_payment(book_id, staff_id, cottage_id):
         """
         execute_query(payment_query, (book_id, staff_id))
 
+        # Update the payment_status to 2 in the BOOKING table
+        update_payment_status_query = """
+            UPDATE BOOKING 
+            SET payment_status = 2 
+            WHERE book_id = %s
+        """
+        execute_query(update_payment_status_query, (book_id,))
+
         # Delete related entries in PAYMENT_CONFIRMATION for non-confirmed bookings
         delete_payment_confirmations_query = """
             DELETE FROM PAYMENT_CONFIRMATION 
@@ -91,10 +99,11 @@ def confirm_payment(book_id, staff_id, cottage_id):
         """
         execute_query(update_cottage_status_query, (cottage_id,))
         
-        st.success("Payment confirmed, related bookings deleted, and cottage status updated.")
+        st.success("Payment confirmed, payment status updated, related bookings deleted, and cottage status updated.")
 
     except Error as e:
         st.error(f"Error confirming payment: {e}")
+
 
 # Streamlit UI for displaying booking details
 def show_approve_management():
