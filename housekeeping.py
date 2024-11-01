@@ -119,8 +119,11 @@ def show_housekeeping():
             st.write("### Assign Staff to Housekeeping Task")
             selected_booking = st.selectbox("Select Booking", booking_df['book_id'].values, 
                                              format_func=lambda x: f"Booking ID: {x}")
-            selected_cot_id = booking_df.loc[booking_df['book_id'] == selected_booking, 'cot_id'].values[0]
-            selected_check_out_date = booking_df.loc[booking_df['book_id'] == selected_booking, 'check_out_date'].values[0]
+
+            # Use native Python types
+            selected_booking_row = booking_df.loc[booking_df['book_id'] == selected_booking]
+            selected_cot_id = int(selected_booking_row['cot_id'].values[0])  # Convert to int
+            selected_check_out_date = str(selected_booking_row['check_out_date'].values[0])  # Convert to str
 
             selected_staff_id = st.selectbox(
                 "Select Staff Member",
@@ -129,7 +132,7 @@ def show_housekeeping():
             )
 
             if st.button("Assign"):
-                insert_housekeeping_task(selected_booking, selected_cot_id, selected_check_out_date, selected_staff_id)
+                insert_housekeeping_task(selected_booking, selected_cot_id, selected_check_out_date, int(selected_staff_id))  # Convert to int
                 st.experimental_rerun()
         else:
             st.warning("No staff data found.")
@@ -152,6 +155,7 @@ def show_housekeeping():
             st.rerun()
     else:
         st.warning("No housekeeping tasks found.")
+
 
 # Run this function if the script is executed directly
 if __name__ == "__main__":
