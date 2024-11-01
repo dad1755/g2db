@@ -42,16 +42,24 @@ def execute_query(query, params=None):
             cursor.close()
             connection.close()
 
+def insert_housekeeping_task(book_id, cot_id, check_out_date, staff_id):
+    """Insert a new housekeeping task into the HOUSEKEEPING table."""
+    query = """
+        INSERT INTO HOUSEKEEPING (book_id, cot_id, check_out_date, ct_id_stat, staff_id) 
+        VALUES (%s, %s, %s, 1, %s)  -- Assuming '1' indicates 'assigned'
+    """
+    execute_query(query, (book_id, cot_id, check_out_date, staff_id))
+    st.success("New housekeeping task created successfully.")
+
 def get_booking_info():
     """Retrieve specific columns (cot_id and check_out_date) from the BOOKING table where payment_status is 2."""
     query = """
-        SELECT cot_id, check_out_date
+        SELECT book_id, cot_id, check_out_date
         FROM BOOKING
         WHERE payment_status = 2
     """
     booking_info = fetch_data(query)
     return booking_info
-
 
 def get_housekeeping_tasks():
     """Retrieve housekeeping tasks from HOUSEKEEPING table."""
@@ -81,16 +89,6 @@ def get_staff_list():
     staff_list = fetch_data(query)
     return staff_list
 
-def assign_task_to_staff(housekeep_id, staff_id):
-    """Assign a staff member to a housekeeping task."""
-    query = """
-        UPDATE HOUSEKEEPING
-        SET staff_id = %s
-        WHERE housekeep_id = %s
-    """
-    execute_query(query, (staff_id, housekeep_id))
-    st.success(f"Task {housekeep_id} assigned to staff member {staff_id}.")
-
 def get_cottage_ids():
     """Retrieve only the `cot_id` values from the `BOOKING` table where `payment_status` is 2."""
     query = """
@@ -110,33 +108,34 @@ def show_housekeeping():
     if booking_data:
         booking_df = pd.DataFrame(booking_data)
         st.dataframe(booking_df)
+
+        # Fetch and display staff list for assignment
+        staff_list = get_staff_list()
+        
+        if staff_list:
+            staff_df = pd.DataFrame(staff_list)
+
+            # Dropdowns for task assignment
+            st.write("### Assign Staff to Housekeeping Task")
+            selected_booking = st.selectbox("Select Booking", booking_df['book_id'].values, 
+                                             format_func=lambda x: f"Booking ID: {x}")
+            selected_cot_id = booking_df.loc[booking_df['book_id'] == selected_booking, 'cot_id'].values[0]
+            selected_check_out_date = booking_df.loc[booking_df['book_id'] == selected_booking, 'check_out_date'].values[0]
+
+            selected_staff_id = st.selectbox(
+                "Select Staff Member",
+                staff_df['staff_id'].values,
+                format_func=lambda x: staff_df[staff_df['staff_id'] == x]['staff_name'].values[0]
+            )
+
+            if st.button("Assign"):
+                insert_housekeeping_task(selected_booking, selected_cot_id, selected_check_out_date, selected_staff_id)
+                st.experimental_rerun()
+        else:
+            st.warning("No staff data found.")
+
     else:
         st.warning("No booking data found.")
-
-    # Fetch and display staff list for assignment, regardless of housekeeping tasks
-    staff_list = get_staff_list()
-    cottage_ids = get_cottage_ids()  # Fetch `cot_id` values for assignment
-
-    if staff_list and cottage_ids:
-        staff_df = pd.DataFrame(staff_list)
-
-        # Display dropdowns for task assignment immediately after booking data
-        st.write("### Assign Staff to Housekeeping Task")
-        selected_cot_id_to_assign = st.selectbox("Select Cottage ID to Assign Staff", cottage_ids)
-        selected_staff_id = st.selectbox(
-            "Select Staff Member",
-            staff_df['staff_id'].values,
-            format_func=lambda x: staff_df[staff_df['staff_id'] == x]['staff_name'].values[0]
-        )
-
-        if st.button("Assign"):
-            assign_task_to_staff(selected_cot_id_to_assign, selected_staff_id)
-            st.experimental_rerun()
-    else:
-        if not staff_list:
-            st.warning("No staff data found.")
-        if not cottage_ids:
-            st.warning("No available cottage IDs for assignment.")
 
     # Display housekeeping tasks
     st.write("### Housekeeping Tasks (Housekeeping Table)")
@@ -157,4 +156,3 @@ def show_housekeeping():
 # Run this function if the script is executed directly
 if __name__ == "__main__":
     show_housekeeping()
-
