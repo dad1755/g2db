@@ -56,6 +56,44 @@ def get_bookings():
 
     return bookings
 
+def confirm_payment(book_id, staff_id, cottage_id):
+    """Confirm payment for a booking, update booking and cottage status."""
+    
+    try:
+        # Insert a new record into PAYMENT_CONFIRMATION
+        payment_query = """
+            INSERT INTO PAYMENT_CONFIRMATION (book_id, staff_id)
+            VALUES (%s, %s)
+        """
+        execute_query(payment_query, (book_id, staff_id))
+
+        # Check for existing bookings to delete
+        check_query = "SELECT * FROM BOOKING WHERE cot_id = %s AND book_id != %s"
+        existing_bookings = fetch_data(check_query, (cottage_id, book_id))
+        
+        if not existing_bookings:
+            st.warning("No overlapping bookings found to delete.")
+        else:
+            # Debugging output
+            st.write(f"Deleting bookings with cottage_id: {cottage_id} and book_id: {book_id}")
+
+            # Delete overlapping bookings with the same cot_id
+            delete_query = """
+                DELETE FROM BOOKING WHERE cot_id = %s AND book_id != %s
+            """
+            execute_query(delete_query, (cottage_id, book_id))
+
+        # Update the cottage status to "Unavailable" in the COTTAGE_STATUS table
+        update_status_query = """
+            UPDATE COTTAGE_STATUS SET ct_details = 'Unavailable' WHERE cottage_status_id = %s
+        """
+        execute_query(update_status_query, (cottage_id,))
+        
+        st.success("Payment confirmed and cottage status updated.")
+
+    except Error as e:
+        st.error(f"Error confirming payment: {e}")
+
 # Streamlit UI for displaying booking details
 def show_approve_management():
     st.subheader("Booking Management")
@@ -76,43 +114,13 @@ def show_approve_management():
         selected_booking = bookings_df[bookings_df['book_id'] == selected_book_id].iloc[0]
         
         # Access the correct column name 'cot_id'
-        selected_cottage_id = selected_booking['cot_id']  # Changed from 'cottage_id' to 'cot_id'
+        selected_cottage_id = selected_booking['cot_id']  # Ensure it's using cot_id
         
         if st.button("CONFIRM"):
             confirm_payment(selected_book_id, selected_staff_id, selected_cottage_id)
             
     else:
         st.warning("No bookings found.")
-
-def confirm_payment(book_id, staff_id, cottage_id):
-    """Confirm payment for a booking, update booking and cottage status."""
-    
-    try:
-        # Insert a new record into PAYMENT_CONFIRMATION
-        payment_query = """
-            INSERT INTO PAYMENT_CONFIRMATION (book_id, staff_id)
-            VALUES (%s, %s)
-        """
-        execute_query(payment_query, (book_id, staff_id))
-
-        # Delete overlapping bookings with the same cot_id
-        delete_query = """
-            DELETE FROM BOOKING WHERE cot_id = %s AND book_id != %s
-        """
-        execute_query(delete_query, (cottage_id, book_id))
-
-        # Update the cottage status to "Unavailable" in the COTTAGE_STATUS table
-        update_status_query = """
-            UPDATE COTTAGE_STATUS SET ct_details = 'Unavailable' WHERE cottage_status_id = %s
-        """
-        # Ensure you use the correct id for the status update here; assuming cottage_status_id relates to cot_id
-        execute_query(update_status_query, (cottage_id,))
-        
-        st.success("Payment confirmed and cottage status updated.")
-
-    except Error as e:
-        st.error(f"Error confirming payment: {e}")
-
 
 # Run this function only if approve.py is executed directly
 if __name__ == "__main__":
