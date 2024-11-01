@@ -204,10 +204,12 @@ def show_cottage_management():
                                    index=rooms.index(next(filter(lambda x: x['room_id'] == current_attributes['room_id'], rooms))) if rooms else None)
             max_pax_id = st.selectbox("Max Pax", options=[f"{max_pax['max_pax_id']} : {max_pax['max_pax_details']}" for max_pax in maximum_pax], 
                                    index=maximum_pax.index(next(filter(lambda x: x['max_pax_id'] == current_attributes['max_pax_id'], maximum_pax))) if maximum_pax else None)
+            
             ct_id = st.selectbox("Cottage Type", options=[f"{ct['ct_id']} : {ct['ct_details']}" for ct in cottage_types], 
                                    index=cottage_types.index(next(filter(lambda x: x['ct_id'] == current_attributes['ct_id'], cottage_types))) if cottage_types else None)
             ct_id_stat = st.selectbox("Cottage Status", options=[f"{cs['cottage_status_id']} : {cs['ct_details']}" for cs in cottage_statuses], 
                                    index=cottage_statuses.index(next(filter(lambda x: x['cottage_status_id'] == current_attributes['ct_details'], cottage_statuses))) if cottage_statuses else None)    
+            
             if st.button("Update Attributes"):
                 update_cottage_attributes(selected_cottage_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat)
                 st.success("Cottage attributes updated successfully.")
