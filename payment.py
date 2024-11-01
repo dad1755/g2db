@@ -63,7 +63,7 @@ def show_payment_management():
     st.subheader("Payment Management")
 
     # Payment Types Management
-    st.write("#### Add New Payment Types 💻")
+    st.write("###### Add New Payment Types 💻")
     payment_type_details = st.text_input("Payment Type Details", key="payment_type_input_80")  # Unique key
     if st.button("Confirm Add New Payment Type", key="add_payment_type_button_81"):  # Unique key
         if payment_type_details:
