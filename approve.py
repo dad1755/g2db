@@ -100,6 +100,7 @@ def confirm_payment(book_id, staff_id, cottage_id):
         execute_query(update_cottage_status_query, (cottage_id,))
         
         st.success("Payment confirmed, payment status updated, related bookings deleted, and cottage status updated.")
+        st.rerun()
 
     except Error as e:
         st.error(f"Error confirming payment: {e}")
