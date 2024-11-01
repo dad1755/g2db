@@ -82,7 +82,7 @@ def show_payment_management():
 
     # Payment Types Management
     st.write("### Payment Types")
-    pt_details_input = st.text_input("Payment Type Details", key="pt_details_input")
+    pt_details_input = st.text_input("Payment Type Details", key="pt_details_input_1")  # Unique key
     if st.button("Add Payment Type", key="add_payment_type_button"):
         if pt_details_input:
             create_payment_type(pt_details_input)
@@ -94,7 +94,7 @@ def show_payment_management():
     payment_types_data = get_payment_types()
     if payment_types_data:
         st.dataframe(payment_types_data)
-        pt_id_to_delete_input = st.text_input("Enter Payment Type ID to delete", key="pt_id_to_delete_input")
+        pt_id_to_delete_input = st.text_input("Enter Payment Type ID to delete", key="pt_id_to_delete_input_1")  # Unique key
         if st.button("Delete Payment Type", key="delete_payment_type_button"):
             if pt_id_to_delete_input.isdigit():
                 delete_payment_type(int(pt_id_to_delete_input))
@@ -106,7 +106,7 @@ def show_payment_management():
 
     # Payment Status Management
     st.write("### Payment Status")
-    pay_details_input = st.text_input("Payment Status Details", key="pay_details_input")
+    pay_details_input = st.text_input("Payment Status Details", key="pay_details_input_1")  # Unique key
     if st.button("Add Payment Status", key="add_payment_status_button"):
         if pay_details_input:
             create_payment_status(pay_details_input)
@@ -118,7 +118,7 @@ def show_payment_management():
     payment_status_data = get_payment_statuses()
     if payment_status_data:
         st.dataframe(payment_status_data)
-        pay_id_to_delete_input = st.text_input("Enter Payment Status ID to delete", key="pay_id_to_delete_input")
+        pay_id_to_delete_input = st.text_input("Enter Payment Status ID to delete", key="pay_id_to_delete_input_1")  # Unique key
         if st.button("Delete Payment Status", key="delete_payment_status_button"):
             if pay_id_to_delete_input.isdigit():
                 delete_payment_status(int(pay_id_to_delete_input))
