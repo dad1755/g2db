@@ -70,7 +70,7 @@ def show_booking_management():
         st.warning("No bookings found.")
 
 # Approve payment and update payment status in the Booking table
-def approve_payment():
+def show_approve_payment():
     st.subheader("Approve Payment")
     bookings_data = get_bookings()
     payment_statuses = get_payment_statuses()
@@ -107,5 +107,5 @@ def approve_payment():
                 st.success("Payment approved and status updated successfully.")
 
 # Execute the booking management function to show the UI
-show_booking_management()
+show_approve_management()
 approve_payment()
