@@ -82,7 +82,7 @@ def show_payment_management():
 
     # Payment Types Management
     st.write("### Payment Types")
-    ptype2_details_input = st.text_input("Payment Type Details", key="ptype3_details_input")  # Unique key
+    ptype2_details_input = st.text_input("Payment Type Details")  # Unique key
     if st.button("Add Payment Type", key="add_payment_type_button"):  # Unique key
         if ptype2_details_input:
             create_payment_type(ptype2_details_input)
