@@ -72,13 +72,33 @@ def get_housekeeping_tasks():
 
 def mark_task_complete(housekeep_id):
     """Mark a housekeeping task as complete by updating the ct_id_stat."""
-    query = """
+    # First, update the HOUSEKEEPING table
+    query_update_housekeeping = """
         UPDATE HOUSEKEEPING 
         SET ct_id_stat = 4  -- Assuming '4' indicates 'completed'
         WHERE housekeep_id = %s
     """
-    execute_query(query, (housekeep_id,))
-    st.success(f"Housekeeping task {housekeep_id} marked as complete.")
+    execute_query(query_update_housekeeping, (housekeep_id,))
+
+    # Now retrieve the associated cot_id for the housekeeping task
+    query_get_cot_id = """
+        SELECT cot_id FROM HOUSEKEEPING WHERE housekeep_id = %s
+    """
+    cot_id_data = fetch_data(query_get_cot_id, (housekeep_id,))
+    if cot_id_data:
+        cot_id = cot_id_data[0]['cot_id']
+
+        # Update the COTTAGE_ATTRIBUTES_RELATION table
+        query_update_cottage = """
+            UPDATE COTTAGE_ATTRIBUTES_RELATION 
+            SET ct_id_stat = 2  -- Assuming '2' indicates some specific status, e.g., 'not available'
+            WHERE cot_id = %s
+        """
+        execute_query(query_update_cottage, (cot_id,))
+        st.success(f"Housekeeping task {housekeep_id} marked as complete and cottage {cot_id} updated.")
+    else:
+        st.error(f"Could not retrieve cottage ID for task {housekeep_id}.")
+
 
 def get_staff_list():
     """Retrieve staff_id and staff_name from the STAFF table."""
