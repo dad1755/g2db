@@ -99,14 +99,14 @@ def update_discount_data():
 
 def show_discount_management():
     """Streamlit UI for Discount Management."""
-    st.subheader("Discount Management")
+    st.subheader("Discount Management 🏂")
 
     # Initialize session state for discounts if it doesn't exist
     if 'discount_data' not in st.session_state:
         update_discount_data()
 
     # Add Discount
-    st.write("### Add Discount")
+    st.write("###### Please Select Cottage ID To Add Discount")
     cottages = get_cottages()
     staff = get_staff()
 
@@ -129,13 +129,13 @@ def show_discount_management():
                 st.warning("Please select a Cottage and Staff.")
 
     # View Discounts
-    st.write("### Discount List")
+    st.write("###### Discount List Available In Database")
     discount_data = st.session_state.discount_data
     if discount_data:
         st.dataframe(discount_data)
 
         # Prepare to delete a discount
-        st.write("### Delete Discount")
+        st.write("###### Function To Delete Discount")
         discount_ids = [discount['dis_id'] for discount in discount_data]
         discount_ids_to_delete = st.selectbox("Select Discount to Delete", options=discount_ids)
 
@@ -148,7 +148,7 @@ def show_discount_management():
                 st.warning("Please select a Discount to delete.")
 
         # Prepare to edit a discount
-        st.write("### Edit Discount")
+        st.write("###### Function To Edit Discount")
         discount_to_edit = st.selectbox("Select Discount to Edit", options=discount_ids)
         if discount_to_edit:
             # Get the current details of the selected discount
