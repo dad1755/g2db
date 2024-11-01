@@ -207,7 +207,7 @@ def show_cottage_management():
             
             ct_id = st.selectbox("Cottage Type", options=[f"{ct['ct_id']} : {ct['ct_details']}" for ct in cottage_types], 
                                    index=cottage_types.index(next(filter(lambda x: x['ct_id'] == current_attributes['ct_id'], cottage_types))) if cottage_types else None)
-            ct_id_stat = st.selectbox("Cottage Status", options=[f"{cs['cottage_status_id']} : {cs['ct_details']}" for cs in cottage_statuses], 
+            ct_id_stat = st.selectbox("Cottage Status", options=[f"{cs['cottage_status_id']} : {cs['ct_status_details']}" for cs in cottage_statuses], 
                                    index=cottage_statuses.index(next(filter(lambda x: x['cottage_status_id'] == current_attributes['ct_details'], cottage_statuses))) if cottage_statuses else None)    
             
             if st.button("Update Attributes"):
