@@ -107,7 +107,7 @@ def approve_payment(bookings_data):
                 execute_query(confirmation_query, (selected_booking_id, selected_staff_id))
                 
                 st.success("Payment approved and status updated successfully.")
-                st.experimental_rerun()  # Refresh the page to see the updated status
+                st.rerun()  # Refresh the page to see the updated status
 
 # Execute the booking management function to show the UI
 bookings_data = show_approve_management()
