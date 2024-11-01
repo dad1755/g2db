@@ -4,6 +4,7 @@ from cottage import show_cottage_management  # Importing cottage management func
 from discount import show_discount_management
 from facilities import show_facilities_management
 from payment import show_payment_management
+from approve import show_approve_management
 
 def show_management():
     """Display the management section with tabs for different functionalities."""
@@ -11,21 +12,23 @@ def show_management():
     st.write("This is the Management section where you can manage overall operations.")
 
     # Create tabs for different management functionalities
-    tabs = st.tabs(["Payment", "Discount", "Cottage", "Cottage Details", "Staff"])  # Added comma
-
-    with tabs[0]:  # Payment Tab
+    tabs = st.tabs(["Approve", "Payment", "Discount", "Cottage", "Cottage Details", "Staff"])  # Added comma
+    with tabs[0]:
+        show_approve_management()
+    
+    with tabs[1]:  # Payment Tab
         show_payment_management()
 
-    with tabs[1]:  # Discount Tab
+    with tabs[2]:  # Discount Tab
         show_discount_management()
        
-    with tabs[2]:  # Cottage Tab
+    with tabs[3]:  # Cottage Tab
         show_cottage_management()  # Call the cottage management function
     
-    with tabs[3]:  # Cottage Details
+    with tabs[4]:  # Cottage Details
         show_facilities_management()
 
-    with tabs[4]:  # Staff Tab
+    with tabs[5]:  # Staff Tab
         show_staff_management()  # Call the staff management function
 
 # Call the management function to display the UI
