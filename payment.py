@@ -98,7 +98,7 @@ def show_payment_management():
         else:
             st.warning("Please enter Payment Status Details.")
 
-    st.write("####### Available Payment Statuses in Database")
+    st.write("###### Available Payment Statuses in Database")
     payment_status_data = get_records("PAYMENT_STATUS")
     if payment_status_data:
         st.dataframe(payment_status_data)
