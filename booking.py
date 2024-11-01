@@ -34,6 +34,18 @@ def fetch_cottages():
         connection.close()
     return cottages
 
+# Function to fetch payment types from the database
+def fetch_payment_types():
+    connection = create_connection()
+    payment_types = []
+    if connection:
+        cursor = connection.cursor()
+        cursor.execute("SELECT pt_details FROM PAYMENT_TYPES")
+        payment_types = [row[0] for row in cursor.fetchall()]  # Extract payment type details from result
+        cursor.close()
+        connection.close()
+    return payment_types
+
 # Function to insert customer into the database
 def insert_customer(name, email, phone):
     connection = create_connection()
@@ -64,16 +76,24 @@ def show_booking():
     if not cottage_options:
         st.error("No cottages available. Please check your database.")
 
+    # Fetch payment options from database
+    payment_options = fetch_payment_types()
+    if not payment_options:
+        st.error("No payment types available. Please check your database.")
+
     # Booking Details section
     with st.container():
         st.write("### Booking Details")
         cottage = st.selectbox("Cottage", options=cottage_options)  # Dynamic cottage options
         check_in_date = st.date_input("Check-in Date")
         nights = st.number_input("Number of Nights", min_value=1)
-        
+
         # Calculate check-out date
         check_out_date = check_in_date + timedelta(days=nights)
         st.write(f"Check-out Date: {check_out_date}")
+
+        # Payment Type selection
+        payment_type = st.selectbox("Payment Type", options=payment_options)
 
     # Booking form submission
     with st.form(key='booking_form'):
@@ -86,6 +106,7 @@ def show_booking():
             if cust_id:
                 st.success(f"Customer '{name}' added with ID: {cust_id}")
                 st.success(f"Booking confirmed for {name} in {cottage} from {check_in_date} to {check_out_date} for {nights} night(s).")
+                st.success(f"Payment Type: {payment_type}")
             else:
                 st.error("Error adding customer details. Please try again.")
 
