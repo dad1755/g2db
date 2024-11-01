@@ -188,7 +188,7 @@ def delete_cottage_type(ct_id):
 # CRUD Functions for Cottage Status
 def create_cottage_status(cottage_status_detail):
     """Create a new cottage status."""
-    query = "INSERT INTO COTTAGE_STATUS (ct_details) VALUES (%s)"
+    query = "INSERT INTO COTTAGE_STATUS (ct_status_details) VALUES (%s)"
     execute_query(query, (cottage_status_detail,))
 
 def get_cottage_statuses():
@@ -198,7 +198,7 @@ def get_cottage_statuses():
 
 def update_cottage_status(cottage_status_id, cottage_status_detail):
     """Update cottage status information."""
-    query = "UPDATE COTTAGE_STATUS SET ct_details = %s WHERE cottage_status_id = %s"
+    query = "UPDATE COTTAGE_STATUS SET ct_status_details = %s WHERE cottage_status_id = %s"
     execute_query(query, (cottage_status_detail, cottage_status_id))
 
 def delete_cottage_status(cottage_status_id):
@@ -403,7 +403,7 @@ def show_facilities_management():
 
         # Update Cottage Status
         st.write("###### Function to Update Cottage Status")
-        cottage_status_names = [f"{status['ct_details']} (ID: {status['cottage_status_id']})" for status in cottage_statuses_data]
+        cottage_status_names = [f"{status['ct_status_details']} (ID: {status['cottage_status_id']})" for status in cottage_statuses_data]
         cottage_status_name_to_update = st.selectbox("Select Cottage Status to Update", options=cottage_status_names)
         if cottage_status_name_to_update:
             selected_cottage_status_id = int(cottage_status_name_to_update.split("(ID: ")[-1][:-1])
