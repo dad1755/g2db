@@ -34,6 +34,23 @@ def execute_query(query, params=None):
         if connection and connection.is_connected():
             connection.close()
 
+def fetch_cottages_with_attributes():
+    """Fetch cottages along with their attributes from COTTAGE_ATTRIBUTES_RELATION."""
+    query = """
+    SELECT 
+        CAR.id,
+        C.cottage_name,  -- Assuming cottage_name exists in COTTAGE
+        CAR.pool_id,
+        CAR.loc_id,
+        CAR.room_id,
+        CAR.max_pax_id,
+        CAR.ct_id,
+        CAR.ct_id_stat
+    FROM COTTAGE_ATTRIBUTES_RELATION CAR
+    JOIN COTTAGE C ON CAR.cot_id = C.cot_id
+    """
+    return fetch_data(query) or []
+
 def fetch_data(query):
     """Fetch data from the database."""
     connection = None
@@ -54,11 +71,11 @@ def fetch_data(query):
             connection.close()
 
 def edit_cottage_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_stat_id):
-    """Edit attributes of a cottage."""
+    """Edit attributes of a cottage in the COTTAGE_ATTRIBUTES_RELATION table."""
     query = """
-    UPDATE COTTAGES 
-    SET pool_id = %s, loc_id = %s, room_id = %s, max_pax_id = %s, ct_id = %s, ct_status_id = %s 
-    WHERE cottage_id = %s
+    UPDATE COTTAGE_ATTRIBUTES_RELATION 
+    SET pool_id = %s, loc_id = %s, room_id = %s, max_pax_id = %s, ct_id = %s, ct_id_stat = %s 
+    WHERE id = %s
     """
     params = (new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_stat_id, selected_cottage_id)
     execute_query(query, params)
@@ -245,16 +262,16 @@ def show_facilities_management():
     st.write("###### Update Cottage Attributes")
     
     # Fetch cottages to select one for updating
-    cottages_data = fetch_data("SELECT * FROM COTTAGE_ATTRIBUTES_RELATION")  # Updated
+    # Fetch cottages with attributes
+    cottages_data = fetch_cottages_with_attributes()
     
     if cottages_data:
-        cottage_names = [f"{cottage['cottage_id']} - {cottage['cottage_name']}" for cottage in cottages_data]  # Ensure these keys exist
+        cottage_names = [f"{cottage['id']} - {cottage['cottage_name']}" for cottage in cottages_data]  # Ensure keys match the fetch result
         selected_cottage_name = st.selectbox("Select Cottage to Update", options=cottage_names)
     
         if selected_cottage_name:
             selected_cottage_id = int(selected_cottage_name.split(" - ")[0])  # Extract ID
-    
-            # Assuming you have dropdowns for the new values
+            # Dropdowns for the new values remain the same
             new_pool_id = st.selectbox("New Pool ID", options=[pool['pool_id'] for pool in get_pool()])
             new_loc_id = st.selectbox("New Location ID", options=[location['loc_id'] for location in get_locations()])
             new_room_id = st.selectbox("New Room ID", options=[room['room_id'] for room in get_rooms()])
@@ -263,10 +280,12 @@ def show_facilities_management():
             new_ct_stat_id = st.selectbox("New Cottage Status ID", options=[cs['cottage_status_id'] for cs in get_cottage_statuses()])
     
             if st.button("Update Cottage Attributes"):
+                # Update function to edit cottage attributes in the COTTAGE_ATTRIBUTES_RELATION table
                 edit_cottage_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_stat_id)
                 st.success(f"Updated attributes for Cottage ID: {selected_cottage_id}")
     else:
         st.warning("No cottages available to update.")
+
 
 # Run the application
 if __name__ == "__main__":
