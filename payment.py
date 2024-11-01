@@ -63,8 +63,8 @@ def show_payment_management():
     st.subheader("Payment Management")
 
     # Payment Types Management
-    st.write("###### Add New Payment Types 💻")
-    payment_type_details = st.text_input("Payment Type Details", key="payment_type_input_80")  # Unique key
+    st.write("###### This Function To Add New Payment Types 💻")
+    payment_type_details = st.text_input("Enter Name For New Payment Type", key="payment_type_input_80")  # Unique key
     if st.button("Confirm Add New Payment Type", key="add_payment_type_button_81"):  # Unique key
         if payment_type_details:
             create_record("PAYMENT_TYPES", "pt_details", payment_type_details)
@@ -73,12 +73,12 @@ def show_payment_management():
         else:
             st.warning("Please enter Payment Type Details.")
 
-    st.write("#### Available Payment Types")
+    st.write("###### Available Payment Type in Database")
     payment_types_data = get_records("PAYMENT_TYPES")
     if payment_types_data:
         st.dataframe(payment_types_data)
         pt_id_to_delete = st.text_input("Enter Payment Type ID to delete", key="pt_id_to_delete_82")  # Unique key
-        if st.button("Delete Payment Type", key="delete_payment_type_button_83"):  # Unique key
+        if st.button("Confirm Delete Payment Type", key="delete_payment_type_button_83"):  # Unique key
             if pt_id_to_delete.isdigit():
                 delete_record("PAYMENT_TYPES", "pt_id", int(pt_id_to_delete))
                 st.success(f"Deleted Payment Type with ID: {pt_id_to_delete}")
@@ -88,9 +88,9 @@ def show_payment_management():
         st.warning("No payment types found. Consider adding one.")
 
     # Payment Status Management
-    st.write("### Payment Status")
-    payment_status_details = st.text_input("Payment Status Details", key="payment_status_input_84")  # Unique key
-    if st.button("Add Payment Status", key="add_payment_status_button_85"):  # Unique key
+    st.write("###### This Function To Add New Payment Status")
+    payment_status_details = st.text_input("Enter Name For New Payment Status", key="payment_status_input_84")  # Unique key
+    if st.button("Confirm Add New Payment Status", key="add_payment_status_button_85"):  # Unique key
         if payment_status_details:
             create_record("PAYMENT_STATUS", "pay_details", payment_status_details)
             st.success(f"Added Payment Status: {payment_status_details}")
@@ -98,7 +98,7 @@ def show_payment_management():
         else:
             st.warning("Please enter Payment Status Details.")
 
-    st.write("### Available Payment Statuses")
+    st.write("####### Available Payment Statuses in Database")
     payment_status_data = get_records("PAYMENT_STATUS")
     if payment_status_data:
         st.dataframe(payment_status_data)
