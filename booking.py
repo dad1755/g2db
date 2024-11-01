@@ -22,23 +22,24 @@ def create_connection():
         st.error(f"Error connecting to database: {e}")
         return None
 
-# Function to fetch cottages from the database with status = 2 (Available)
 def fetch_cottages():
     connection = create_connection()
     cottages = []
     if connection:
         cursor = connection.cursor()
-        # Query to select cottages with status = 2 (Available)
+        # Updated query to join COTTAGE and COTTAGE_ATTRIBUTES_RELATION
         query = """
             SELECT c.cot_id, c.cot_name, c.cot_price 
             FROM COTTAGE c
-            WHERE c.cottage_status_id = 2  -- Filter for available cottages
+            JOIN COTTAGE_ATTRIBUTES_RELATION car ON c.cot_id = car.cot_id
+            WHERE car.ct_id_stat = 2  -- Filter for available cottages
         """
         cursor.execute(query)  # Execute the query
         cottages = cursor.fetchall()  # Fetch all results
         cursor.close()
         connection.close()
     return cottages
+
 
 # Function to fetch payment types from the database
 def fetch_payment_types():
