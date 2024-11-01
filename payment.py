@@ -105,7 +105,7 @@ def show_payment_management():
 
     # Payment Status Management
     st.write("### Payment Status")
-    pay_details = st.text_input("Payment Status Details")
+    pay_details = st.text_input("Payment Status Details")  # Only 'Payment Status Details' is displayed
     if st.button("Add Payment Status"):
         if pay_details:
             create_payment_status(pay_details)
