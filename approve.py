@@ -43,8 +43,12 @@ def fetch_data(query, params=None):
             connection.close()
 
 def get_bookings():
-    """Retrieve all bookings."""
-    query = "SELECT book_id, cust_id, cot_id, check_in_date, check_out_date, payment_types, payment_status, dis_id FROM BOOKING"
+    """Retrieve all bookings with payment_status = 1."""
+    query = """
+        SELECT book_id, cust_id, cot_id, check_in_date, check_out_date, payment_types, payment_status, dis_id 
+        FROM BOOKING 
+        WHERE payment_status = 1
+    """
     bookings = fetch_data(query)
     return bookings
 
@@ -109,7 +113,7 @@ def confirm_payment(book_id, staff_id, cottage_id):
 # Streamlit UI for displaying booking details
 def show_approve_management():
     st.subheader("Booking Management")
-    st.write("### Available Bookings")
+    st.write("### Available Bookings (Pending Confirmation)")
     
     bookings_data = get_bookings()
     if bookings_data:
@@ -137,7 +141,7 @@ def show_approve_management():
             confirm_payment(selected_book_id, selected_staff_id, selected_cottage_id)
             
     else:
-        st.warning("No bookings found.")
+        st.warning("No bookings found with payment status = 1.")
 
 # Run this function only if this script is executed directly
 if __name__ == "__main__":
