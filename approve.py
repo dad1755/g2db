@@ -1,6 +1,7 @@
 import streamlit as st
 import mysql.connector
 from mysql.connector import Error
+import pandas as pd
 
 # Database configuration
 DB_CONFIG = {
@@ -41,24 +42,33 @@ def fetch_data(query, params=None):
             cursor.close()
             connection.close()
 
-# Function to retrieve all bookings
 def get_bookings():
-    """Retrieve all bookings."""
+    """Retrieve all bookings with formatted dates for readability."""
     query = "SELECT * FROM BOOKING"
     bookings = fetch_data(query)
-    st.write("Bookings Retrieved:", bookings)  # Debug statement
+    
+    # Format dates to readable string format
+    for booking in bookings:
+        if booking.get("check_in_date"):
+            booking["check_in_date"] = booking["check_in_date"].strftime("%Y-%m-%d")
+        if booking.get("check_out_date"):
+            booking["check_out_date"] = booking["check_out_date"].strftime("%Y-%m-%d")
+
     return bookings
 
 # Streamlit UI for displaying booking details
 def show_approve_management():
     st.subheader("Booking Management")
     st.write("### Available Bookings")
+    
     bookings_data = get_bookings()
     if bookings_data:
-        st.dataframe(bookings_data)
+        # Display bookings as a DataFrame for a cleaner output
+        bookings_df = pd.DataFrame(bookings_data)
+        st.dataframe(bookings_df)
     else:
         st.warning("No bookings found.")
 
-# Only run the function directly if approve.py is executed as a standalone script
+# Run this function only if approve.py is executed directly
 if __name__ == "__main__":
     show_approve_management()
