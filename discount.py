@@ -95,6 +95,7 @@ def get_staff():
 def update_discount_data():
     """Update the discount data in session state."""
     st.session_state.discount_data = get_discounts()
+    st.rerun()
 
 def show_discount_management():
     """Streamlit UI for Discount Management."""
