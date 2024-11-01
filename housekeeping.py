@@ -42,6 +42,15 @@ def execute_query(query, params=None):
             cursor.close()
             connection.close()
 
+def get_booking_info():
+    """Retrieve specific columns (cot_id and check_out_date) from the BOOKING table."""
+    query = """
+        SELECT cot_id, check_out_date
+        FROM BOOKING
+    """
+    booking_info = fetch_data(query)
+    return booking_info
+
 def get_housekeeping_tasks():
     """Retrieve housekeeping tasks from HOUSEKEEPING table."""
     query = """
@@ -61,15 +70,23 @@ def mark_task_complete(housekeep_id):
     execute_query(query, (housekeep_id,))
     st.success(f"Housekeeping task {housekeep_id} marked as complete.")
 
-# Streamlit UI for displaying housekeeping tasks
+# Streamlit UI for displaying booking info and housekeeping tasks
 def show_housekeeping():
-    st.subheader("Housekeeping Management")
-    st.write("### Housekeeping Tasks")
+    st.subheader("Booking and Housekeeping Management")
     
-    # Retrieve housekeeping tasks
+    # Display booking information
+    st.write("### Booked Cottages (Booking Table)")
+    booking_data = get_booking_info()
+    if booking_data:
+        booking_df = pd.DataFrame(booking_data)
+        st.dataframe(booking_df)
+    else:
+        st.warning("No booking data found.")
+    
+    # Display housekeeping tasks
+    st.write("### Housekeeping Tasks (Housekeeping Table)")
     housekeeping_data = get_housekeeping_tasks()
     if housekeeping_data:
-        # Display tasks as a DataFrame
         housekeeping_df = pd.DataFrame(housekeeping_data)
         st.dataframe(housekeeping_df)
 
@@ -78,8 +95,7 @@ def show_housekeeping():
         
         if st.button("Mark Task Complete"):
             mark_task_complete(selected_task_id)
-            st.rerun()
-            
+            st.experimental_rerun()
     else:
         st.warning("No housekeeping tasks found.")
 
