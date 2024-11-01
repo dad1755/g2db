@@ -66,7 +66,6 @@ def confirm_payment(book_id, staff_id, cottage_id):
     """Confirm payment for a booking, update booking and cottage status."""
     
     try:
-        # Convert to Python int to avoid MySQLInterfaceError
         book_id = int(book_id)
         staff_id = int(staff_id)
         cottage_id = int(cottage_id)
@@ -88,10 +87,15 @@ def confirm_payment(book_id, staff_id, cottage_id):
         if not existing_bookings:
             st.warning("No overlapping bookings found to delete.")
         else:
-            # Debugging output
+            # Delete from PAYMENT_CONFIRMATION first
+            delete_payment_query = """
+                DELETE FROM PAYMENT_CONFIRMATION WHERE book_id = %s
+            """
+            execute_query(delete_payment_query, (book_id,))
+            
+            # Now delete overlapping bookings with the same cot_id
             st.write(f"Deleting bookings with cottage_id: {cottage_id} and book_id: {book_id}")
 
-            # Delete overlapping bookings with the same cot_id
             delete_query = """
                 DELETE FROM BOOKING WHERE cot_id = %s AND book_id != %s
             """
