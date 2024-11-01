@@ -66,13 +66,15 @@ def show_approve_management():
     bookings_data = get_bookings()
     if bookings_data:
         st.dataframe(bookings_data)
+        return bookings_data  # Return bookings data for further use
     else:
         st.warning("No bookings found.")
+        return None
 
 # Approve payment and update payment status in the Booking table
-def approve_payment():
+def approve_payment(bookings_data):
     st.subheader("Approve Payment")
-    bookings_data = get_bookings()
+    
     payment_statuses = get_payment_statuses()
     staff_members = get_staff_members()
 
@@ -105,7 +107,9 @@ def approve_payment():
                 execute_query(confirmation_query, (selected_booking_id, selected_staff_id))
                 
                 st.success("Payment approved and status updated successfully.")
+                st.experimental_rerun()  # Refresh the page to see the updated status
 
 # Execute the booking management function to show the UI
-show_approve_management()
-approve_payment()
+bookings_data = show_approve_management()
+if bookings_data:  # Call the approval function only if there are bookings
+    approve_payment(bookings_data)
