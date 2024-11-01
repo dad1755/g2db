@@ -50,7 +50,7 @@ def get_bookings():
     return bookings
 
 # Streamlit UI for displaying booking details
-def show_booking_management():
+def show_approve_management():
     st.subheader("Booking Management")
     st.write("### Available Bookings")
     bookings_data = get_bookings()
@@ -60,4 +60,4 @@ def show_booking_management():
         st.warning("No bookings found.")
 
 # Execute the booking management function to show the UI
-show_booking_management()
+show_approve_management()
