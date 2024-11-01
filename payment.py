@@ -2,7 +2,7 @@ import streamlit as st
 import mysql.connector
 from mysql.connector import Error
 
-# Hardcoded database configuration
+# Updated database configuration
 DB_CONFIG = {
     'host': 'sql12.freemysqlhosting.net',
     'database': 'sql12741294',
@@ -59,10 +59,10 @@ def delete_payment_type(pt_id):
     query = "DELETE FROM PAYMENT_TYPES WHERE pt_id = %s"
     execute_query(query, (pt_id,))
 
-# PAYMENT STATUS TABLE CRUD FUNCTIONS
-def create_payment_status(pay_id, pay_details, staff_id):
-    query = "INSERT INTO PAYMENT_STATUS (pay_id, pay_details, staff_id) VALUES (%s, %s, %s)"
-    execute_query(query, (pay_id, pay_details, staff_id))
+# PAYMENT STATUS TABLE CRUD FUNCTIONS (Updated)
+def create_payment_status(pay_details):
+    query = "INSERT INTO PAYMENT_STATUS (pay_details) VALUES (%s)"
+    execute_query(query, (pay_details,))
 
 def get_payment_statuses():
     query = "SELECT * FROM PAYMENT_STATUS"
@@ -105,15 +105,13 @@ def show_payment_management():
 
     # Payment Status Management
     st.write("### Payment Status")
-    pay_id = st.text_input("Payment Status ID")
     pay_details = st.text_input("Payment Status Details")
-    staff_id = st.text_input("Staff ID (optional)")
     if st.button("Add Payment Status"):
-        if pay_id and pay_details:
-            create_payment_status(pay_id, pay_details, staff_id)
+        if pay_details:
+            create_payment_status(pay_details)
             st.success(f"Added Payment Status: {pay_details}")
         else:
-            st.warning("Please enter Payment Status ID and Details.")
+            st.warning("Please enter Payment Status Details.")
 
     st.write("### Available Payment Statuses")
     payment_status_data = get_payment_statuses()
@@ -128,3 +126,6 @@ def show_payment_management():
                 st.warning("Please enter a Payment Status ID to delete.")
     else:
         st.warning("No payment statuses found.")
+
+# Run the payment management function to show the UI
+show_payment_management()
