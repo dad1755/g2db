@@ -154,7 +154,7 @@ def show_booking():
             st.write("### Available Discounts")
             for dis_id, dis_amount in discounts:
                 st.write(f"Discount ID: {dis_id}, Amount: ${dis_amount:.2f}")
-                total_price -= dis_amount  # Apply the discount to total price
+                total_price -= float(dis_amount)  # Convert Decimal to float
 
         # Display the final price after discount
         st.write(f"Total Price after discount: ${total_price:.2f}")
