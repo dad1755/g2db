@@ -61,42 +61,29 @@ def confirm_payment(book_id, staff_id, cottage_id):
         staff_id = int(staff_id)
         cottage_id = int(cottage_id)
 
-        # Insert a new record into PAYMENT_CONFIRMATION
-        payment_query = """
-            INSERT INTO PAYMENT_CONFIRMATION (book_id, staff_id)
-            VALUES (%s, %s)
+        # Step 1: Delete all bookings related to the cottage
+        delete_bookings_query = """
+            DELETE FROM BOOKING WHERE cot_id = %s
         """
-        execute_query(payment_query, (book_id, staff_id))
+        execute_query(delete_bookings_query, (cottage_id,))
 
-        # Check for existing bookings to delete
-        check_query = "SELECT * FROM BOOKING WHERE cot_id = %s AND book_id != %s"
-        existing_bookings = fetch_data(check_query, (cottage_id, book_id))
-        
-        if not existing_bookings:
-            st.warning("No overlapping bookings found to delete.")
-        else:
-            # Delete from PAYMENT_CONFIRMATION first
-            delete_payment_query = """
-                DELETE FROM PAYMENT_CONFIRMATION WHERE book_id = %s
-            """
-            execute_query(delete_payment_query, (book_id,))
-            
-            # Now delete overlapping bookings with the same cot_id
-            delete_query = """
-                DELETE FROM BOOKING WHERE cot_id = %s AND book_id != %s
-            """
-            execute_query(delete_query, (cottage_id, book_id))
+        # Step 2: Delete related book_id from PAYMENT_CONFIRMATION
+        delete_payment_query = """
+            DELETE FROM PAYMENT_CONFIRMATION WHERE book_id = %s
+        """
+        execute_query(delete_payment_query, (book_id,))
 
-        # Update the cottage status to "Unavailable" in the COTTAGE_STATUS table
+        # Step 3: Update ct_id_stat to 3 in COTTAGE_ATTRIBUTES_RELATION
         update_status_query = """
-            UPDATE COTTAGE_STATUS SET ct_details = 'Unavailable' WHERE cottage_status_id = %s
+            UPDATE COTTAGE_ATTRIBUTES_RELATION SET ct_id_stat = 3 WHERE cot_id = %s
         """
         execute_query(update_status_query, (cottage_id,))
-        
-        st.success("Payment confirmed and cottage status updated.")
+
+        st.success("Payment confirmed, related bookings deleted, and cottage status updated.")
 
     except Error as e:
         st.error(f"Error confirming payment: {e}")
+
 
 def show_approve_management():
     """Display booking management UI."""
