@@ -73,6 +73,21 @@ def delete_cottage(cot_id):
     st.success(f"Cottage with ID {cot_id} and its related data have been deleted.")
     st.rerun()
 
+def update_cottage_attributes(cot_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat):
+    """Update the attributes of a cottage."""
+    update_query = """
+        UPDATE COTTAGE_ATTRIBUTES_RELATION
+        SET pool_id = %s, loc_id = %s, room_id = %s, max_pax_id = %s, ct_id = %s, ct_id_stat = %s
+        WHERE cot_id = %s
+    """
+    params = (pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat, cot_id)
+    execute_query(update_query, params)
+
+def create_cottage(cot_name, cot_price):
+    """Create a new cottage."""
+    create_query = "INSERT INTO COTTAGE (cot_name, cot_price) VALUES (%s, %s)"
+    execute_query(create_query, (cot_name, cot_price))
+
 def show_cottage_management():
     """Streamlit UI for Cottage Management."""
     st.write("#### Cottage Management 💡")
@@ -128,13 +143,7 @@ def show_cottage_management():
             ct_id_stat = st.number_input("Cottage Status ID", value=current_attributes['ct_id_stat'], min_value=0)
 
             if st.button("Update Attributes"):
-                update_query = """
-                    UPDATE COTTAGE_ATTRIBUTES_RELATION
-                    SET pool_id = %s, loc_id = %s, room_id = %s, max_pax_id = %s, ct_id = %s, ct_id_stat = %s
-                    WHERE cot_id = %s
-                """
-                params = (pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat, selected_cottage_id)
-                execute_query(update_query, params)
+                update_cottage_attributes(selected_cottage_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat)
                 st.success("Cottage attributes updated successfully.")
                 st.rerun()  # Optionally rerun to refresh the UI after the update
         else:
