@@ -19,7 +19,7 @@ def execute_query(query, params=None):
         cursor.execute(query, params if params else ())
         connection.commit()
     except Error as e:
-        st.error(f"Error: {e}")
+        st.error(f"Error executing query: {e}")
     finally:
         if connection.is_connected():
             cursor.close()
@@ -34,7 +34,7 @@ def fetch_data(query, params=None):
         rows = cursor.fetchall()
         return rows
     except Error as e:
-        st.error(f"Error: {e}")
+        st.error(f"Error fetching data: {e}")
         return []
     finally:
         if connection.is_connected():
@@ -45,71 +45,19 @@ def fetch_data(query, params=None):
 def get_bookings():
     """Retrieve all bookings."""
     query = "SELECT * FROM BOOKING"
-    return fetch_data(query)
-
-# Function to retrieve all payment statuses
-def get_payment_statuses():
-    """Retrieve all payment statuses."""
-    query = "SELECT * FROM PAYMENT_STATUS"
-    return fetch_data(query)
-
-# Function to retrieve all staff members
-def get_staff_members():
-    """Retrieve all staff members."""
-    query = "SELECT * FROM STAFF"
-    return fetch_data(query)
+    bookings = fetch_data(query)
+    st.write("Bookings Retrieved:", bookings)  # Debug statement
+    return bookings
 
 # Streamlit UI for displaying booking details
-def show_approve_management():
+def show_booking_management():
     st.subheader("Booking Management")
     st.write("### Available Bookings")
     bookings_data = get_bookings()
     if bookings_data:
         st.dataframe(bookings_data)
-        return bookings_data  # Return bookings data for further use
     else:
         st.warning("No bookings found.")
-        return None
-
-# Approve payment and update payment status in the Booking table
-def approve_payment(bookings_data):
-    st.subheader("Approve Payment")
-    
-    payment_statuses = get_payment_statuses()
-    staff_members = get_staff_members()
-
-    if bookings_data and payment_statuses and staff_members:
-        booking_ids = [booking['book_id'] for booking in bookings_data]
-        payment_status_ids = [status['pay_id'] for status in payment_statuses]
-        staff_ids = [staff['staff_id'] for staff in staff_members]
-
-        with st.form(key='approve_payment_form'):
-            selected_booking_id = st.selectbox("Select Booking ID", booking_ids, key='booking_id_select')
-            selected_payment_status = st.selectbox("Select Payment Status", payment_status_ids, key='payment_status_select')
-            selected_staff_id = st.selectbox("Select Staff Member", staff_ids, key='staff_member_select')
-
-            submit_button = st.form_submit_button(label='Approve Payment')
-
-            if submit_button:
-                # Update payment status in BOOKING table
-                update_query = """
-                    UPDATE BOOKING
-                    SET payment_status = %s
-                    WHERE book_id = %s
-                """
-                execute_query(update_query, (selected_payment_status, selected_booking_id))
-
-                # Insert into PAYMENT_CONFIRMATION table
-                confirmation_query = """
-                    INSERT INTO PAYMENT_CONFIRMATION (book_id, staff_id)
-                    VALUES (%s, %s)
-                """
-                execute_query(confirmation_query, (selected_booking_id, selected_staff_id))
-                
-                st.success("Payment approved and status updated successfully.")
-                st.rerun()  # Refresh the page to see the updated status
 
 # Execute the booking management function to show the UI
-bookings_data = show_approve_management()
-if bookings_data:  # Call the approval function only if there are bookings
-    approve_payment(bookings_data)
+show_booking_management()
