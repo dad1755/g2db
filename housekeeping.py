@@ -72,10 +72,28 @@ def mark_task_complete(housekeep_id):
     execute_query(query, (housekeep_id,))
     st.success(f"Housekeeping task {housekeep_id} marked as complete.")
 
-# Streamlit UI for displaying booking info and housekeeping tasks
+def get_staff_list():
+    """Retrieve staff_id and staff_name from the STAFF table."""
+    query = """
+        SELECT staff_id, staff_name
+        FROM STAFF
+    """
+    staff_list = fetch_data(query)
+    return staff_list
+
+def assign_task_to_staff(housekeep_id, staff_id):
+    """Assign a staff member to a housekeeping task."""
+    query = """
+        UPDATE HOUSEKEEPING
+        SET staff_id = %s
+        WHERE housekeep_id = %s
+    """
+    execute_query(query, (staff_id, housekeep_id))
+    st.success(f"Task {housekeep_id} assigned to staff member {staff_id}.")
+
 def show_housekeeping():
     st.subheader("Booking and Housekeeping Management")
-    
+
     # Display booking information
     st.write("### Booked Cottages (Booking Table)")
     booking_data = get_booking_info()
@@ -84,7 +102,7 @@ def show_housekeeping():
         st.dataframe(booking_df)
     else:
         st.warning("No booking data found.")
-    
+
     # Display housekeeping tasks
     st.write("### Housekeeping Tasks (Housekeeping Table)")
     housekeeping_data = get_housekeeping_tasks()
@@ -98,8 +116,27 @@ def show_housekeeping():
         if st.button("Mark Task Complete"):
             mark_task_complete(selected_task_id)
             st.experimental_rerun()
+
+        # Fetch staff list for assignment
+        staff_list = get_staff_list()
+        if staff_list:
+            staff_df = pd.DataFrame(staff_list)
+            
+            # Select task and staff member to assign
+            selected_task_id_to_assign = st.selectbox("Select Task ID to Assign Staff", housekeeping_df['housekeep_id'].values)
+            selected_staff_id = st.selectbox("Select Staff Member", staff_df['staff_id'].values, format_func=lambda x: staff_df[staff_df['staff_id'] == x]['staff_name'].values[0])
+
+            if st.button("Assign"):
+                assign_task_to_staff(selected_task_id_to_assign, selected_staff_id)
+                st.experimental_rerun()
+        else:
+            st.warning("No staff data found.")
     else:
         st.warning("No housekeeping tasks found.")
+
+# Run this function if the script is executed directly
+if __name__ == "__main__":
+    show_housekeeping()
 
 # Run this function if the script is executed directly
 if __name__ == "__main__":
