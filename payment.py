@@ -63,9 +63,9 @@ def show_payment_management():
     st.subheader("Payment Management")
 
     # Payment Types Management
-    st.write("### Payment Types")
+    st.write("#### Add New Payment Types 💻")
     payment_type_details = st.text_input("Payment Type Details", key="payment_type_input_80")  # Unique key
-    if st.button("Add Payment Type", key="add_payment_type_button_81"):  # Unique key
+    if st.button("Confirm Add New Payment Type", key="add_payment_type_button_81"):  # Unique key
         if payment_type_details:
             create_record("PAYMENT_TYPES", "pt_details", payment_type_details)
             st.success(f"Added Payment Type: {payment_type_details}")
@@ -73,7 +73,7 @@ def show_payment_management():
         else:
             st.warning("Please enter Payment Type Details.")
 
-    st.write("### Available Payment Types")
+    st.write("#### Available Payment Types")
     payment_types_data = get_records("PAYMENT_TYPES")
     if payment_types_data:
         st.dataframe(payment_types_data)
