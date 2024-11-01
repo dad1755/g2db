@@ -44,8 +44,17 @@ def fetch_data(query, params=None):
 
 def get_bookings():
     """Retrieve all bookings with formatted dates for readability."""
-    query = "SELECT * FROM BOOKING WHERE payment_status = 'Pending'"
-    bookings = fetch_data(query)
+    # First, get the payment_status ID for 'Pending'
+    payment_status_query = "SELECT pay_id FROM PAYMENT_STATUS WHERE status_name = 'Pending'"
+    payment_status_id = fetch_data(payment_status_query)
+    
+    if not payment_status_id:
+        st.warning("No pending payment status found.")
+        return []
+    
+    payment_status_id = payment_status_id[0]['pay_id']  # Extracting the ID
+    query = "SELECT * FROM BOOKING WHERE payment_status = %s"
+    bookings = fetch_data(query, (payment_status_id,))
     
     # Format dates to readable string format
     for booking in bookings:
@@ -55,6 +64,7 @@ def get_bookings():
             booking["check_out_date"] = booking["check_out_date"].strftime("%Y-%m-%d")
 
     return bookings
+
 
 def get_staff():
     """Retrieve all staff members."""
