@@ -64,7 +64,7 @@ def show_payment_management():
 
     # Payment Types Management
     st.write("### Payment Types")
-    payment_type_details = st.text_input("Payment Type Details", key="payment_type_input")  # Unique key
+    payment_type_details = st.text_input("Payment Type Details", key="payment_type_input_80")  # Unique key starting from 80
     if st.button("Add Payment Type"):
         if payment_type_details:
             create_record("PAYMENT_TYPES", "pt_details", payment_type_details)
@@ -77,7 +77,7 @@ def show_payment_management():
     payment_types_data = get_records("PAYMENT_TYPES")
     if payment_types_data:
         st.dataframe(payment_types_data)
-        pt_id_to_delete = st.text_input("Enter Payment Type ID to delete", key="pt_id_to_delete")  # Unique key
+        pt_id_to_delete = st.text_input("Enter Payment Type ID to delete", key="pt_id_to_delete_81")  # Unique key
         if st.button("Delete Payment Type"):
             if pt_id_to_delete.isdigit():
                 delete_record("PAYMENT_TYPES", "pt_id", int(pt_id_to_delete))
@@ -89,7 +89,7 @@ def show_payment_management():
 
     # Payment Status Management
     st.write("### Payment Status")
-    payment_status_details = st.text_input("Payment Status Details", key="payment_status_input")  # Unique key
+    payment_status_details = st.text_input("Payment Status Details", key="payment_status_input_82")  # Unique key
     if st.button("Add Payment Status"):
         if payment_status_details:
             create_record("PAYMENT_STATUS", "pay_details", payment_status_details)
@@ -102,7 +102,7 @@ def show_payment_management():
     payment_status_data = get_records("PAYMENT_STATUS")
     if payment_status_data:
         st.dataframe(payment_status_data)
-        pay_id_to_delete = st.text_input("Enter Payment Status ID to delete", key="pay_id_to_delete")  # Unique key
+        pay_id_to_delete = st.text_input("Enter Payment Status ID to delete", key="pay_id_to_delete_83")  # Unique key
         if st.button("Delete Payment Status"):
             if pay_id_to_delete.isdigit():
                 delete_record("PAYMENT_STATUS", "pay_id", int(pay_id_to_delete))
