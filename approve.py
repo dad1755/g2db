@@ -60,7 +60,7 @@ def get_staff_members():
     return fetch_data(query)
 
 # Streamlit UI for displaying booking details
-def show_booking_management():
+def show_approve_management():
     st.subheader("Booking Management")
     st.write("### Available Bookings")
     bookings_data = get_bookings()
@@ -70,7 +70,7 @@ def show_booking_management():
         st.warning("No bookings found.")
 
 # Approve payment and update payment status in the Booking table
-def show_approve_payment():
+def approve_payment():
     st.subheader("Approve Payment")
     bookings_data = get_bookings()
     payment_statuses = get_payment_statuses()
