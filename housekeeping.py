@@ -43,13 +43,15 @@ def execute_query(query, params=None):
             connection.close()
 
 def get_booking_info():
-    """Retrieve specific columns (cot_id and check_out_date) from the BOOKING table."""
+    """Retrieve specific columns (cot_id and check_out_date) from the BOOKING table where payment_status is 2."""
     query = """
         SELECT cot_id, check_out_date
         FROM BOOKING
+        WHERE payment_status = 2
     """
     booking_info = fetch_data(query)
     return booking_info
+
 
 def get_housekeeping_tasks():
     """Retrieve housekeeping tasks from HOUSEKEEPING table."""
