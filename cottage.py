@@ -167,41 +167,41 @@ def show_cottage_management():
         st.warning("No cottage attributes found. Displaying an empty grid.")
         empty_df = pd.DataFrame(columns=["cot_id", "pool_id", "loc_id", "room_id", "max_pax_id", "ct_id", "ct_id_stat"])
         st.dataframe(empty_df)
-# Update Cottage Attributes
-st.write("#### Update Cottage Attributes ✏️")
-if cottage_data:
-    selected_cottage_name = st.selectbox("Select Cottage to Update Attributes", options=[cottage['cot_name'] for cottage in cottage_data])
-    selected_cottage_id = next((cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == selected_cottage_name), None)
-
-    # Fetch current attributes to allow editing
-    current_attributes_query = "SELECT * FROM COTTAGE_ATTRIBUTES_RELATION WHERE cot_id = %s"
-    current_attributes = fetch_data(current_attributes_query, (selected_cottage_id,))
+    # Update Cottage Attributes
+    st.write("#### Update Cottage Attributes ✏️")
+    if cottage_data:
+        selected_cottage_name = st.selectbox("Select Cottage to Update Attributes", options=[cottage['cot_name'] for cottage in cottage_data])
+        selected_cottage_id = next((cottage['cot_id'] for cottage in cottage_data if cottage['cot_name'] == selected_cottage_name), None)
     
-    if current_attributes:
-        current_attributes = current_attributes[0]  # Assuming one row is returned
-
-        # Fetch options for dropdowns
-        pools = get_pools()
-        locations = get_locations()
-        rooms = get_rooms()
-        maximum_pax = get_maximum_pax()
-        cottage_types = get_cottage_types()
-        cottage_statuses = get_cottage_statuses()
-
-        # Create input fields for attributes
-        pool_id = st.selectbox("Pool ID", options=[pool['pool_id'] for pool in pools], index=pools.index(next(filter(lambda x: x['pool_id'] == current_attributes['pool_id'], pools))) if pools else None)
-        loc_id = st.selectbox("Location ID", options=[location['loc_id'] for location in locations], index=locations.index(next(filter(lambda x: x['loc_id'] == current_attributes['loc_id'], locations))) if locations else None)
-        room_id = st.selectbox("Room ID", options=[room['room_id'] for room in rooms], index=rooms.index(next(filter(lambda x: x['room_id'] == current_attributes['room_id'], rooms))) if rooms else None)
-        max_pax_id = st.selectbox("Max Pax ID", options=[max_pax['max_pax_id'] for max_pax in maximum_pax], index=maximum_pax.index(next(filter(lambda x: x['max_pax_id'] == current_attributes['max_pax_id'], maximum_pax))) if maximum_pax else None)
-        ct_id = st.selectbox("Cottage Type ID", options=[ct['ct_id'] for ct in cottage_types], index=cottage_types.index(next(filter(lambda x: x['ct_id'] == current_attributes['ct_id'], cottage_types))) if cottage_types else None)
-        ct_id_stat = st.selectbox("Cottage Status ID", options=[cs['cottage_status_id'] for cs in cottage_statuses], index=cottage_statuses.index(next(filter(lambda x: x['cottage_status_id'] == current_attributes['ct_id_stat'], cottage_statuses))) if cottage_statuses else None)
-
-        if st.button("Update Attributes"):
-            update_cottage_attributes(selected_cottage_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat)
-            st.success("Cottage attributes updated successfully.")
-            st.rerun()  # Optionally rerun to refresh the UI after the update
-    else:
-        st.warning("No attributes found for the selected cottage.")
+        # Fetch current attributes to allow editing
+        current_attributes_query = "SELECT * FROM COTTAGE_ATTRIBUTES_RELATION WHERE cot_id = %s"
+        current_attributes = fetch_data(current_attributes_query, (selected_cottage_id,))
+        
+        if current_attributes:
+            current_attributes = current_attributes[0]  # Assuming one row is returned
+    
+            # Fetch options for dropdowns
+            pools = get_pools()
+            locations = get_locations()
+            rooms = get_rooms()
+            maximum_pax = get_maximum_pax()
+            cottage_types = get_cottage_types()
+            cottage_statuses = get_cottage_statuses()
+    
+            # Create input fields for attributes
+            pool_id = st.selectbox("Pool ID", options=[pool['pool_id'] for pool in pools], index=pools.index(next(filter(lambda x: x['pool_id'] == current_attributes['pool_id'], pools))) if pools else None)
+            loc_id = st.selectbox("Location ID", options=[location['loc_id'] for location in locations], index=locations.index(next(filter(lambda x: x['loc_id'] == current_attributes['loc_id'], locations))) if locations else None)
+            room_id = st.selectbox("Room ID", options=[room['room_id'] for room in rooms], index=rooms.index(next(filter(lambda x: x['room_id'] == current_attributes['room_id'], rooms))) if rooms else None)
+            max_pax_id = st.selectbox("Max Pax ID", options=[max_pax['max_pax_id'] for max_pax in maximum_pax], index=maximum_pax.index(next(filter(lambda x: x['max_pax_id'] == current_attributes['max_pax_id'], maximum_pax))) if maximum_pax else None)
+            ct_id = st.selectbox("Cottage Type ID", options=[ct['ct_id'] for ct in cottage_types], index=cottage_types.index(next(filter(lambda x: x['ct_id'] == current_attributes['ct_id'], cottage_types))) if cottage_types else None)
+            ct_id_stat = st.selectbox("Cottage Status ID", options=[cs['cottage_status_id'] for cs in cottage_statuses], index=cottage_statuses.index(next(filter(lambda x: x['cottage_status_id'] == current_attributes['ct_id_stat'], cottage_statuses))) if cottage_statuses else None)
+    
+            if st.button("Update Attributes"):
+                update_cottage_attributes(selected_cottage_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat)
+                st.success("Cottage attributes updated successfully.")
+                st.rerun()  # Optionally rerun to refresh the UI after the update
+        else:
+            st.warning("No attributes found for the selected cottage.")
 
 
 
