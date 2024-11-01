@@ -91,6 +91,16 @@ def assign_task_to_staff(housekeep_id, staff_id):
     execute_query(query, (staff_id, housekeep_id))
     st.success(f"Task {housekeep_id} assigned to staff member {staff_id}.")
 
+def get_cottage_ids():
+    """Retrieve only the `cot_id` values from the `BOOKING` table where `payment_status` is 2."""
+    query = """
+        SELECT cot_id
+        FROM BOOKING
+        WHERE payment_status = 2
+    """
+    cottage_ids = fetch_data(query)
+    return [item['cot_id'] for item in cottage_ids]  # Return only `cot_id` values as a list
+
 def show_housekeeping():
     st.subheader("Booking and Housekeeping Management")
 
@@ -105,12 +115,14 @@ def show_housekeeping():
 
     # Fetch and display staff list for assignment, regardless of housekeeping tasks
     staff_list = get_staff_list()
-    if staff_list:
+    cottage_ids = get_cottage_ids()  # Fetch `cot_id` values for assignment
+
+    if staff_list and cottage_ids:
         staff_df = pd.DataFrame(staff_list)
 
         # Display dropdowns for task assignment immediately after booking data
         st.write("### Assign Staff to Housekeeping Task")
-        selected_task_id_to_assign = st.selectbox("Select Task ID to Assign Staff", [])
+        selected_cot_id_to_assign = st.selectbox("Select Cottage ID to Assign Staff", cottage_ids)
         selected_staff_id = st.selectbox(
             "Select Staff Member",
             staff_df['staff_id'].values,
@@ -118,10 +130,13 @@ def show_housekeeping():
         )
 
         if st.button("Assign"):
-            assign_task_to_staff(selected_task_id_to_assign, selected_staff_id)
+            assign_task_to_staff(selected_cot_id_to_assign, selected_staff_id)
             st.experimental_rerun()
     else:
-        st.warning("No staff data found.")
+        if not staff_list:
+            st.warning("No staff data found.")
+        if not cottage_ids:
+            st.warning("No available cottage IDs for assignment.")
 
     # Display housekeeping tasks
     st.write("### Housekeeping Tasks (Housekeeping Table)")
@@ -135,7 +150,7 @@ def show_housekeeping():
         
         if st.button("Mark Task Complete"):
             mark_task_complete(selected_task_id)
-            st.experimental_rerun()
+            st.rerun()
     else:
         st.warning("No housekeeping tasks found.")
 
