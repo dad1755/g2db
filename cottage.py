@@ -83,6 +83,7 @@ def delete_cottage(cot_id):
     execute_query(delete_cottage_query, (cot_id,))
     
     st.success(f"Cottage '{cottage_name}' with ID {cot_id} and its related data have been deleted.")
+    st.rerun()
 
 
 
