@@ -223,16 +223,6 @@ def show_facilities_management():
     else:
         st.warning("No pools found.")
 
-    # Add Location
-    st.write("###### Function to Add New Location")
-    location_detail = st.text_input("Location Detail")
-    if st.button("Add Location"):
-        if location_detail:
-            create_location(location_detail)
-            st.success(f"Added Location: {location_detail}")
-        else:
-            st.warning("Please fill in the Location Detail.")
-
     # View Locations
     st.write("###### Available Locations in Database")
     locations_data = get_locations()
@@ -246,13 +236,22 @@ def show_facilities_management():
         # Update Location
         st.write("###### Function to Update Location")
         location_names = [
-            f"{location.get('location_detail', 'N/A')} (ID: {location.get('location_id', 'N/A')})"
+            f"{location['location_detail']} (ID: {location['location_id']})"
             for location in locations_data
+            if 'location_detail' in location and 'location_id' in location  # Only include valid entries
         ]
+    
         location_name_to_update = st.selectbox("Select Location to Update", options=location_names)
     
         if location_name_to_update:
-            location_id_to_update = int(location_name_to_update.split("(ID: ")[-1][:-1])  # Extract ID
+            # Extract ID safely
+            location_id_to_update_str = location_name_to_update.split("(ID: ")[-1][:-1]  # Extract ID part
+            try:
+                location_id_to_update = int(location_id_to_update_str)  # Convert to integer
+            except ValueError:
+                st.warning("Invalid location ID selected. Please try again.")
+                location_id_to_update = None  # Reset to None if the conversion fails
+    
             selected_location = next((location for location in locations_data if location.get('location_id') == location_id_to_update), None)
     
             if selected_location:
@@ -268,13 +267,22 @@ def show_facilities_management():
     
         if st.button("Delete Location"):
             if location_name_to_delete:
-                location_id_to_delete = int(location_name_to_delete.split("(ID: ")[-1][:-1])  # Extract ID
-                delete_location(location_id_to_delete)
-                st.success(f"Deleted Location: {location_name_to_delete}")
+                # Extract ID safely
+                location_id_to_delete_str = location_name_to_delete.split("(ID: ")[-1][:-1]  # Extract ID part
+                try:
+                    location_id_to_delete = int(location_id_to_delete_str)  # Convert to integer
+                except ValueError:
+                    st.warning("Invalid location ID selected. Please try again.")
+                    location_id_to_delete = None  # Reset to None if the conversion fails
+    
+                if location_id_to_delete is not None:
+                    delete_location(location_id_to_delete)
+                    st.success(f"Deleted Location: {location_name_to_delete}")
             else:
                 st.warning("Please select a Location to delete.")
     else:
         st.warning("No locations found.")
+
 
     # Add Room
     st.write("###### Function to Add New Room")
