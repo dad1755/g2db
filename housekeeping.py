@@ -99,43 +99,65 @@ def get_cottage_ids():
     cottage_ids = fetch_data(query)
     return [item['cot_id'] for item in cottage_ids]  # Return only `cot_id` values as a list
 
+def get_assigned_booking_ids():
+    """Retrieve booking IDs that are already assigned tasks in the HOUSEKEEPING table."""
+    query = """
+        SELECT DISTINCT book_id
+        FROM HOUSEKEEPING
+    """
+    assigned_booking_ids = fetch_data(query)
+    return [item['book_id'] for item in assigned_booking_ids]  # Return only `book_id` values as a list
+
 def show_housekeeping():
     st.subheader("Booking and Housekeeping Management")
+
+    # Get assigned booking IDs
+    assigned_booking_ids = get_assigned_booking_ids()
 
     # Display booking information
     st.write("### Booked Cottages (Booking Table)")
     booking_data = get_booking_info()
+    
     if booking_data:
         booking_df = pd.DataFrame(booking_data)
+
+        # Filter out bookings that have already been assigned tasks
+        available_bookings = booking_df[~booking_df['book_id'].isin(assigned_booking_ids)]
+        
         st.dataframe(booking_df)
 
-        # Fetch and display staff list for assignment
-        staff_list = get_staff_list()
-        
-        if staff_list:
-            staff_df = pd.DataFrame(staff_list)
+        if not available_bookings.empty:
+            # Fetch and display staff list for assignment
+            staff_list = get_staff_list()
+            
+            if staff_list:
+                staff_df = pd.DataFrame(staff_list)
 
-            # Dropdowns for task assignment
-            st.write("### Assign Staff to Housekeeping Task")
-            selected_booking = st.selectbox("Select Booking", booking_df['book_id'].values, 
-                                             format_func=lambda x: f"Booking ID: {x}")
+                # Dropdowns for task assignment
+                st.write("### Assign Staff to Housekeeping Task")
+                selected_booking = st.selectbox("Select Booking", available_bookings['book_id'].values, 
+                                                 format_func=lambda x: f"Booking ID: {x}")
 
-            # Use native Python types
-            selected_booking_row = booking_df.loc[booking_df['book_id'] == selected_booking]
-            selected_cot_id = int(selected_booking_row['cot_id'].values[0])  # Convert to int
-            selected_check_out_date = str(selected_booking_row['check_out_date'].values[0])  # Convert to str
+                # Use native Python types
+                selected_booking_row = available_bookings.loc[available_bookings['book_id'] == selected_booking]
+                selected_cot_id = int(selected_booking_row['cot_id'].values[0])  # Convert to int
+                selected_check_out_date = str(selected_booking_row['check_out_date'].values[0])  # Convert to str
 
-            selected_staff_id = st.selectbox(
-                "Select Staff Member",
-                staff_df['staff_id'].values,
-                format_func=lambda x: staff_df[staff_df['staff_id'] == x]['staff_name'].values[0]
-            )
+                selected_staff_id = st.selectbox(
+                    "Select Staff Member",
+                    staff_df['staff_id'].values,
+                    format_func=lambda x: staff_df[staff_df['staff_id'] == x]['staff_name'].values[0]
+                )
 
-            if st.button("Assign"):
-                insert_housekeeping_task(selected_booking, selected_cot_id, selected_check_out_date, int(selected_staff_id))  # Convert to int
-                st.rerun()
+                if st.button("Assign"):
+                    insert_housekeeping_task(selected_booking, selected_cot_id, selected_check_out_date, int(selected_staff_id))  # Convert to int
+                    st.experimental_rerun()
+                else:
+                    st.warning("No staff data found.")
+            else:
+                st.warning("No available bookings for assignment.")
         else:
-            st.warning("No staff data found.")
+            st.warning("All bookings have already been assigned tasks.")
 
     else:
         st.warning("No booking data found.")
@@ -155,6 +177,7 @@ def show_housekeeping():
             st.rerun()
     else:
         st.warning("No housekeeping tasks found.")
+
 
 
 # Run this function if the script is executed directly
