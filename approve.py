@@ -43,28 +43,10 @@ def fetch_data(query, params=None):
             connection.close()
 
 def get_bookings():
-    """Retrieve all bookings with formatted dates for readability."""
-    # First, get the payment_status ID for 'Pending'
-    payment_status_query = "SELECT pay_id FROM PAYMENT_STATUS WHERE status_name = 'Pending'"
-    payment_status_id = fetch_data(payment_status_query)
-    
-    if not payment_status_id:
-        st.warning("No pending payment status found.")
-        return []
-    
-    payment_status_id = payment_status_id[0]['pay_id']  # Extracting the ID
-    query = "SELECT * FROM BOOKING WHERE payment_status = %s"
-    bookings = fetch_data(query, (payment_status_id,))
-    
-    # Format dates to readable string format
-    for booking in bookings:
-        if booking.get("check_in_date"):
-            booking["check_in_date"] = booking["check_in_date"].strftime("%Y-%m-%d")
-        if booking.get("check_out_date"):
-            booking["check_out_date"] = booking["check_out_date"].strftime("%Y-%m-%d")
-
+    """Retrieve all bookings from the BOOKING table."""
+    query = "SELECT book_id, cust_id, cot_id, check_in_date, check_out_date, payment_types, payment_status, dis_id FROM BOOKING"
+    bookings = fetch_data(query)
     return bookings
-
 
 def get_staff():
     """Retrieve all staff members."""
@@ -116,8 +98,8 @@ def confirm_payment(book_id, staff_id, cottage_id):
     except Error as e:
         st.error(f"Error confirming payment: {e}")
 
-# Streamlit UI for displaying booking details
 def show_approve_management():
+    """Display booking management UI."""
     st.subheader("Booking Management")
     st.write("### Available Bookings")
     
