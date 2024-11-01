@@ -12,16 +12,14 @@ DB_CONFIG = {
 }
 
 def execute_query(query, params=None):
-    """Execute a query with optional parameters and return the cursor."""
+    """Execute a query with optional parameters."""
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor()
         cursor.execute(query, params if params else ())
         connection.commit()
-        return cursor  # Return cursor for further processing if needed
     except Error as e:
         st.error(f"Error: {e}")
-        return None
     finally:
         if connection.is_connected():
             cursor.close()
@@ -37,19 +35,19 @@ def fetch_data(query, params=None):
         return rows
     except Error as e:
         st.error(f"Error: {e}")
-        return None
+        return []
     finally:
         if connection.is_connected():
             cursor.close()
             connection.close()
 
-# BOOKING CRUD FUNCTIONS
+# Function to retrieve all bookings
 def get_bookings():
     """Retrieve all bookings."""
     query = "SELECT * FROM BOOKING"
     return fetch_data(query)
 
-# Streamlit UI for Booking Management
+# Streamlit UI for displaying booking details
 def show_booking_management():
     st.subheader("Booking Management")
 
@@ -60,6 +58,5 @@ def show_booking_management():
     else:
         st.warning("No bookings found.")
 
-# Run the booking management function to show the UI
+# Execute the booking management function to show the UI
 show_booking_management()
-
