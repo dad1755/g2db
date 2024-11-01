@@ -234,47 +234,47 @@ def show_facilities_management():
             st.warning("Please fill in the Location Detail.")
 
     # View Locations
-st.write("###### Available Locations in Database")
-locations_data = get_locations()
-
-# Display the data structure for debugging purposes
-st.write("Locations Data:", locations_data)  # Debugging line
-
-if locations_data:
-    st.dataframe(locations_data)
-
-    # Update Location
-    st.write("###### Function to Update Location")
-    location_names = [
-        f"{location.get('location_detail', 'N/A')} (ID: {location.get('location_id', 'N/A')})"
-        for location in locations_data
-    ]
-    location_name_to_update = st.selectbox("Select Location to Update", options=location_names)
-
-    if location_name_to_update:
-        location_id_to_update = int(location_name_to_update.split("(ID: ")[-1][:-1])  # Extract ID
-        selected_location = next((location for location in locations_data if location.get('location_id') == location_id_to_update), None)
-
-        if selected_location:
-            updated_location_detail = st.text_input("Updated Location Detail", value=selected_location.get('location_detail', ''))
-
-            if st.button("Update Location"):
-                update_location(location_id_to_update, updated_location_detail)
-                st.success(f"Updated Location: {updated_location_detail}")
-
-    # Delete Location
-    st.write("###### Function to Delete Location")
-    location_name_to_delete = st.selectbox("Select Location to Delete", options=location_names)
-
-    if st.button("Delete Location"):
-        if location_name_to_delete:
-            location_id_to_delete = int(location_name_to_delete.split("(ID: ")[-1][:-1])  # Extract ID
-            delete_location(location_id_to_delete)
-            st.success(f"Deleted Location: {location_name_to_delete}")
-        else:
-            st.warning("Please select a Location to delete.")
-else:
-    st.warning("No locations found.")
+    st.write("###### Available Locations in Database")
+    locations_data = get_locations()
+    
+    # Display the data structure for debugging purposes
+    st.write("Locations Data:", locations_data)  # Debugging line
+    
+    if locations_data:
+        st.dataframe(locations_data)
+    
+        # Update Location
+        st.write("###### Function to Update Location")
+        location_names = [
+            f"{location.get('location_detail', 'N/A')} (ID: {location.get('location_id', 'N/A')})"
+            for location in locations_data
+        ]
+        location_name_to_update = st.selectbox("Select Location to Update", options=location_names)
+    
+        if location_name_to_update:
+            location_id_to_update = int(location_name_to_update.split("(ID: ")[-1][:-1])  # Extract ID
+            selected_location = next((location for location in locations_data if location.get('location_id') == location_id_to_update), None)
+    
+            if selected_location:
+                updated_location_detail = st.text_input("Updated Location Detail", value=selected_location.get('location_detail', ''))
+    
+                if st.button("Update Location"):
+                    update_location(location_id_to_update, updated_location_detail)
+                    st.success(f"Updated Location: {updated_location_detail}")
+    
+        # Delete Location
+        st.write("###### Function to Delete Location")
+        location_name_to_delete = st.selectbox("Select Location to Delete", options=location_names)
+    
+        if st.button("Delete Location"):
+            if location_name_to_delete:
+                location_id_to_delete = int(location_name_to_delete.split("(ID: ")[-1][:-1])  # Extract ID
+                delete_location(location_id_to_delete)
+                st.success(f"Deleted Location: {location_name_to_delete}")
+            else:
+                st.warning("Please select a Location to delete.")
+    else:
+        st.warning("No locations found.")
 
     # Add Room
     st.write("###### Function to Add New Room")
