@@ -151,7 +151,7 @@ def show_housekeeping():
 
                 if st.button("Assign"):
                     insert_housekeeping_task(selected_booking, selected_cot_id, selected_check_out_date, int(selected_staff_id))  # Convert to int
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.warning("No staff data found.")
             else:
