@@ -44,7 +44,7 @@ def fetch_data(query, params=None):
 
 def get_bookings():
     """Retrieve all bookings."""
-    query = "SELECT book_id, cust_id, cot_id, check_in_date, check_out_date FROM BOOKING"
+    query = "SELECT book_id, cust_id, cot_id, check_in_date, check_out_date, payment_types, payment_status, dis_id FROM BOOKING"
     bookings = fetch_data(query)
     return bookings
 
