@@ -173,10 +173,10 @@ def cottage_has_attributes(cot_id):
 
 def show_cottage_management():
     """Streamlit UI for Cottage Management."""
-    st.title("Cottage Management")
+    st.title("### Cottage Management 💡")
 
     # View Cottages
-    st.subheader("Cottage List")
+    st.subheader("###### Cottage List Available in Database")
     cottage_data = get_cottages()
     if cottage_data:
         cottage_df = pd.DataFrame(cottage_data)
@@ -185,7 +185,7 @@ def show_cottage_management():
         st.warning("No cottages found.")
 
     # Add Cottage
-    st.write("### Add Cottage")
+    st.write("###### Function To Add New Cottage")
     cot_name = st.text_input("Cottage Name")
     cot_price = st.number_input("Cottage Price", min_value=0.0, step=0.01)  # Input for price
     if st.button("Create Cottage"):
@@ -198,7 +198,7 @@ def show_cottage_management():
             st.warning("Please enter both Cottage Name and Price.")
 
     # Edit Cottage
-    st.write("### Edit Cottage")
+    st.write("###### Function To Add Facilities To Cottage")
     if cottage_data:
         selected_cottage_name = st.selectbox("Select a Cottage to Edit", 
                                              options=[cottage['cot_name'] for cottage in cottage_data])
@@ -220,7 +220,7 @@ def show_cottage_management():
 
    
     # Cottage Attributes
-    st.write("### Cottage Attributes")
+    st.write("###### Cottage Attributes@Facilities, Please Refer To Next Tab For Details")
     cottage_attributes_data = get_cottage_attributes_relation()
     if cottage_attributes_data:
         attributes_df = pd.DataFrame(cottage_attributes_data)
