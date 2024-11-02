@@ -71,7 +71,7 @@ def get_housekeeping_tasks():
     return housekeeping_tasks
 
 def mark_task_complete(housekeep_id):
-    """Mark a housekeeping task as complete by updating the ct_id_stat and deleting from BOOKING."""
+    """Mark a housekeeping task as complete by updating the ct_id_stat."""
     # First, update the HOUSEKEEPING table
     query_update_housekeeping = """
         UPDATE HOUSEKEEPING 
@@ -80,35 +80,24 @@ def mark_task_complete(housekeep_id):
     """
     execute_query(query_update_housekeeping, (housekeep_id,))
 
-    # Now retrieve the associated book_id and cot_id for the housekeeping task
-    query_get_ids = """
-        SELECT book_id, cot_id FROM HOUSEKEEPING WHERE housekeep_id = %s
+    # Now retrieve the associated cot_id for the housekeeping task
+    query_get_cot_id = """
+        SELECT cot_id FROM HOUSEKEEPING WHERE housekeep_id = %s
     """
-    task_data = fetch_data(query_get_ids, (housekeep_id,))
-    if task_data:
-        book_id = task_data[0]['book_id']
-        cot_id = task_data[0]['cot_id']
+    cot_id_data = fetch_data(query_get_cot_id, (housekeep_id,))
+    if cot_id_data:
+        cot_id = cot_id_data[0]['cot_id']
 
-        # Update the COTTAGE_ATTRIBUTES_RELATION table (if needed)
+        # Update the COTTAGE_ATTRIBUTES_RELATION table
         query_update_cottage = """
             UPDATE COTTAGE_ATTRIBUTES_RELATION 
             SET ct_id_stat = 2  -- Assuming '2' indicates some specific status, e.g., 'not available'
             WHERE cot_id = %s
         """
         execute_query(query_update_cottage, (cot_id,))
-
-        # Now delete the record from the BOOKING table
-        query_delete_booking = """
-            DELETE FROM BOOKING 
-            WHERE book_id = %s
-        """
-        execute_query(query_delete_booking, (book_id,))
-
-        st.success(f"Housekeeping task {housekeep_id} marked as complete, cottage {cot_id} updated, and booking {book_id} deleted.")
+        st.success(f"Housekeeping task {housekeep_id} marked as complete and cottage {cot_id} updated.")
     else:
-        st.error(f"Could not retrieve booking ID for task {housekeep_id}.")
-
-
+        st.error(f"Could not retrieve cottage ID for task {housekeep_id}.")
 
 
 def get_staff_list():
