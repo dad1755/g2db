@@ -72,10 +72,10 @@ def delete_staff(staff_id):
 
 def show_staff_management():
     """Streamlit UI for Staff Management."""
-    st.subheader("Staff Management")
+    st.subheader("Staff Management 🎤")
 
     # Add Staff
-    st.write("### Add Staff Member")
+    st.write("###### Function To Add New Staff Member")
     staff_name = st.text_input("Staff Name")
     if st.button("Add Staff"):
         if staff_name:
@@ -85,13 +85,13 @@ def show_staff_management():
             st.warning("Please fill in the Staff Name.")
 
     # View Staff
-    st.write("### Staff List")
+    st.write("###### Staff List Available in Database")
     staff_data = get_staff()
     if staff_data:
         st.dataframe(staff_data)
 
         # Prepare to update a staff member
-        st.write("### Update Staff Member")
+        st.write("###### Update Existing Staff Member")
         staff_names = [f"{staff['staff_name']} (ID: {staff['staff_id']})" for staff in staff_data]  # Use staff_name
         staff_name_to_update = st.selectbox("Select Staff Member to Update", options=staff_names)
 
@@ -107,7 +107,7 @@ def show_staff_management():
                     st.success(f"Updated Staff Member: {updated_name}")
 
         # Prepare to delete a staff member
-        st.write("### Delete Staff Member")
+        st.write("###### Delete Staff Member")
         staff_name_to_delete = st.selectbox("Select Staff Member to Delete", options=staff_names)
 
         if st.button("Delete Staff"):
