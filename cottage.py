@@ -194,6 +194,7 @@ def show_cottage_management():
             room_id = st.selectbox("Room", options=[f"{room['room_id']} : {room['room_details']}" for room in rooms], index=0)
             max_pax_id = st.selectbox("Max Pax", options=[f"{max_pax['max_pax_id']} : {max_pax['max_pax_details']}" for max_pax in maximum_pax], index=0)
             ct_id = st.selectbox("Cottage Type", options=[f"{ct['ct_id']} : {ct['ct_details']}" for ct in cottage_types], index=0)
+            ct_id_stat = st.selectbox("Cottage Status", options=[f"{cs['cottage_status_id']} : {cs['ct_status_details']}" for cs in cottage_status], index=0)
 
         if st.button("Update Attributes"):
             update_cottage_attributes(selected_cottage_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat)
