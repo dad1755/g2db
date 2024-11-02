@@ -70,32 +70,44 @@ def get_housekeeping_tasks():
     housekeeping_tasks = fetch_data(query)
     return housekeeping_tasks
 
-def delete_task(housekeep_id):
-    """Delete a housekeeping task and its associated booking."""
-    # Get the associated book_id from the HOUSEKEEPING table
-    query_get_book_id = """
-        SELECT book_id FROM HOUSEKEEPING WHERE housekeep_id = %s
+def mark_task_complete(housekeep_id):
+    """Mark a housekeeping task as complete by updating the ct_id_stat and deleting from BOOKING."""
+    # First, update the HOUSEKEEPING table
+    query_update_housekeeping = """
+        UPDATE HOUSEKEEPING 
+        SET ct_id_stat = 4  -- Assuming '4' indicates 'completed'
+        WHERE housekeep_id = %s
     """
-    book_id_data = fetch_data(query_get_book_id, (housekeep_id,))
-    
-    if book_id_data:
-        book_id = book_id_data[0]['book_id']
-        
-        # Delete the housekeeping task
-        query_delete_housekeeping = """
-            DELETE FROM HOUSEKEEPING WHERE housekeep_id = %s
-        """
-        execute_query(query_delete_housekeeping, (housekeep_id,))
+    execute_query(query_update_housekeeping, (housekeep_id,))
 
-        # Delete the associated booking
+    # Now retrieve the associated book_id and cot_id for the housekeeping task
+    query_get_ids = """
+        SELECT book_id, cot_id FROM HOUSEKEEPING WHERE housekeep_id = %s
+    """
+    task_data = fetch_data(query_get_ids, (housekeep_id,))
+    if task_data:
+        book_id = task_data[0]['book_id']
+        cot_id = task_data[0]['cot_id']
+
+        # Update the COTTAGE_ATTRIBUTES_RELATION table (if needed)
+        query_update_cottage = """
+            UPDATE COTTAGE_ATTRIBUTES_RELATION 
+            SET ct_id_stat = 2  -- Assuming '2' indicates some specific status, e.g., 'not available'
+            WHERE cot_id = %s
+        """
+        execute_query(query_update_cottage, (cot_id,))
+
+        # Now delete the record from the BOOKING table
         query_delete_booking = """
-            DELETE FROM BOOKING WHERE book_id = %s
+            DELETE FROM BOOKING 
+            WHERE book_id = %s
         """
         execute_query(query_delete_booking, (book_id,))
-        
-        st.success(f"Housekeeping task {housekeep_id} and its associated booking {book_id} deleted successfully.")
+
+        st.success(f"Housekeeping task {housekeep_id} marked as complete, cottage {cot_id} updated, and booking {book_id} deleted.")
     else:
-        st.error(f"Could not retrieve booking ID for housekeeping task {housekeep_id}.")
+        st.error(f"Could not retrieve booking ID for task {housekeep_id}.")
+
 
 def get_staff_list():
     """Retrieve staff_id and staff_name from the STAFF table."""
@@ -107,14 +119,14 @@ def get_staff_list():
     return staff_list
 
 def get_cottage_ids():
-    """Retrieve only the `cot_id` values from the `BOOKING` table where `payment_status` is 2."""
+    """Retrieve only the cot_id values from the BOOKING table where payment_status is 2."""
     query = """
         SELECT cot_id
         FROM BOOKING
         WHERE payment_status = 2
     """
     cottage_ids = fetch_data(query)
-    return [item['cot_id'] for item in cottage_ids]  # Return only `cot_id` values as a list
+    return [item['cot_id'] for item in cottage_ids]  # Return only cot_id values as a list
 
 def get_assigned_cottage_ids():
     """Retrieve cottage IDs that are already assigned tasks in the HOUSEKEEPING table."""
@@ -123,7 +135,7 @@ def get_assigned_cottage_ids():
         FROM HOUSEKEEPING
     """
     assigned_cottage_ids = fetch_data(query)
-    return [item['cot_id'] for item in assigned_cottage_ids]  # Return only `cot_id` values as a list
+    return [item['cot_id'] for item in assigned_cottage_ids]  # Return only cot_id values as a list
 
 def show_housekeeping():
     st.subheader("Booking and Housekeeping Management")
@@ -189,11 +201,14 @@ def show_housekeeping():
         # Selection for marking task complete
         selected_task_id = st.selectbox("Select Task ID to Mark as Complete", housekeeping_df['housekeep_id'].values)
         
-        if st.button("Delete Task"):
-            delete_task(selected_task_id)
+        if st.button("Mark Task Complete"):
+            mark_task_complete(selected_task_id)
             st.rerun()
     else:
         st.warning("No housekeeping tasks found.")
+
+
+
 
 # Run this function if the script is executed directly
 if __name__ == "__main__":
