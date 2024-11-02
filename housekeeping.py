@@ -70,35 +70,6 @@ def get_housekeeping_tasks():
     housekeeping_tasks = fetch_data(query)
     return housekeeping_tasks
 
-def mark_task_complete(housekeep_id):
-    """Mark a housekeeping task as complete by updating the ct_id_stat."""
-    # First, update the HOUSEKEEPING table
-    query_update_housekeeping = """
-        UPDATE HOUSEKEEPING 
-        SET ct_id_stat = 4  -- Assuming '4' indicates 'completed'
-        WHERE housekeep_id = %s
-    """
-    execute_query(query_update_housekeeping, (housekeep_id,))
-
-    # Now retrieve the associated cot_id for the housekeeping task
-    query_get_cot_id = """
-        SELECT cot_id FROM HOUSEKEEPING WHERE housekeep_id = %s
-    """
-    cot_id_data = fetch_data(query_get_cot_id, (housekeep_id,))
-    if cot_id_data:
-        cot_id = cot_id_data[0]['cot_id']
-
-        # Update the COTTAGE_ATTRIBUTES_RELATION table
-        query_update_cottage = """
-            UPDATE COTTAGE_ATTRIBUTES_RELATION 
-            SET ct_id_stat = 2  -- Assuming '2' indicates some specific status, e.g., 'not available'
-            WHERE cot_id = %s
-        """
-        execute_query(query_update_cottage, (cot_id,))
-        st.success(f"Housekeeping task {housekeep_id} marked as complete and cottage {cot_id} updated.")
-    else:
-        st.error(f"Could not retrieve cottage ID for task {housekeep_id}.")
-
 
 def get_staff_list():
     """Retrieve staff_id and staff_name from the STAFF table."""
@@ -107,7 +78,10 @@ def get_staff_list():
         FROM STAFF
     """
     staff_list = fetch_data(query)
+    if not staff_list:
+        st.warning("No data returned from STAFF table.")
     return staff_list
+
 
 def get_cottage_ids():
     """Retrieve only the cot_id values from the BOOKING table where payment_status is 2."""
@@ -149,6 +123,7 @@ def show_housekeeping():
         if not available_bookings.empty:
             # Fetch and display staff list for assignment
             staff_list = get_staff_list()
+            st.write("Staff List:", staff_list)  # Debugging line
             
             if staff_list:
                 staff_df = pd.DataFrame(staff_list)
@@ -172,8 +147,6 @@ def show_housekeeping():
                 if st.button("Assign"):
                     insert_housekeeping_task(selected_booking, selected_cot_id, selected_check_out_date, int(selected_staff_id))  # Convert to int
                     st.rerun()
-                else:
-                    st.warning("No staff data found.")
             else:
                 st.warning("No staff data found.")
         else:
@@ -181,22 +154,35 @@ def show_housekeeping():
 
     else:
         st.warning("No booking data found.")
+def mark_task_complete(housekeep_id):
+    """Mark a housekeeping task as complete by updating the ct_id_stat."""
+    # First, update the HOUSEKEEPING table
+    query_update_housekeeping = """
+        UPDATE HOUSEKEEPING 
+        SET ct_id_stat = 4  -- Assuming '4' indicates 'completed'
+        WHERE housekeep_id = %s
+    """
+    execute_query(query_update_housekeeping, (housekeep_id,))
 
-    # Display housekeeping tasks
-    st.write("### Housekeeping Tasks (Housekeeping Table)")
-    housekeeping_data = get_housekeeping_tasks()
-    if housekeeping_data:
-        housekeeping_df = pd.DataFrame(housekeeping_data)
-        st.dataframe(housekeeping_df)
+    # Now retrieve the associated cot_id for the housekeeping task
+    query_get_cot_id = """
+        SELECT cot_id FROM HOUSEKEEPING WHERE housekeep_id = %s
+    """
+    cot_id_data = fetch_data(query_get_cot_id, (housekeep_id,))
+    if cot_id_data:
+        cot_id = cot_id_data[0]['cot_id']
 
-        # Selection for marking task complete
-        selected_task_id = st.selectbox("Select Task ID to Mark as Complete", housekeeping_df['housekeep_id'].values)
-        
-        if st.button("Mark Task Complete"):
-            mark_task_complete(selected_task_id)
-            st.rerun()
+        # Update the COTTAGE_ATTRIBUTES_RELATION table
+        query_update_cottage = """
+            UPDATE COTTAGE_ATTRIBUTES_RELATION 
+            SET ct_id_stat = 2  -- Assuming '2' indicates some specific status, e.g., 'not available'
+            WHERE cot_id = %s
+        """
+        execute_query(query_update_cottage, (cot_id,))
+        st.success(f"Housekeeping task {housekeep_id} marked as complete and cottage {cot_id} updated.")
     else:
-        st.warning("No housekeeping tasks found.")
+        st.error(f"Could not retrieve cottage ID for task {housekeep_id}.")
+
 
 
 
