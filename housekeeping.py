@@ -142,14 +142,35 @@ def show_housekeeping():
         st.warning("No housekeeping tasks found.")
 
 def mark_task_complete(housekeep_id):
-    """Mark a housekeeping task as complete by deleting the entry in the HOUSEKEEPING table."""
-    # First, delete the housekeeping task from the HOUSEKEEPING table
-    query_delete_housekeeping = """
-        DELETE FROM HOUSEKEEPING 
-        WHERE housekeep_id = %s
+    """Mark a housekeeping task as complete by deleting the entry in the HOUSEKEEPING table
+       and updating the COTTAGE_STATUS table."""
+    # First, retrieve the associated cot_id for the housekeeping task
+    query_get_cot_id = """
+        SELECT cot_id FROM HOUSEKEEPING WHERE housekeep_id = %s
     """
-    execute_query(query_delete_housekeeping, (housekeep_id,))
-    st.success(f"Housekeeping task {housekeep_id} has been marked as complete and deleted.")
+    cot_id_data = fetch_data(query_get_cot_id, (housekeep_id,))
+    
+    if cot_id_data:
+        cot_id = cot_id_data[0]['cot_id']
+        
+        # Now, delete the housekeeping task from the HOUSEKEEPING table
+        query_delete_housekeeping = """
+            DELETE FROM HOUSEKEEPING 
+            WHERE housekeep_id = %s
+        """
+        execute_query(query_delete_housekeeping, (housekeep_id,))
+        
+        # Update the COTTAGE_STATUS table
+        query_update_cottage_status = """
+            UPDATE COTTAGE_STATUS 
+            SET ct_status_details = 2  -- Set status to '2'
+            WHERE cottage_status_id = %s  -- Assuming cottage_status_id relates to cot_id
+        """
+        execute_query(query_update_cottage_status, (cot_id,))
+
+        st.success(f"Housekeeping task {housekeep_id} has been marked as complete and deleted. Cottage status updated.")
+    else:
+        st.error(f"Could not retrieve cottage ID for task {housekeep_id}.")
 
 
 
