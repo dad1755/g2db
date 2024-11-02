@@ -71,14 +71,17 @@ def get_housekeeping_tasks():
     return housekeeping_tasks
 
 def mark_task_complete(housekeep_id):
-    """Mark a housekeeping task as complete by updating the ct_id_stat and deleting from BOOKING."""
-    # First, update the HOUSEKEEPING table
+    """Mark a housekeeping task as complete by updating the ct_status_details and deleting from BOOKING."""
+    # Assuming ct_status_details is the field to update
+    completed_status_detail = "Completed"  # Set to the appropriate status detail string
+
+    # First, update the HOUSEKEEPING table to set the status details
     query_update_housekeeping = """
         UPDATE HOUSEKEEPING 
-        SET ct_id_stat = 4  -- Assuming '4' indicates 'completed'
+        SET ct_status_details = %s  -- Assuming ct_status_details is the correct column name
         WHERE housekeep_id = %s
     """
-    execute_query(query_update_housekeeping, (housekeep_id,))
+    execute_query(query_update_housekeeping, (completed_status_detail, housekeeping_id))
 
     # Now retrieve the associated book_id and cot_id for the housekeeping task
     query_get_ids = """
@@ -92,7 +95,7 @@ def mark_task_complete(housekeep_id):
         # Update the COTTAGE_ATTRIBUTES_RELATION table (if needed)
         query_update_cottage = """
             UPDATE COTTAGE_ATTRIBUTES_RELATION 
-            SET ct_id_stat = 2  -- Assuming '2' indicates some specific status, e.g., 'not available'
+            SET ct_id_stat = 2  -- Assuming '2' indicates some specific status
             WHERE cot_id = %s
         """
         execute_query(query_update_cottage, (cot_id,))
@@ -107,6 +110,7 @@ def mark_task_complete(housekeep_id):
         st.success(f"Housekeeping task {housekeep_id} marked as complete, cottage {cot_id} updated, and booking {book_id} deleted.")
     else:
         st.error(f"Could not retrieve booking ID for task {housekeep_id}.")
+
 
 
 def get_staff_list():
