@@ -144,21 +144,23 @@ def show_housekeeping():
 def mark_task_complete(housekeep_id):
     """Mark a housekeeping task as complete by deleting the entry in the HOUSEKEEPING table
        and updating the COTTAGE_STATUS table."""
-    st.write(f"Attempting to mark task {housekeep_id} as complete.")  # Debug statement
-
     # First, retrieve the associated cot_id for the housekeeping task
     query_get_cot_id = """
-        SELECT cot_id, ct_id_stat FROM HOUSEKEEPING WHERE housekeep_id = %s
+        SELECT cot_id FROM HOUSEKEEPING WHERE housekeep_id = %s
     """
     cot_id_data = fetch_data(query_get_cot_id, (housekeep_id,))
     
     if cot_id_data:
         cot_id = cot_id_data[0]['cot_id']
-        ct_id_stat = cot_id_data[0]['ct_id_stat']
-        st.write(f"Cot ID retrieved: {cot_id}, ct_id_stat: {ct_id_stat}")  # Debug statement
         
-        # Update the COTTAGE_STATUS table if necessary
-        # You may need to update ct_id_stat to a valid status or set it to null
+        # Now, delete the housekeeping task from the HOUSEKEEPING table
+        query_delete_housekeeping = """
+            DELETE FROM HOUSEKEEPING 
+            WHERE housekeep_id = %s
+        """
+        execute_query(query_delete_housekeeping, (housekeep_id,))
+        
+        # Update the COTTAGE_STATUS table
         query_update_cottage_status = """
             UPDATE COTTAGE_STATUS 
             SET ct_status_details = 2  -- Set status to '2'
@@ -166,12 +168,6 @@ def mark_task_complete(housekeep_id):
         """
         execute_query(query_update_cottage_status, (cot_id,))
 
-        # Now, delete the housekeeping task from the HOUSEKEEPING table
-        query_delete_housekeeping = """
-            DELETE FROM HOUSEKEEPING 
-            WHERE housekeep_id = %s
-        """
-        execute_query(query_delete_housekeeping, (housekeep_id,))
         st.success(f"Housekeeping task {housekeep_id} has been marked as complete and deleted. Cottage status updated.")
     else:
         st.error(f"Could not retrieve cottage ID for task {housekeep_id}.")
