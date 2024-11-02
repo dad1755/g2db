@@ -189,12 +189,46 @@ def show_cottage_management():
             cottage_statuses = get_cottage_statuses()
     
            # Create input fields for attributes
-            pool_id = st.selectbox("Pool", options=[f"{pool['pool_id']} : {pool['pool_detail']}" for pool in pools], index=0)
-            loc_id = st.selectbox("Location", options=[f"{location['loc_id']} : {location['loc_details']}" for location in locations], index=0)
-            room_id = st.selectbox("Room", options=[f"{room['room_id']} : {room['room_details']}" for room in rooms], index=0)
-            max_pax_id = st.selectbox("Max Pax", options=[f"{max_pax['max_pax_id']} : {max_pax['max_pax_details']}" for max_pax in maximum_pax], index=0)
-            ct_id = st.selectbox("Cottage Type", options=[f"{ct['ct_id']} : {ct['ct_details']}" for ct in cottage_types], index=0)
-            ct_id_stat = st.selectbox("Cottage Status", options=[f"{cs['cottage_status_id']} : {cs['ct_status_details']}" for cs in cottage_status], index=0)
+            #pool_id = st.selectbox("Pool", options=[f"{pool['pool_id']} : {pool['pool_detail']}" for pool in pools], index=0)
+           #loc_id = st.selectbox("Location", options=[f"{location['loc_id']} : {location['loc_details']}" for location in locations], index=0)
+           # room_id = st.selectbox("Room", options=[f"{room['room_id']} : {room['room_details']}" for room in rooms], index=0)
+           # max_pax_id = st.selectbox("Max Pax", options=[f"{max_pax['max_pax_id']} : {max_pax['max_pax_details']}" for max_pax in maximum_pax], index=0)
+           # ct_id = st.selectbox("Cottage Type", options=[f"{ct['ct_id']} : {ct['ct_details']}" for ct in cottage_types], index=0)
+           # ct_id_stat = st.selectbox("Cottage Status", options=[f"{cs['cottage_status_id']} : {cs['ct_status_details']}" for cs in cottage_status], index=0)
+            # Create input fields for attributes
+            if pools:
+                pool_options = [f"{pool['pool_id']} : {pool['pool_detail']}" for pool in pools]
+                current_pool_index = next((i for i, pool in enumerate(pools) if pool['pool_id'] == current_attributes['pool_id']), 0)
+                pool_id = st.selectbox("Pool", options=pool_options, index=current_pool_index)
+            
+            if locations:
+                loc_options = [f"{location['loc_id']} : {location['loc_details']}" for location in locations]
+                current_loc_index = next((i for i, loc in enumerate(locations) if loc['loc_id'] == current_attributes['loc_id']), 0)
+                loc_id = st.selectbox("Location", options=loc_options, index=current_loc_index)
+            
+            if rooms:
+                room_options = [f"{room['room_id']} : {room['room_details']}" for room in rooms]
+                current_room_index = next((i for i, room in enumerate(rooms) if room['room_id'] == current_attributes['room_id']), 0)
+                room_id = st.selectbox("Room", options=room_options, index=current_room_index)
+            
+            if maximum_pax:
+                max_pax_options = [f"{max_pax['max_pax_id']} : {max_pax['max_pax_details']}" for max_pax in maximum_pax]
+                current_max_pax_index = next((i for i, pax in enumerate(maximum_pax) if pax['max_pax_id'] == current_attributes['max_pax_id']), 0)
+                max_pax_id = st.selectbox("Max Pax", options=max_pax_options, index=current_max_pax_index)
+            
+            if cottage_types:
+                ct_options = [f"{ct['ct_id']} : {ct['ct_details']}" for ct in cottage_types]
+                current_ct_index = next((i for i, ct in enumerate(cottage_types) if ct['ct_id'] == current_attributes['ct_id']), 0)
+                ct_id = st.selectbox("Cottage Type", options=ct_options, index=current_ct_index)
+            
+            # Cottage Status
+            if cottage_statuses:
+                current_status_index = next((i for i, cs in enumerate(cottage_statuses) if cs['cottage_status_id'] == current_attributes['ct_id_stat']), 0)
+                ct_id_stat = st.selectbox(
+                    "Cottage Status", 
+                    options=[f"{cs['cottage_status_id']} : {cs['ct_status_details']}" for cs in cottage_statuses], 
+                    index=current_status_index
+                )
 
         if st.button("Update Attributes"):
             update_cottage_attributes(selected_cottage_id, pool_id, loc_id, room_id, max_pax_id, ct_id, ct_id_stat)
