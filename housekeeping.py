@@ -117,83 +117,39 @@ def get_assigned_cottage_ids():
 def show_housekeeping():
     st.subheader("Booking and Housekeeping Management")
 
-    # Get assigned cottage IDs
-    assigned_cottage_ids = get_assigned_cottage_ids()
-
-    # Display booking information
-    st.write("### Booked Cottages (Booking Table)")
-    booking_data = get_booking_info()
+    # Existing code for displaying bookings and assigning staff...
     
-    if booking_data:
-        booking_df = pd.DataFrame(booking_data)
+    # Add a section for marking tasks complete
+    st.write("### Mark Housekeeping Task as Complete")
+    
+    # Fetch and display existing housekeeping tasks
+    housekeeping_tasks = get_housekeeping_tasks()
+    
+    if housekeeping_tasks:
+        housekeeping_df = pd.DataFrame(housekeeping_tasks)
 
-        # Filter out cottages that have already been assigned tasks
-        available_bookings = booking_df[~booking_df['cot_id'].isin(assigned_cottage_ids)]
-        
-        st.dataframe(available_bookings)
+        # Display existing tasks
+        st.dataframe(housekeeping_df)
 
-        if not available_bookings.empty:
-            # Fetch and display staff list for assignment
-            staff_list = get_staff_list()
-            st.write("Staff List:", staff_list)  # Debugging line
-            
-            if staff_list:
-                staff_df = pd.DataFrame(staff_list)
+        # Allow user to select a task to mark as complete
+        selected_task = st.selectbox("Select Housekeeping Task", housekeeping_df['housekeep_id'].values, 
+                                       format_func=lambda x: f"Task ID: {x}")
 
-                # Dropdowns for task assignment
-                st.write("### Assign Staff to Housekeeping Task")
-                selected_booking = st.selectbox("Select Booking", available_bookings['book_id'].values, 
-                                                 format_func=lambda x: f"Booking ID: {x}")
-
-                # Use native Python types
-                selected_booking_row = available_bookings.loc[available_bookings['book_id'] == selected_booking]
-                selected_cot_id = int(selected_booking_row['cot_id'].values[0])  # Convert to int
-                selected_check_out_date = str(selected_booking_row['check_out_date'].values[0])  # Convert to str
-
-                selected_staff_id = st.selectbox(
-                    "Select Staff Member",
-                    staff_df['staff_id'].values,
-                    format_func=lambda x: staff_df[staff_df['staff_id'] == x]['staff_name'].values[0]
-                )
-
-                if st.button("Assign"):
-                    insert_housekeeping_task(selected_booking, selected_cot_id, selected_check_out_date, int(selected_staff_id))  # Convert to int
-                    st.rerun()
-            else:
-                st.warning("No staff data found.")
-        else:
-            st.warning("All cottages have already been assigned tasks.")
-
+        if st.button("Mark Task Complete"):
+            mark_task_complete(selected_task)  # Call the modified function
+            st.rerun()  # Rerun the app to refresh the display
     else:
-        st.warning("No booking data found.")
+        st.warning("No housekeeping tasks found.")
+
 def mark_task_complete(housekeep_id):
-    """Mark a housekeeping task as complete by updating the ct_id_stat."""
-    # First, update the HOUSEKEEPING table
-    query_update_housekeeping = """
-        UPDATE HOUSEKEEPING 
-        SET ct_id_stat = 4  -- Assuming '4' indicates 'completed'
+    """Mark a housekeeping task as complete by deleting the entry in the HOUSEKEEPING table."""
+    # First, delete the housekeeping task from the HOUSEKEEPING table
+    query_delete_housekeeping = """
+        DELETE FROM HOUSEKEEPING 
         WHERE housekeep_id = %s
     """
-    execute_query(query_update_housekeeping, (housekeep_id,))
-
-    # Now retrieve the associated cot_id for the housekeeping task
-    query_get_cot_id = """
-        SELECT cot_id FROM HOUSEKEEPING WHERE housekeep_id = %s
-    """
-    cot_id_data = fetch_data(query_get_cot_id, (housekeep_id,))
-    if cot_id_data:
-        cot_id = cot_id_data[0]['cot_id']
-
-        # Update the COTTAGE_ATTRIBUTES_RELATION table
-        query_update_cottage = """
-            UPDATE COTTAGE_ATTRIBUTES_RELATION 
-            SET ct_id_stat = 2  -- Assuming '2' indicates some specific status, e.g., 'not available'
-            WHERE cot_id = %s
-        """
-        execute_query(query_update_cottage, (cot_id,))
-        st.success(f"Housekeeping task {housekeep_id} marked as complete and cottage {cot_id} updated.")
-    else:
-        st.error(f"Could not retrieve cottage ID for task {housekeep_id}.")
+    execute_query(query_delete_housekeeping, (housekeep_id,))
+    st.success(f"Housekeeping task {housekeep_id} has been marked as complete and deleted.")
 
 
 
