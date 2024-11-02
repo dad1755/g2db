@@ -73,14 +73,26 @@ def get_housekeeping_tasks():
 
 def get_staff_list():
     """Retrieve staff_id and staff_name from the STAFF table."""
-    query = """
-        SELECT staff_id, staff_name
-        FROM STAFF
-    """
-    staff_list = fetch_data(query)
-    if not staff_list:
-        st.warning("No data returned from STAFF table.")
-    return staff_list
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        if connection.is_connected():
+            cursor = connection.cursor(dictionary=True)
+            query = """
+                SELECT staff_id, staff_name
+                FROM STAFF
+            """
+            cursor.execute(query)
+            staff_list = cursor.fetchall()
+            if not staff_list:
+                st.warning("No data returned from STAFF table.")
+            return staff_list
+    except Error as e:
+        st.error(f"Error connecting to the database: {e}")
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
 
 
 def get_cottage_ids():
