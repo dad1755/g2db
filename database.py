@@ -36,19 +36,21 @@ def fetch_table_data(table_name):
     return None
 
 def show_database_management():
-    """Display the database management section with a grid for each table."""
+    """Display the database management section with grids for all tables."""
     st.subheader("Database Management")
-    st.write("View and manage records from various tables in the database.")
+    st.write("View records from various tables in the database.")
 
     # Define tables to display
     tables = ["COTTAGE_ATTRIBUTES_RELATION", "HOUSEKEEPING", "BOOKING", "PAYMENT_CONFIRMATION"]
-    selected_table = st.selectbox("Select Table to View", tables)
 
-    # Fetch and display the selected table's data
-    data = fetch_table_data(selected_table)
-    if data is not None:
-        st.write(f"Showing records from **{selected_table}**:")
-        st.dataframe(data)  # Display in a grid format
-    else:
-        st.write("No data available or unable to fetch data.")
+    # Loop through each table and display data
+    for table_name in tables:
+        data = fetch_table_data(table_name)
+        if data is not None:
+            st.write(f"Showing records from **{table_name}**:")
+            st.dataframe(data)  # Display in a grid format
+        else:
+            st.write(f"No data available or unable to fetch data for **{table_name}**.")
 
+# Run the database management display
+show_database_management()
