@@ -96,15 +96,22 @@ def fetch_housekeeping_data():
 def show_housekeeping():
     """Display housekeeping booking data with payment_status = 2 in Streamlit."""
     st.subheader("Booking On Going")
+    
+    # Fetch booking and housekeeping data
     booking_data = fetch_booking_data()
-    housekeeping_data = fetch_housekeeping_data()  # Fetch housekeeping data first
+    housekeeping_data = fetch_housekeeping_data()
 
-    if not booking_data.empty and not housekeeping_data.empty:
-        # Create a list of cot_id's from the housekeeping data
-        existing_cot_ids = housekeeping_data['cot_id'].unique()
+    if not booking_data.empty:
+        # If housekeeping data is available, filter out cot_ids present in housekeeping
+        if not housekeeping_data.empty:
+            # Create a set of existing cot_id's from the housekeeping data for faster lookup
+            existing_cot_ids = set(housekeeping_data['cot_id'])
 
-        # Filter booking data to only include cot_ids not in housekeeping
-        filtered_booking_data = booking_data[~booking_data['cot_id'].isin(existing_cot_ids)]
+            # Filter booking data to only include cot_ids not in housekeeping
+            filtered_booking_data = booking_data[~booking_data['cot_id'].isin(existing_cot_ids)]
+        else:
+            # If there are no housekeeping records, show all booking data
+            filtered_booking_data = booking_data
 
         if not filtered_booking_data.empty:
             st.dataframe(filtered_booking_data)
@@ -123,14 +130,18 @@ def show_housekeeping():
             # Button to assign staff
             if st.button("Assign Staff"):
                 assign_staff_to_booking(selected_row['book_id'], selected_staff, selected_row['cot_id'], selected_row['check_out_date'])
-
         else:
-            st.warning("No booking data available that is not already assigned in housekeeping.")
-
-    elif not booking_data.empty:
-        st.warning("All bookings have cot_id's already assigned in housekeeping.")
+            st.warning("No bookings available that are not already assigned in housekeeping.")
     else:
         st.warning("No booking data found with payment_status = 2.")
+
+    # Always show the housekeeping records
+    st.subheader("Housekeeping Records")
+    if not housekeeping_data.empty:
+        st.dataframe(housekeeping_data)
+    else:
+        st.warning("No housekeeping records found.")
+
 
     # Always show the housekeeping records
     st.subheader("Housekeeping Records")
