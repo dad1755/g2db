@@ -35,6 +35,22 @@ def fetch_table_data(table_name):
             conn.close()
     return None
 
+def delete_record(table_name, record_id):
+    """Delete a record from the specified table by ID."""
+    conn = connect_to_database()
+    if conn:
+        try:
+            query = f"DELETE FROM {table_name} WHERE id = %s"
+            cursor = conn.cursor()
+            cursor.execute(query, (record_id,))
+            conn.commit()
+            st.success(f"Record with ID {record_id} deleted successfully from {table_name}.")
+        except Exception as e:
+            st.error(f"Error deleting record from {table_name}: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+
 def show_database_management():
     """Display the database management section with grids for all tables."""
     st.subheader("Database Management")
@@ -49,6 +65,12 @@ def show_database_management():
         if data is not None:
             st.write(f"Showing records from **{table_name}**:")
             st.dataframe(data)  # Display in a grid format
+            
+            # Add delete functionality for each table
+            if not data.empty:
+                record_id = st.number_input(f"Enter ID to delete from {table_name}:", min_value=1, step=1)
+                if st.button(f"Delete Record from {table_name}"):
+                    delete_record(table_name, record_id)
         else:
             st.write(f"No data available or unable to fetch data for **{table_name}**.")
 
