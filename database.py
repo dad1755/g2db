@@ -40,7 +40,12 @@ def delete_record(table_name, record_id):
     conn = connect_to_database()
     if conn:
         try:
-            query = f"DELETE FROM {table_name} WHERE id = %s"
+            # Update the query to use the correct column name
+            if table_name == "HOUSEKEEPING":
+                query = f"DELETE FROM {table_name} WHERE housekeeping_id = %s"  # Replace with your actual column name
+            else:
+                query = f"DELETE FROM {table_name} WHERE id = %s"  # Keep this if other tables have 'id' as their PK
+                
             cursor = conn.cursor()
             cursor.execute(query, (record_id,))
             conn.commit()
@@ -53,6 +58,7 @@ def delete_record(table_name, record_id):
         finally:
             cursor.close()
             conn.close()
+
 
 def show_database_management():
     """Display the database management section with grids for all tables."""
