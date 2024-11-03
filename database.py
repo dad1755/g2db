@@ -52,5 +52,6 @@ def show_database_management():
         else:
             st.write(f"No data available or unable to fetch data for **{table_name}**.")
 
-# Run the database management display
-show_database_management()
+# Run this function only if this script is executed directly
+if __name__ == "__main__":
+    show_database_management()
