@@ -5,7 +5,7 @@ from discount import show_discount_management
 from facilities import show_facilities_management
 from payment import show_payment_management
 from approve import show_approve_management
-from database import show_database_management
+from database import show_management
 
 def show_management():
     """Display the management section with tabs for different functionalities."""
