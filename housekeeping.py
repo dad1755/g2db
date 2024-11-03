@@ -67,6 +67,23 @@ def fetch_housekeeping_data():
             cursor.close()
             connection.close()
 
+def fetch_cottage_attributes_data():
+    """Fetch all records from the COTTAGE_ATTRIBUTES_RELATION table."""
+    query = "SELECT * FROM COTTAGE_ATTRIBUTES_RELATION"
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        return pd.DataFrame(rows)
+    except Error as e:
+        st.error(f"Error fetching cottage attributes data: {e}")
+        return pd.DataFrame()  # Return empty DataFrame if there's an error
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
 def assign_staff_to_booking(book_id, staff_id, cot_id, check_out_date):
     """Assign staff to a booking and update the HOUSEKEEPING table."""
     ct_id_stat = 1  # Assuming '1' corresponds to 'Out-Of-Order' status in COTTAGE_STATUS
@@ -151,10 +168,14 @@ def show_housekeeping():
     else:
         st.warning("No booking data found with payment_status = 2.")
 
-    # Always show the housekeeping records
-    st.subheader("Housekeeping Records")
+    # Filter housekeeping data by ct_id_stat = 3 and show in grid
+    st.subheader("Filtered Housekeeping Records")
     if not housekeeping_data.empty:
-        st.dataframe(housekeeping_data)
+        filtered_housekeeping = housekeeping_data[housekeeping_data['ct_id_stat'] == 3]
+        if not filtered_housekeeping.empty:
+            st.dataframe(filtered_housekeeping)
+        else:
+            st.warning("No housekeeping records found with ct_id_stat = 3.")
     else:
         st.warning("No housekeeping records found.")
 
