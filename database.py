@@ -42,7 +42,7 @@ def delete_record(table_name, record_id):
         try:
             # Update the query to use the correct column name
             if table_name == "HOUSEKEEPING":
-                query = f"DELETE FROM {table_name} WHERE housekeeping_id = %s"  # Replace with your actual column name
+                query = f"DELETE FROM {table_name} WHERE housekeep_id = %s"  # Replace with your actual column name
             else:
                 query = f"DELETE FROM {table_name} WHERE id = %s"  # Keep this if other tables have 'id' as their PK
                 
