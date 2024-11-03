@@ -97,30 +97,43 @@ def show_housekeeping():
     """Display housekeeping booking data with payment_status = 2 in Streamlit."""
     st.subheader("Booking On Going")
     booking_data = fetch_booking_data()
-    if not booking_data.empty:
-        st.dataframe(booking_data)
+    housekeeping_data = fetch_housekeeping_data()  # Fetch housekeeping data first
 
-        # Fetch staff data for assignment
-        staff_data = fetch_staff_data()
+    if not booking_data.empty and not housekeeping_data.empty:
+        # Create a list of cot_id's from the housekeeping data
+        existing_cot_ids = housekeeping_data['cot_id'].unique()
 
-        # Dropdown for assigning staff
-        staff_options = staff_data.set_index('staff_id')['staff_name'].to_dict()
-        selected_staff = st.selectbox("Select Staff", options=list(staff_options.keys()), format_func=lambda x: staff_options[x] if x in staff_options else "")
-        
-        # Get the selected booking information
-        selected_booking = st.selectbox("Select Booking", options=booking_data['book_id'])
-        selected_row = booking_data[booking_data['book_id'] == selected_booking].iloc[0]
+        # Filter booking data to only include cot_ids not in housekeeping
+        filtered_booking_data = booking_data[~booking_data['cot_id'].isin(existing_cot_ids)]
 
-        # Button to assign staff
-        if st.button("Assign Staff"):
-            assign_staff_to_booking(selected_row['book_id'], selected_staff, selected_row['cot_id'], selected_row['check_out_date'])
+        if not filtered_booking_data.empty:
+            st.dataframe(filtered_booking_data)
 
+            # Fetch staff data for assignment
+            staff_data = fetch_staff_data()
+
+            # Dropdown for assigning staff
+            staff_options = staff_data.set_index('staff_id')['staff_name'].to_dict()
+            selected_staff = st.selectbox("Select Staff", options=list(staff_options.keys()), format_func=lambda x: staff_options[x] if x in staff_options else "")
+            
+            # Get the selected booking information
+            selected_booking = st.selectbox("Select Booking", options=filtered_booking_data['book_id'])
+            selected_row = filtered_booking_data[filtered_booking_data['book_id'] == selected_booking].iloc[0]
+
+            # Button to assign staff
+            if st.button("Assign Staff"):
+                assign_staff_to_booking(selected_row['book_id'], selected_staff, selected_row['cot_id'], selected_row['check_out_date'])
+
+        else:
+            st.warning("No booking data available that is not already assigned in housekeeping.")
+
+    elif not booking_data.empty:
+        st.warning("All bookings have cot_id's already assigned in housekeeping.")
     else:
         st.warning("No booking data found with payment_status = 2.")
 
     # Always show the housekeeping records
     st.subheader("Housekeeping Records")
-    housekeeping_data = fetch_housekeeping_data()
     if not housekeeping_data.empty:
         st.dataframe(housekeeping_data)
     else:
