@@ -51,13 +51,8 @@ def fetch_staff_data():
             connection.close()
 
 def fetch_housekeeping_data():
-    """Fetch housekeeping records with ct_id_stat = 3."""
-    query = """
-        SELECT h.*
-        FROM HOUSEKEEPING h
-        JOIN COTTAGE_ATTRIBUTES_RELATION car ON h.cot_id = car.cot_id
-        WHERE car.ct_id_stat = 3
-    """
+    """Fetch all records from the HOUSEKEEPING table."""
+    query = "SELECT * FROM HOUSEKEEPING"
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor(dictionary=True)
