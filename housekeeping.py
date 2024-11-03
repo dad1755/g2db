@@ -20,17 +20,11 @@ def fetch_booking_data():
         WHERE payment_status = 2
     """
     try:
-        # Connect to the database
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor(dictionary=True)
-        
-        # Execute the query
         cursor.execute(query)
         rows = cursor.fetchall()
-        
-        # Convert the result to a DataFrame for easy viewing in Streamlit
-        df = pd.DataFrame(rows)
-        return df
+        return pd.DataFrame(rows)
     except Error as e:
         st.error(f"Error fetching data: {e}")
         return pd.DataFrame()  # Return empty DataFrame if there's an error
@@ -58,14 +52,12 @@ def fetch_staff_data():
 
 def assign_staff_to_booking(book_id, staff_id, cot_id, check_out_date):
     """Assign staff to a booking and update the HOUSEKEEPING table."""
-    # Default status for out-of-order
     ct_id_stat = 1  # Assuming '1' corresponds to 'Out-Of-Order' status in COTTAGE_STATUS
 
-    # Ensure all parameters are standard Python types
-    book_id = int(book_id)  # Convert to int
-    staff_id = int(staff_id)  # Convert to int
-    cot_id = int(cot_id)  # Convert to int
-    check_out_date = pd.to_datetime(check_out_date).date()  # Convert to date
+    book_id = int(book_id)
+    staff_id = int(staff_id)
+    cot_id = int(cot_id)
+    check_out_date = pd.to_datetime(check_out_date).date()
 
     query = """
         INSERT INTO HOUSEKEEPING (book_id, cot_id, check_out_date, ct_id_stat, staff_id)
@@ -107,7 +99,7 @@ def show_housekeeping():
     booking_data = fetch_booking_data()
     if not booking_data.empty:
         st.dataframe(booking_data)
-        
+
         # Fetch staff data for assignment
         staff_data = fetch_staff_data()
 
@@ -123,16 +115,16 @@ def show_housekeeping():
         if st.button("Assign Staff"):
             assign_staff_to_booking(selected_row['book_id'], selected_staff, selected_row['cot_id'], selected_row['check_out_date'])
 
-            # Fetch and display the updated housekeeping data
-            housekeeping_data = fetch_housekeeping_data()
-            if not housekeeping_data.empty:
-                st.subheader("Updated Housekeeping Records")
-                st.dataframe(housekeeping_data)
-            else:
-                st.warning("No housekeeping data found.")
-
     else:
         st.warning("No booking data found with payment_status = 2.")
+
+    # Always show the housekeeping records
+    st.subheader("Housekeeping Records")
+    housekeeping_data = fetch_housekeeping_data()
+    if not housekeeping_data.empty:
+        st.dataframe(housekeeping_data)
+    else:
+        st.warning("No housekeeping records found.")
 
 # Run the app
 if __name__ == "__main__":
