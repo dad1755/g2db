@@ -5,7 +5,7 @@ from discount import show_discount_management
 from facilities import show_facilities_management
 from payment import show_payment_management
 from approve import show_approve_management
-from database import show_management
+from database import show_database_management
 
 def show_management():
     """Display the management section with tabs for different functionalities."""
@@ -33,7 +33,7 @@ def show_management():
         show_staff_management()  # Call the staff management function
 
     with tabs[6]: #Show Database
-        show_management()
+        show_database_management()
 
 # Call the management function to display the UI
 if __name__ == "__main__":
