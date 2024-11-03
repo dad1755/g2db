@@ -44,7 +44,10 @@ def delete_record(table_name, record_id):
             cursor = conn.cursor()
             cursor.execute(query, (record_id,))
             conn.commit()
-            st.success(f"Record with ID {record_id} deleted successfully from {table_name}.")
+            if cursor.rowcount > 0:
+                st.success(f"Record with ID {record_id} deleted successfully from {table_name}.")
+            else:
+                st.warning(f"No record found with ID {record_id} in {table_name}.")
         except Exception as e:
             st.error(f"Error deleting record from {table_name}: {e}")
         finally:
@@ -68,9 +71,12 @@ def show_database_management():
             
             # Add delete functionality for each table
             if not data.empty:
-                record_id = st.number_input(f"Enter ID to delete from {table_name}:", min_value=1, step=1)
+                record_id = st.text_input(f"Enter ID to delete from {table_name}:", "")
                 if st.button(f"Delete Record from {table_name}"):
-                    delete_record(table_name, record_id)
+                    if record_id:  # Check if input is not empty
+                        delete_record(table_name, record_id)
+                    else:
+                        st.warning("Please enter a valid ID to delete.")
         else:
             st.write(f"No data available or unable to fetch data for **{table_name}**.")
 
