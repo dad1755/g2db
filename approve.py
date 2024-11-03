@@ -101,7 +101,6 @@ def confirm_payment(book_id, staff_id, cottage_id):
         st.error(f"Error confirming payment: {e}")
 
 
-
 # Streamlit UI for displaying booking details
 def show_approve_management():
     st.subheader("Booking Management")
