@@ -39,10 +39,11 @@ def fetch_booking_data():
             cursor.close()
             connection.close()
 
-# Display the data in Streamlit
-st.subheader("Booking Data with Payment Status = 2")
-booking_data = fetch_booking_data()
-if not booking_data.empty:
-    st.dataframe(booking_data)
-else:
-    st.warning("No booking data found with payment_status = 2.")
+def show_housekeeping():
+    """Display housekeeping booking data with payment_status = 2 in Streamlit."""
+    st.subheader("Booking Data with Payment Status = 2")
+    booking_data = fetch_booking_data()
+    if not booking_data.empty:
+        st.dataframe(booking_data)
+    else:
+        st.warning("No booking data found with payment_status = 2.")
