@@ -1,42 +1,54 @@
 import streamlit as st
-from staff import show_staff_management
-from cottage import show_cottage_management
-from discount import show_discount_management
-from facilities import show_facilities_management
-from payment import show_payment_management
-from approve import show_approve_management
-from database import show_database_management  # Ensure this import is correct
+import pandas as pd
+import mysql.connector
 
-def show_management():
-    st.subheader("Management")
-    st.write("This is the Management section where you can manage overall operations.")
+# Database configuration
+DB_CONFIG = {
+    'host': 'sql12.freemysqlhosting.net',
+    'database': 'sql12741294',
+    'user': 'sql12741294',
+    'password': 'Lvu9cg9kGm',
+    'port': 3306
+}
 
-    # Create tabs for different management functionalities
-    tabs = st.tabs(["Approve", "Payment", "Discount", "Cottage", "Cottage Details", "Staff", "Database"])  # Added 'Database' tab
-    with tabs[0]:
-        show_approve_management()
-    
-    with tabs[1]:  # Payment Tab
-        show_payment_management()
+def connect_to_database():
+    """Establish a connection to the database."""
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        return conn
+    except mysql.connector.Error as e:
+        st.error(f"Error connecting to database: {e}")
+        return None
 
-    with tabs[2]:  # Discount Tab
-        show_discount_management()
-       
-    with tabs[3]:  # Cottage Tab
-        show_cottage_management()
-    
-    with tabs[4]:  # Cottage Details
-        show_facilities_management()
+def fetch_table_data(table_name):
+    """Fetch data from the specified table."""
+    conn = connect_to_database()
+    if conn:
+        try:
+            query = f"SELECT * FROM {table_name}"
+            df = pd.read_sql(query, conn)
+            return df
+        except Exception as e:
+            st.error(f"Error fetching data from {table_name}: {e}")
+            return None
+        finally:
+            conn.close()
+    return None
 
-    with tabs[5]:  # Staff Tab
-        show_staff_management()
+def show_database_management():
+    """Display the database management section with a grid for each table."""
+    st.subheader("Database Management")
+    st.write("View and manage records from various tables in the database.")
 
-    with tabs[6]:  # Database Tab
-        show_database_management()
+    # Define tables to display
+    tables = ["COTTAGE_ATTRIBUTES_RELATION", "HOUSEKEEPING", "BOOKING", "PAYMENT_CONFIRMATION"]
+    selected_table = st.selectbox("Select Table to View", tables)
 
-# Call the management function to display the UI
-if __name__ == "__main__":
-    show_management()
-
-
+    # Fetch and display the selected table's data
+    data = fetch_table_data(selected_table)
+    if data is not None:
+        st.write(f"Showing records from **{selected_table}**:")
+        st.dataframe(data)  # Display in a grid format
+    else:
+        st.write("No data available or unable to fetch data.")
 
