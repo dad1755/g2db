@@ -84,6 +84,23 @@ def assign_staff_to_booking(book_id, staff_id, cot_id, check_out_date):
             cursor.close()
             connection.close()
 
+def fetch_housekeeping_data():
+    """Fetch all records from the HOUSEKEEPING table."""
+    query = "SELECT * FROM HOUSEKEEPING"
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        return pd.DataFrame(rows)
+    except Error as e:
+        st.error(f"Error fetching housekeeping data: {e}")
+        return pd.DataFrame()  # Return empty DataFrame if there's an error
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
 def show_housekeeping():
     """Display housekeeping booking data with payment_status = 2 in Streamlit."""
     st.subheader("Booking On Going")
@@ -105,6 +122,14 @@ def show_housekeeping():
         # Button to assign staff
         if st.button("Assign Staff"):
             assign_staff_to_booking(selected_row['book_id'], selected_staff, selected_row['cot_id'], selected_row['check_out_date'])
+
+            # Fetch and display the updated housekeeping data
+            housekeeping_data = fetch_housekeeping_data()
+            if not housekeeping_data.empty:
+                st.subheader("Updated Housekeeping Records")
+                st.dataframe(housekeeping_data)
+            else:
+                st.warning("No housekeeping data found.")
 
     else:
         st.warning("No booking data found with payment_status = 2.")
