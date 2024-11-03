@@ -80,15 +80,6 @@ def confirm_payment(book_id, staff_id, cottage_id):
         """
         execute_query(update_payment_status_query, (book_id,))
 
-        # Delete related entries in PAYMENT_CONFIRMATION for non-confirmed bookings
-        delete_payment_confirmations_query = """
-            DELETE FROM PAYMENT_CONFIRMATION 
-            WHERE book_id IN (
-                SELECT book_id FROM BOOKING WHERE cot_id = %s AND book_id != %s
-            )
-        """
-        execute_query(delete_payment_confirmations_query, (cottage_id, book_id))
-
         # Now delete all related bookings with the same cot_id, except the confirmed booking
         delete_bookings_query = """
             DELETE FROM BOOKING WHERE cot_id = %s AND book_id != %s
@@ -108,6 +99,7 @@ def confirm_payment(book_id, staff_id, cottage_id):
 
     except Error as e:
         st.error(f"Error confirming payment: {e}")
+
 
 
 # Streamlit UI for displaying booking details
