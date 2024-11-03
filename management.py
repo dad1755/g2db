@@ -13,7 +13,7 @@ def show_management():
     st.write("This is the Management section where you can manage overall operations.")
 
     # Create tabs for different management functionalities
-    tabs = st.tabs(["Approve", "Payment", "Discount", "Cottage", "Cottage Details", "Staff"])  # Added comma
+    tabs = st.tabs(["Approve", "Payment", "Discount", "Cottage", "Cottage Details", "Staff" , "Database"])  # Added comma
     with tabs[0]:
         show_approve_management()
     
