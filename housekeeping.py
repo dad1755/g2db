@@ -86,7 +86,7 @@ def fetch_cottage_attributes_data():
 
 def assign_staff_to_booking(book_id, staff_id, cot_id, check_out_date):
     """Assign staff to a booking and update the HOUSEKEEPING table."""
-    ct_id_stat = 1  # Assuming '1' corresponds to 'Out-Of-Order' status in COTTAGE_STATUS
+    ct_id_stat = 3  # Assuming '1' corresponds to 'Out-Of-Order' status in COTTAGE_STATUS
 
     book_id = int(book_id)
     staff_id = int(staff_id)
