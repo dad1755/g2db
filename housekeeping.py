@@ -61,6 +61,12 @@ def assign_staff_to_booking(book_id, staff_id, cot_id, check_out_date):
     # Default status for out-of-order
     ct_id_stat = 1  # Assuming '1' corresponds to 'Out-Of-Order' status in COTTAGE_STATUS
 
+    # Ensure all parameters are standard Python types
+    book_id = int(book_id)  # Convert to int
+    staff_id = int(staff_id)  # Convert to int
+    cot_id = int(cot_id)  # Convert to int
+    check_out_date = pd.to_datetime(check_out_date).date()  # Convert to date
+
     query = """
         INSERT INTO HOUSEKEEPING (book_id, cot_id, check_out_date, ct_id_stat, staff_id)
         VALUES (%s, %s, %s, %s, %s)
