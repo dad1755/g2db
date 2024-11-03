@@ -41,7 +41,7 @@ def fetch_booking_data():
 
 def show_housekeeping():
     """Display housekeeping booking data with payment_status = 2 in Streamlit."""
-    st.subheader("Booking Data with Payment Status = 2")
+    st.subheader("Booking On Going")
     booking_data = fetch_booking_data()
     if not booking_data.empty:
         st.dataframe(booking_data)
