@@ -33,7 +33,7 @@ def show_management():
         show_staff_management()  # Call the staff management function
 
     with tabs[6]: #Show Database
-        show_database_management()
+        show_management()
 
 # Call the management function to display the UI
 if __name__ == "__main__":
