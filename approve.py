@@ -3,7 +3,6 @@ import mysql.connector
 from mysql.connector import Error
 import pandas as pd
 
-
 # Database configuration
 DB_CONFIG = {
     'host': 'sql12.freemysqlhosting.net',
@@ -83,7 +82,7 @@ def confirm_payment(book_id, cottage_id):
         # Notify the user of the successful payment confirmation
         st.success(f"Payment for booking ID {book_id} has been confirmed successfully.")
         
-    except Exception as e:
+    except Error as e:
         st.error(f"An error occurred while confirming payment: {e}")
 
 # Streamlit UI for displaying booking details
