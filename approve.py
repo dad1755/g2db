@@ -73,9 +73,10 @@ def confirm_payment(book_id, staff_id, cottage_id):
         """
         execute_query(update_payment_status_query, (book_id,))
 
-        # Step 2: Now delete all related bookings with the same cot_id, except the confirmed booking
+        # Step 2: Delete all other related bookings with the same cot_id, except the confirmed booking
         delete_bookings_query = """
-            DELETE FROM BOOKING WHERE cot_id = %s AND book_id != %s
+            DELETE FROM BOOKING 
+            WHERE cot_id = %s AND book_id != %s
         """
         execute_query(delete_bookings_query, (cottage_id, book_id))
 
@@ -87,7 +88,7 @@ def confirm_payment(book_id, staff_id, cottage_id):
         """
         execute_query(update_cottage_status_query, (cottage_id,))
 
-        # Step 4: Insert a new record into PAYMENT_CONFIRMATION
+        # Step 4: Insert a new record into PAYMENT_CONFIRMATION for the confirmed booking
         payment_query = """
             INSERT INTO PAYMENT_CONFIRMATION (book_id, staff_id)
             VALUES (%s, %s)
