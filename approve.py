@@ -60,7 +60,7 @@ def update_payment_status(book_id):
             connection.commit()
 
             st.success(f"Booking ID {book_id} has been confirmed! Other pending bookings with the same cot_id have been removed.")
-            st.experimental_rerun()  # Use experimental_rerun to refresh the app
+            st.rerun()  # Use experimental_rerun to refresh the app
 
         except Error as e:
             st.error(f"Error updating booking: {e}")
