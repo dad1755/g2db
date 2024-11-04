@@ -75,11 +75,25 @@ def confirm_payment(book_id, staff_id, cottage_id):
         execute_query(update_query, (book_id,))
 
         # 2. Delete other bookings for the same cottage except the confirmed one
-        delete_query = """
-            DELETE FROM BOOKING 
-            WHERE cot_id = %s AND book_id != %s
+        # First, check if there are any confirmations for other bookings
+        check_query = """
+            SELECT COUNT(*) AS count
+            FROM PAYMENT_CONFIRMATION
+            WHERE book_id != %s AND book_id IN (
+                SELECT book_id FROM BOOKING WHERE cot_id = %s
+            )
         """
-        execute_query(delete_query, (cottage_id, book_id))
+        existing_confirmations = fetch_data(check_query, (book_id, cottage_id))
+        
+        # If there are no existing confirmations for other bookings, proceed to delete
+        if existing_confirmations and existing_confirmations[0]['count'] == 0:
+            delete_query = """
+                DELETE FROM BOOKING 
+                WHERE cot_id = %s AND book_id != %s
+            """
+            execute_query(delete_query, (cottage_id, book_id))
+        else:
+            st.warning("Cannot delete other bookings because they have existing confirmations.")
 
         # 3. Insert a new record into PAYMENT_CONFIRMATION
         insert_query = """
@@ -89,10 +103,11 @@ def confirm_payment(book_id, staff_id, cottage_id):
         execute_query(insert_query, (book_id, staff_id))
 
         # Success message
-        st.success("Payment confirmed successfully and other bookings deleted.")
+        st.success("Payment confirmed successfully.")
         
     except Exception as e:
         st.error(f"An error occurred while confirming payment: {e}")
+
 
 # Streamlit UI for displaying booking details
 def show_approve_management():
