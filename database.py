@@ -47,6 +47,8 @@ def delete_record(table_name, record_id):
                 query = f"DELETE FROM {table_name} WHERE book_id = %s"
             elif table_name == "COTTAGE_ATTRIBUTES_RELATION":
                 query = f"DELETE FROM {table_name} WHERE id = %s"
+            elif table_name == "PAYMENT_CONFIRMATION":
+                query = f"DELETE FROM {table_name} WHERE confirmation_id = %s"  # Primary key for PAYMENT_CONFIRMATION
             else:
                 st.error("Unknown table for deletion.")
                 return
@@ -72,7 +74,7 @@ def show_database_management():
     st.write("View records from various tables in the database.")
 
     # Define tables to display
-    tables = ["COTTAGE_ATTRIBUTES_RELATION", "HOUSEKEEPING", "BOOKING"]
+    tables = ["COTTAGE_ATTRIBUTES_RELATION", "HOUSEKEEPING", "BOOKING", "PAYMENT_CONFIRMATION"]
 
     # Initialize session state for data if not already done
     if 'data' not in st.session_state:
