@@ -80,6 +80,10 @@ def show_database_management():
     if 'data' not in st.session_state:
         st.session_state.data = {table: fetch_table_data(table) for table in tables}
 
+    # Add a button to refresh data manually
+    if st.button("Refresh Data"):
+        st.session_state.data = {table: fetch_table_data(table) for table in tables}
+
     # Loop through each table and display data
     for table_name in tables:
         data = st.session_state.data.get(table_name)  # Get data from session state
@@ -93,10 +97,13 @@ def show_database_management():
                 if st.button(f"Delete Record from {table_name}"):
                     if record_id:  # Check if input is not empty
                         delete_record(table_name, record_id)
+                        # Refresh the data after deletion
+                        st.session_state.data[table_name] = fetch_table_data(table_name)
                     else:
                         st.warning("Please enter a valid ID to delete.")
         else:
             st.write(f"No data available or unable to fetch data for **{table_name}**.")
+
 
 # Run this function only if this script is executed directly
 if __name__ == "__main__":
