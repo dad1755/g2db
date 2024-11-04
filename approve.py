@@ -65,14 +65,7 @@ def confirm_payment(book_id, staff_id, cottage_id):
         staff_id = int(staff_id)
         cottage_id = int(cottage_id)
 
-        # Insert a new record into PAYMENT_CONFIRMATION
-        payment_query = """
-            INSERT INTO PAYMENT_CONFIRMATION (book_id, staff_id)
-            VALUES (%s, %s)
-        """
-        execute_query(payment_query, (book_id, staff_id))
-
-        # Update the payment_status to 2 in the BOOKING table
+        # Step 1: Update the payment_status to 2 in the BOOKING table
         update_payment_status_query = """
             UPDATE BOOKING 
             SET payment_status = 2 
@@ -80,25 +73,33 @@ def confirm_payment(book_id, staff_id, cottage_id):
         """
         execute_query(update_payment_status_query, (book_id,))
 
-        # Now delete all related bookings with the same cot_id, except the confirmed booking
+        # Step 2: Now delete all related bookings with the same cot_id, except the confirmed booking
         delete_bookings_query = """
             DELETE FROM BOOKING WHERE cot_id = %s AND book_id != %s
         """
         execute_query(delete_bookings_query, (cottage_id, book_id))
 
-        # Update ct_id_stat to 3 in COTTAGE_ATTRIBUTES_RELATION for the confirmed booking's cot_id
+        # Step 3: Update ct_id_stat to 3 in COTTAGE_ATTRIBUTES_RELATION for the confirmed booking's cot_id
         update_cottage_status_query = """
             UPDATE COTTAGE_ATTRIBUTES_RELATION 
             SET ct_id_stat = 3 
             WHERE cot_id = %s
         """
         execute_query(update_cottage_status_query, (cottage_id,))
-        
-        st.success("Payment confirmed, payment status updated, related bookings deleted, and cottage status updated.")
+
+        # Step 4: Insert a new record into PAYMENT_CONFIRMATION
+        payment_query = """
+            INSERT INTO PAYMENT_CONFIRMATION (book_id, staff_id)
+            VALUES (%s, %s)
+        """
+        execute_query(payment_query, (book_id, staff_id))
+
+        st.success("Payment confirmed, related bookings deleted, and cottage status updated.")
         st.rerun()
 
     except Error as e:
         st.error(f"Error confirming payment: {e}")
+
 
 
 # Streamlit UI for displaying booking details
