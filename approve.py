@@ -74,14 +74,28 @@ def confirm_payment(book_id, staff_id, cottage_id):
         """
         execute_query(update_query, (book_id,))
 
-        # 2. Delete other bookings for the same cottage except the confirmed one
-        delete_query = """
-            DELETE FROM BOOKING 
-            WHERE cot_id = %s AND book_id != %s
+        # 2. Check how many bookings exist for the same cottage
+        count_query = """
+            SELECT COUNT(*) AS booking_count 
+            FROM BOOKING 
+            WHERE cot_id = %s
         """
-        execute_query(delete_query, (cottage_id, book_id))
+        count_result = fetch_data(count_query, (cottage_id,))
+        booking_count = count_result[0]['booking_count'] if count_result else 0
 
-        # 3. Insert a new record into PAYMENT_CONFIRMATION
+        # 3. Proceed with deletion if there are multiple bookings
+        if booking_count > 1:
+            # Deleting other bookings for the same cottage except the confirmed one
+            delete_query = """
+                DELETE FROM BOOKING 
+                WHERE cot_id = %s AND book_id != %s
+            """
+            execute_query(delete_query, (cottage_id, book_id))
+            st.success("Other bookings deleted successfully.")
+        else:
+            st.info("Only one booking exists for this cottage. No deletions required.")
+
+        # 4. Insert a new record into PAYMENT_CONFIRMATION
         insert_query = """
             INSERT INTO PAYMENT_CONFIRMATION (book_id, staff_id) 
             VALUES (%s, %s)
@@ -89,7 +103,7 @@ def confirm_payment(book_id, staff_id, cottage_id):
         execute_query(insert_query, (book_id, staff_id))
 
         # Success message
-        st.success("Payment confirmed successfully and other bookings deleted.")
+        st.success("Payment confirmed successfully.")
         
     except Exception as e:
         st.error(f"An error occurred while confirming payment: {e}")
