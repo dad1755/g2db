@@ -78,6 +78,11 @@ def confirm_booking(book_id, staff_id):
             cursor.execute(delete_query, (cot_id, book_id))
             connection.commit()
 
+            # Update ct_id_stat to 3 in COTTAGE_ATTRIBUTES_RELATION
+            update_cottage_query = "UPDATE COTTAGE_ATTRIBUTES_RELATION SET ct_id_stat = 3 WHERE cot_id = %s"
+            cursor.execute(update_cottage_query, (cot_id,))
+            connection.commit()
+
             st.success(f"Booking ID {book_id} has been confirmed! Staff ID {staff_id} has been assigned.")
             st.rerun()  # Refresh the app
 
