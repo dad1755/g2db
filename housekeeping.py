@@ -118,7 +118,6 @@ def assign_staff_to_booking(book_id, staff_id, cot_id, check_out_date):
 def show_housekeeping():
     """Display housekeeping booking data with payment_status = 2 in Streamlit."""
   
-    
     # Use session state to store DataFrames
     if 'booking_data' not in st.session_state:
         st.session_state.booking_data = fetch_booking_data()
@@ -146,10 +145,10 @@ def show_housekeeping():
             # Fetch staff data for assignment
             staff_data = fetch_staff_data()
 
-            # Dropdown for assigning staff
-            staff_options = staff_data.set_index('staff_id')['staff_name'].to_dict()
-            selected_staff = st.selectbox("Select Staff", options=list(staff_options.keys()), format_func=lambda x: staff_options[x] if x in staff_options else "")
-            
+            # Dropdown for assigning staff (showing only staff_id)
+            staff_options = staff_data['staff_id'].tolist()
+            selected_staff = st.selectbox("Select Staff ID", options=staff_options)
+
             # Get the selected booking information
             selected_booking = st.selectbox("Select Booking", options=filtered_booking_data['book_id'])
             selected_row = filtered_booking_data[filtered_booking_data['book_id'] == selected_booking].iloc[0]
