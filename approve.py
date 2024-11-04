@@ -17,7 +17,7 @@ def fetch_bookings():
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         if connection.is_connected():
-            query = "SELECT * FROM BOOKING WHERE payment_status = 2"
+            query = "SELECT * FROM BOOKING WHERE payment_status = 1"
             df = pd.read_sql(query, connection)
             return df
     except Error as e:
