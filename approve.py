@@ -79,7 +79,7 @@ def confirm_booking(book_id, staff_id):
             connection.commit()
 
             st.success(f"Booking ID {book_id} has been confirmed! Staff ID {staff_id} has been assigned.")
-            st.experimental_rerun()  # Refresh the app
+            st.rerun()  # Refresh the app
 
         except Error as e:
             st.error(f"Error updating booking: {e}")
