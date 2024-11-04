@@ -29,7 +29,6 @@ def fetch_bookings():
             connection.close()
 
 # Function to confirm booking and clear others
-# Function to confirm booking and clear others
 def confirm_booking(selected_book_id, selected_cot_id):
     try:
         selected_book_id = int(selected_book_id)
@@ -68,6 +67,7 @@ def confirm_booking(selected_book_id, selected_cot_id):
     finally:
         if connection.is_connected():
             connection.close()
+
 
 
 # Streamlit UI for displaying booking details
