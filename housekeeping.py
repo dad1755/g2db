@@ -122,7 +122,7 @@ def show_housekeeping():
         if not filtered_booking_data.empty:
             st.dataframe(filtered_booking_data)
 
-            # Dropdown for assigning staff
+            # Dropdown for assigning staff (moved outside of the condition)
             staff_data = fetch_staff_data()
             staff_options = staff_data.set_index('staff_id')['staff_name'].to_dict()
             selected_staff = st.selectbox("Select Staff", options=list(staff_options.keys()), format_func=lambda x: staff_options[x] if x in staff_options else "")
@@ -131,7 +131,7 @@ def show_housekeeping():
             selected_booking = st.selectbox("Select Booking", options=filtered_booking_data['book_id'])
             selected_row = filtered_booking_data[filtered_booking_data['book_id'] == selected_booking].iloc[0]
 
-            # Button to assign staff
+            # Button to assign staff (moved outside of the condition)
             if st.button("Assign Staff"):
                 assign_staff_to_booking(selected_row['book_id'], selected_staff, selected_row['cot_id'], selected_row['check_out_date'])
 
