@@ -126,8 +126,12 @@ def show_housekeeping():
     if 'housekeeping_data' not in st.session_state:
         st.session_state.housekeeping_data = fetch_housekeeping_data()
 
+    if 'cottage_attributes_data' not in st.session_state:
+        st.session_state.cottage_attributes_data = fetch_cottage_attributes_data()
+
     booking_data = st.session_state.booking_data
     housekeeping_data = st.session_state.housekeeping_data
+    cottage_attributes_data = st.session_state.cottage_attributes_data
 
     if not booking_data.empty and not housekeeping_data.empty:
         # Create a list of cot_id's from the housekeeping data
@@ -178,6 +182,17 @@ def show_housekeeping():
             st.warning("No housekeeping records found with ct_id_stat = 3.")
     else:
         st.warning("No housekeeping records found.")
+
+    # Display cottage attributes with ct_id_stat = 3
+    st.subheader("Cottage Attributes with ct_id_stat = 3")
+    if not cottage_attributes_data.empty:
+        filtered_cottages = cottage_attributes_data[cottage_attributes_data['ct_id_stat'] == 3]
+        if not filtered_cottages.empty:
+            st.dataframe(filtered_cottages[['cot_id', 'ct_id_stat']])
+        else:
+            st.warning("No cottage attributes found with ct_id_stat = 3.")
+    else:
+        st.warning("No cottage attributes data found.")
 
 # Run the app
 if __name__ == "__main__":
