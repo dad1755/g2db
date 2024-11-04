@@ -168,8 +168,6 @@ def show_housekeeping():
             st.warning("No booking data available that is not already assigned in housekeeping.")
 
     elif not booking_data.empty:
-        st.warning("All bookings have cot_id's already assigned in housekeeping.")
-    else:
         st.warning("No booking data found with payment_status = 2.")
 
     # Display bookings related to ct_id_stat = 3
