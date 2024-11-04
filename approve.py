@@ -61,6 +61,11 @@ def get_staff():
 def confirm_payment(book_id, staff_id, cottage_id):
     """Confirm payment and update the database accordingly."""
     try:
+        # Convert parameters to standard Python int
+        book_id = int(book_id)
+        staff_id = int(staff_id)
+        cottage_id = int(cottage_id)
+
         # 1. Update the payment status to 2
         update_query = """
             UPDATE BOOKING 
@@ -89,15 +94,10 @@ def confirm_payment(book_id, staff_id, cottage_id):
     except Exception as e:
         st.error(f"An error occurred while confirming payment: {e}")
 
-   
-
-
-
-
 # Streamlit UI for displaying booking details
 def show_approve_management():
     st.subheader("Booking Management")
-    st.write("Available Bookings (Pending Confirmation Will Be List Here)")
+    st.write("Available Bookings (Pending Confirmation Will Be Listed Here)")
     
     bookings_data = get_bookings()
     if bookings_data:
@@ -119,7 +119,7 @@ def show_approve_management():
         
         # Retrieve cottage ID based on selected booking
         selected_booking = bookings_df[bookings_df['book_id'] == selected_book_id].iloc[0]
-        selected_cottage_id = selected_booking['cot_id']  # Ensure it's using cot_id
+        selected_cottage_id = int(selected_booking['cot_id'])  # Ensure it's using cot_id and convert to int
         
         if st.button("CONFIRM"):
             confirm_payment(selected_book_id, selected_staff_id, selected_cottage_id)
