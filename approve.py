@@ -42,6 +42,7 @@ def update_payment_status(book_id):
             cursor.execute(update_query, (book_id,))
             connection.commit()
             st.success(f"Booking ID {book_id} has been confirmed!")
+            st.rerun()
         except Error as e:
             st.error(f"Error updating booking: {e}")
         finally:
