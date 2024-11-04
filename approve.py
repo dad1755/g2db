@@ -52,22 +52,16 @@ def get_bookings():
     bookings = fetch_data(query)
     return bookings
 
-def get_staff():
-    """Retrieve all staff members."""
-    query = "SELECT staff_id, staff_name FROM STAFF"
-    staff = fetch_data(query)
-    return staff
-
-def confirm_payment(book_id, staff_id, cottage_id):
+def confirm_payment(book_id, cottage_id):
     """Confirm the payment for the booking and delete other bookings with the same cottage ID if any exist."""
     try:
         # Update the booking status to confirmed (assuming 2 indicates confirmed)
         update_query = """
             UPDATE BOOKING 
-            SET payment_status = 2, staff_id = %s
+            SET payment_status = 2
             WHERE book_id = %s
         """
-        execute_query(update_query, (staff_id, book_id))  # Pass staff ID and booking ID
+        execute_query(update_query, (book_id,))  # Update only the payment_status
         
         # Check for other bookings with the same cottage ID
         check_query = """
@@ -86,12 +80,11 @@ def confirm_payment(book_id, staff_id, cottage_id):
             st.success(f"Other bookings with cottage ID {cottage_id} have been deleted.")
 
         # Notify the user of the successful payment confirmation
-        st.success(f"Payment for booking ID {book_id} has been confirmed successfully by staff ID {staff_id}.")
+        st.success(f"Payment for booking ID {book_id} has been confirmed successfully.")
         
     except Exception as e:
         st.error(f"An error occurred while confirming payment: {e}")
 
-  
 # Streamlit UI for displaying booking details
 def show_approve_management():
     st.subheader("Booking Management")
@@ -103,24 +96,16 @@ def show_approve_management():
         bookings_df = pd.DataFrame(bookings_data)
         st.dataframe(bookings_df)
 
-        # Fetch staff data for selection
-        staff_data = get_staff()
-        staff_options = {f"{staff['staff_name']} (ID: {staff['staff_id']})": staff['staff_id'] for staff in staff_data}
-
         # Payment confirmation form
         st.write("### Confirm Payment")
         selected_book_id = st.selectbox("Select Booking ID to Confirm", bookings_df['book_id'].values)
-        
-        # Staff selection
-        selected_staff_name = st.selectbox("Select Staff", options=list(staff_options.keys()))
-        selected_staff_id = staff_options[selected_staff_name]  # Get the ID based on the selected name
         
         # Retrieve cottage ID based on selected booking
         selected_booking = bookings_df[bookings_df['book_id'] == selected_book_id].iloc[0]
         selected_cottage_id = int(selected_booking['cot_id'])  # Ensure it's using cot_id and convert to int
         
         if st.button("CONFIRM"):
-            confirm_payment(selected_book_id, selected_staff_id, selected_cottage_id)
+            confirm_payment(selected_book_id, selected_cottage_id)
             
     else:
         st.warning("All bookings with confirm payment status 👋.")
@@ -128,4 +113,3 @@ def show_approve_management():
 # Run this function only if this script is executed directly
 if __name__ == "__main__":
     show_approve_management()
-
