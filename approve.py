@@ -62,7 +62,7 @@ def confirm_payment(book_id, cottage_id):
             WHERE book_id = %s
         """
         execute_query(update_query, (book_id,))  # Update only the payment_status
-        
+
         # Check for other bookings with the same cottage ID
         check_query = """
             SELECT book_id FROM BOOKING 
@@ -78,6 +78,8 @@ def confirm_payment(book_id, cottage_id):
             """
             execute_query(delete_query, (cottage_id, book_id))  # Delete other bookings with the same cot_id
             st.success(f"Other bookings with cottage ID {cottage_id} have been deleted.")
+        else:
+            st.info(f"No other bookings with cottage ID {cottage_id} to delete.")
 
         # Notify the user of the successful payment confirmation
         st.success(f"Payment for booking ID {book_id} has been confirmed successfully.")
