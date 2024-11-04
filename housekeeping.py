@@ -117,7 +117,7 @@ def assign_staff_to_booking(book_id, staff_id, cot_id, check_out_date):
 
 def show_housekeeping():
     """Display housekeeping booking data with payment_status = 2 in Streamlit."""
-    st.subheader("Booking On Going")
+  
     
     # Use session state to store DataFrames
     if 'booking_data' not in st.session_state:
