@@ -3,6 +3,7 @@ import mysql.connector
 from mysql.connector import Error
 import pandas as pd
 
+
 # Database configuration
 DB_CONFIG = {
     'host': 'sql12.freemysqlhosting.net',
