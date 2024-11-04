@@ -17,7 +17,7 @@ def fetch_bookings():
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         if connection.is_connected():
-            query = "SELECT book_id, cot_id FROM BOOKING WHERE payment_status = 1"
+            query = "SELECT * FROM BOOKING WHERE payment_status = 1"
             df = pd.read_sql(query, connection)
             return df
     except Error as e:
@@ -56,9 +56,13 @@ def show_approve_management():
     st.subheader("Booking Management")
     st.write("Available Bookings (Pending Confirmation Will Be Listed Here)")
     
+    # Fetch and display bookings
     bookings_df = fetch_bookings()
     
     if bookings_df is not None and not bookings_df.empty:
+        # Display the grid view of all bookings
+        st.dataframe(bookings_df)  # Show the bookings in a grid format
+
         # Create a dropdown to select a book_id
         book_ids = bookings_df['book_id'].unique().tolist()
         selected_book_id = st.selectbox("Select a booking to confirm:", book_ids)
