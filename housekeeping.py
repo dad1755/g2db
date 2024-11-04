@@ -86,7 +86,7 @@ def fetch_cottage_attributes_data():
 
 def assign_staff_to_booking(book_id, staff_id, cot_id, check_out_date):
     """Assign staff to a booking and update the HOUSEKEEPING table."""
-    ct_id_stat = 3  # Assuming '1' corresponds to 'Out-Of-Order' status in COTTAGE_STATUS
+    ct_id_stat = 3  # Assuming '3' corresponds to the status for staff assignment
 
     book_id = int(book_id)
     staff_id = int(staff_id)
@@ -172,6 +172,31 @@ def show_housekeeping():
     else:
         st.warning("No booking data found with payment_status = 2.")
 
+    # Display bookings related to ct_id_stat = 3
+    st.subheader("Bookings Related to Cottage with ct_id_stat = 3")
+    if not cottage_attributes_data.empty:
+        # Filter cottage attributes for ct_id_stat = 3
+        filtered_cottages = cottage_attributes_data[cottage_attributes_data['ct_id_stat'] == 3]
+        
+        if not filtered_cottages.empty:
+            # Merge to get the relevant bookings
+            relevant_bookings = pd.merge(
+                booking_data,
+                filtered_cottages[['cot_id']],  # Only need cot_id for the merge
+                on='cot_id',
+                how='inner'  # Only keep bookings that match
+            )
+
+            if not relevant_bookings.empty:
+                # Show the relevant booking data
+                st.dataframe(relevant_bookings[['book_id', 'cot_id', 'check_out_date']])
+            else:
+                st.warning("No bookings found for cottages with ct_id_stat = 3.")
+        else:
+            st.warning("No cottages found with ct_id_stat = 3.")
+    else:
+        st.warning("No cottage attributes data found.")
+
     # Filter housekeeping data by ct_id_stat = 3 and show in grid
     st.subheader("Filtered Housekeeping Records")
     if not housekeeping_data.empty:
@@ -182,17 +207,6 @@ def show_housekeeping():
             st.warning("No housekeeping records found with ct_id_stat = 3.")
     else:
         st.warning("No housekeeping records found.")
-
-    # Display cottage attributes with ct_id_stat = 3
-    st.subheader("Cottage Attributes with ct_id_stat = 3")
-    if not cottage_attributes_data.empty:
-        filtered_cottages = cottage_attributes_data[cottage_attributes_data['ct_id_stat'] == 3]
-        if not filtered_cottages.empty:
-            st.dataframe(filtered_cottages[['cot_id', 'ct_id_stat']])
-        else:
-            st.warning("No cottage attributes found with ct_id_stat = 3.")
-    else:
-        st.warning("No cottage attributes data found.")
 
 # Run the app
 if __name__ == "__main__":
