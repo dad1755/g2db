@@ -37,6 +37,21 @@ def fetch_booking_data():
             connection.close()
     return pd.DataFrame()
 
+# Fetch all staff data from the STAFF table
+def fetch_staff_data():
+    connection = get_database_connection()
+    if connection:
+        try:
+            query = "SELECT staff_id, staff_name FROM STAFF"
+            staff_data = pd.read_sql(query, connection)
+            return staff_data
+        except Error as e:
+            st.error(f"Error fetching staff data: {e}")
+            return pd.DataFrame()
+        finally:
+            connection.close()
+    return pd.DataFrame()
+
 # Function to update payment_status for a specific booking and delete conflicting entries
 def update_payment_status(book_id):
     connection = get_database_connection()
@@ -60,10 +75,27 @@ def update_payment_status(book_id):
             connection.commit()
 
             st.success(f"Booking ID {book_id} has been confirmed! Other pending bookings with the same cot_id have been removed.")
-            st.rerun()  # Use experimental_rerun to refresh the app
+            st.experimental_rerun()  # Use experimental_rerun to refresh the app
 
         except Error as e:
             st.error(f"Error updating booking: {e}")
+        finally:
+            cursor.close()
+            connection.close()
+
+# Function to assign a staff member to a booking
+def assign_staff_to_booking(book_id, staff_id):
+    connection = get_database_connection()
+    if connection:
+        try:
+            cursor = connection.cursor()
+            update_query = "UPDATE BOOKING SET staff_id = %s WHERE book_id = %s"
+            cursor.execute(update_query, (staff_id, book_id))
+            connection.commit()
+            st.success(f"Staff ID {staff_id} has been assigned to Booking ID {book_id}.")
+            st.experimental_rerun()
+        except Error as e:
+            st.error(f"Error updating staff assignment: {e}")
         finally:
             cursor.close()
             connection.close()
@@ -76,7 +108,7 @@ def show_approve_management():
     # Fetch and display booking data
     booking_data = fetch_booking_data()
     if not booking_data.empty:
-        # Optionally, display the data in a table/grid with better formatting
+        # Display booking data in a table
         st.dataframe(booking_data)
 
         # Dropdown to select a booking ID
@@ -93,6 +125,20 @@ def show_approve_management():
                 # Confirm button
                 if st.button("CONFIRM"):
                     update_payment_status(selected_book_id)
+        
+        # Fetch staff data and create dropdown for staff selection
+        staff_data = fetch_staff_data()
+        if not staff_data.empty:
+            staff_options = staff_data['staff_name'] + " (ID: " + staff_data['staff_id'].astype(str) + ")"
+            selected_staff = st.selectbox("Assign Staff to Booking", staff_options)
+            selected_staff_id = int(selected_staff.split(" (ID: ")[1][:-1])  # Extract staff_id from the selected option
+            
+            # Button to assign selected staff to the booking
+            if st.button("Assign Staff"):
+                assign_staff_to_booking(selected_book_id, selected_staff_id)
+        else:
+            st.write("No staff available for assignment.")
+
     else:
         st.write("No bookings available.")
 
