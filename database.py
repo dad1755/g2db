@@ -40,17 +40,24 @@ def delete_record(table_name, record_id):
     conn = connect_to_database()
     if conn:
         try:
-            # Update the query to use the correct column name
+            # Use correct primary key based on table name
             if table_name == "HOUSEKEEPING":
-                query = f"DELETE FROM {table_name} WHERE housekeep_id = %s"  # Replace with your actual column name
+                query = f"DELETE FROM {table_name} WHERE housekeep_id = %s"
+            elif table_name == "BOOKING":
+                query = f"DELETE FROM {table_name} WHERE book_id = %s"
+            elif table_name == "COTTAGE_ATTRIBUTES_RELATION":
+                query = f"DELETE FROM {table_name} WHERE id = %s"
             else:
-                query = f"DELETE FROM {table_name} WHERE id = %s"  # Keep this if other tables have 'id' as their PK
-                
+                st.error("Unknown table for deletion.")
+                return
+            
             cursor = conn.cursor()
             cursor.execute(query, (record_id,))
             conn.commit()
             if cursor.rowcount > 0:
                 st.success(f"Record with ID {record_id} deleted successfully from {table_name}.")
+                # Update the session state after deletion
+                st.session_state.data[table_name] = fetch_table_data(table_name)  # Refresh data
             else:
                 st.warning(f"No record found with ID {record_id} in {table_name}.")
         except Exception as e:
@@ -59,18 +66,21 @@ def delete_record(table_name, record_id):
             cursor.close()
             conn.close()
 
-
 def show_database_management():
     """Display the database management section with grids for all tables."""
     st.subheader("Database Management")
     st.write("View records from various tables in the database.")
 
     # Define tables to display
-    tables = ["COTTAGE_ATTRIBUTES_RELATION", "HOUSEKEEPING", "BOOKING", "PAYMENT_CONFIRMATION"]
+    tables = ["COTTAGE_ATTRIBUTES_RELATION", "HOUSEKEEPING", "BOOKING"]
+
+    # Initialize session state for data if not already done
+    if 'data' not in st.session_state:
+        st.session_state.data = {table: fetch_table_data(table) for table in tables}
 
     # Loop through each table and display data
     for table_name in tables:
-        data = fetch_table_data(table_name)
+        data = st.session_state.data.get(table_name)  # Get data from session state
         if data is not None:
             st.write(f"Showing records from **{table_name}**:")
             st.dataframe(data)  # Display in a grid format
