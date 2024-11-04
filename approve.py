@@ -59,6 +59,36 @@ def get_staff():
     return staff
 
 def confirm_payment(book_id, staff_id, cottage_id):
+    """Confirm payment and update the database accordingly."""
+    try:
+        # 1. Update the payment status to 2
+        update_query = """
+            UPDATE BOOKING 
+            SET payment_status = 2 
+            WHERE book_id = %s
+        """
+        execute_query(update_query, (book_id,))
+
+        # 2. Delete other bookings for the same cottage except the confirmed one
+        delete_query = """
+            DELETE FROM BOOKING 
+            WHERE cot_id = %s AND book_id != %s
+        """
+        execute_query(delete_query, (cottage_id, book_id))
+
+        # 3. Insert a new record into PAYMENT_CONFIRMATION
+        insert_query = """
+            INSERT INTO PAYMENT_CONFIRMATION (book_id, staff_id) 
+            VALUES (%s, %s)
+        """
+        execute_query(insert_query, (book_id, staff_id))
+
+        # Success message
+        st.success("Payment confirmed successfully and other bookings deleted.")
+        
+    except Exception as e:
+        st.error(f"An error occurred while confirming payment: {e}")
+
    
 
 
