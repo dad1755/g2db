@@ -37,17 +37,31 @@ def fetch_booking_data():
             connection.close()
     return pd.DataFrame()
 
-# Function to update payment_status for a specific booking
+# Function to update payment_status for a specific booking and delete conflicting entries
 def update_payment_status(book_id):
     connection = get_database_connection()
     if connection:
         try:
             cursor = connection.cursor()
+
+            # Update payment_status to 2 for the selected booking
             update_query = "UPDATE BOOKING SET payment_status = 2 WHERE book_id = %s"
             cursor.execute(update_query, (book_id,))
             connection.commit()
-            st.success(f"Booking ID {book_id} has been confirmed!")
-            st.rerun()  # Use experimental_rerun for rerunning the app
+
+            # Get cot_id for the confirmed booking
+            cot_query = "SELECT cot_id FROM BOOKING WHERE book_id = %s"
+            cursor.execute(cot_query, (book_id,))
+            cot_id = cursor.fetchone()[0]  # Fetch cot_id of the current booking
+
+            # Delete other bookings with the same cot_id and payment_status = 1
+            delete_query = "DELETE FROM BOOKING WHERE cot_id = %s AND payment_status = 1 AND book_id != %s"
+            cursor.execute(delete_query, (cot_id, book_id))
+            connection.commit()
+
+            st.success(f"Booking ID {book_id} has been confirmed! Other pending bookings with the same cot_id have been removed.")
+            st.experimental_rerun()  # Use experimental_rerun to refresh the app
+
         except Error as e:
             st.error(f"Error updating booking: {e}")
         finally:
