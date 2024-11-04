@@ -1,7 +1,7 @@
-import mysql.connector
 import pandas as pd
 import streamlit as st
-from mysql.connector import Error
+from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError
 
 # Database configuration
 DB_CONFIG = {
@@ -12,6 +12,11 @@ DB_CONFIG = {
     'port': 3306
 }
 
+# Create a SQLAlchemy engine
+def get_engine():
+    connection_string = f"mysql+pymysql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
+    return create_engine(connection_string)
+
 def fetch_booking_data():
     """Fetch book_id, cot_id, and check_out_date from BOOKING table where payment_status is 2."""
     query = """
@@ -20,53 +25,41 @@ def fetch_booking_data():
         WHERE payment_status = 2
     """
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        return pd.read_sql_query(query, connection)  # Use read_sql_query with connection
-    except Error as e:
+        engine = get_engine()
+        return pd.read_sql_query(query, engine)  # Use SQLAlchemy engine
+    except SQLAlchemyError as e:
         st.error(f"Error fetching data: {e}")
         return pd.DataFrame()  # Return empty DataFrame if there's an error
-    finally:
-        if connection.is_connected():
-            connection.close()  # Close the connection
 
 def fetch_staff_data():
     """Fetch all staff members from the STAFF table."""
     query = "SELECT staff_id, staff_name FROM STAFF"
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        return pd.read_sql_query(query, connection)  # Use read_sql_query with connection
-    except Error as e:
+        engine = get_engine()
+        return pd.read_sql_query(query, engine)  # Use SQLAlchemy engine
+    except SQLAlchemyError as e:
         st.error(f"Error fetching staff data: {e}")
         return pd.DataFrame()  # Return empty DataFrame if there's an error
-    finally:
-        if connection.is_connected():
-            connection.close()  # Close the connection
 
 def fetch_housekeeping_data():
     """Fetch all records from the HOUSEKEEPING table."""
     query = "SELECT * FROM HOUSEKEEPING"
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        return pd.read_sql_query(query, connection)  # Use read_sql_query with connection
-    except Error as e:
+        engine = get_engine()
+        return pd.read_sql_query(query, engine)  # Use SQLAlchemy engine
+    except SQLAlchemyError as e:
         st.error(f"Error fetching housekeeping data: {e}")
         return pd.DataFrame()  # Return empty DataFrame if there's an error
-    finally:
-        if connection.is_connected():
-            connection.close()  # Close the connection
 
 def fetch_cottage_attributes_data():
     """Fetch all records from the COTTAGE_ATTRIBUTES_RELATION table."""
     query = "SELECT * FROM COTTAGE_ATTRIBUTES_RELATION"
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        return pd.read_sql_query(query, connection)  # Use read_sql_query with connection
-    except Error as e:
+        engine = get_engine()
+        return pd.read_sql_query(query, engine)  # Use SQLAlchemy engine
+    except SQLAlchemyError as e:
         st.error(f"Error fetching cottage attributes data: {e}")
         return pd.DataFrame()  # Return empty DataFrame if there's an error
-    finally:
-        if connection.is_connected():
-            connection.close()  # Close the connection
 
 def assign_staff_to_booking(book_id, staff_id, cot_id, check_out_date):
     """Assign staff to a booking and update the HOUSEKEEPING table."""
@@ -77,22 +70,17 @@ def assign_staff_to_booking(book_id, staff_id, cot_id, check_out_date):
         VALUES (%s, %s, %s, %s, %s)
     """
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        cursor = connection.cursor()
-        cursor.execute(query, (book_id, cot_id, check_out_date, ct_id_stat, staff_id))
-        connection.commit()
-        st.success("Staff assigned to booking successfully!")
+        engine = get_engine()
+        with engine.connect() as connection:
+            connection.execute(query, (book_id, cot_id, check_out_date, ct_id_stat, staff_id))
+            st.success("Staff assigned to booking successfully!")
 
-        # Refresh the session state to update the DataFrames
-        st.session_state.booking_data = fetch_booking_data()
-        st.session_state.housekeeping_data = fetch_housekeeping_data()
-        
-    except Error as e:
+            # Refresh the session state to update the DataFrames
+            st.session_state.booking_data = fetch_booking_data()
+            st.session_state.housekeeping_data = fetch_housekeeping_data()
+
+    except SQLAlchemyError as e:
         st.error(f"Error assigning staff to booking: {e}")
-    finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()  # Close the connection
 
 def show_housekeeping():
     """Display housekeeping booking data with payment_status = 2 in Streamlit."""
