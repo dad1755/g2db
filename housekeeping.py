@@ -167,9 +167,6 @@ def show_housekeeping():
         else:
             st.warning("No booking data available that is not already assigned in housekeeping.")
 
-    elif not booking_data.empty:
-        st.warning("No booking data found with payment_status = 2.")
-
     # Display bookings related to ct_id_stat = 3
     st.subheader("Bookings Related to Cottage with ct_id_stat = 3")
     if not cottage_attributes_data.empty:
