@@ -68,6 +68,7 @@ def delete_record(table_name, record_id):
             conn.close()
 
 def show_database_management():
+    st.rerun()
     """Display the database management section with grids for all tables."""
     st.subheader("Database Management")
     st.write("View records from various tables in the database.")
