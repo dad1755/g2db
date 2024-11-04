@@ -47,8 +47,7 @@ def delete_record(table_name, record_id):
                 query = f"DELETE FROM {table_name} WHERE book_id = %s"
             elif table_name == "COTTAGE_ATTRIBUTES_RELATION":
                 query = f"DELETE FROM {table_name} WHERE id = %s"
-            elif table_name == "PAYMENT_CONFIRMATION":
-                query = f"DELETE FROM {table_name} WHERE confirmation_id = %s"  # Primary key for PAYMENT_CONFIRMATION
+
             else:
                 st.error("Unknown table for deletion.")
                 return
