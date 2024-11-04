@@ -13,6 +13,7 @@ DB_CONFIG = {
 }
 
 # Function to connect to the database and fetch bookings
+@st.cache_data(show_spinner=False)
 def fetch_bookings():
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
@@ -30,15 +31,12 @@ def fetch_bookings():
 # Function to confirm booking and clear others
 def confirm_booking(selected_book_id, selected_cot_id):
     try:
-        # Ensure the IDs are integers
         selected_book_id = int(selected_book_id)
         selected_cot_id = int(selected_cot_id)
         
         connection = mysql.connector.connect(**DB_CONFIG)
         if connection.is_connected():
             cursor = connection.cursor()
-            
-            # Debugging output
             st.write(f"Confirming booking ID: {selected_book_id} for cottage ID: {selected_cot_id}")
 
             # Update selected booking to payment_status = 2
@@ -49,9 +47,11 @@ def confirm_booking(selected_book_id, selected_cot_id):
             clear_query = "UPDATE BOOKING SET payment_status = 1 WHERE cot_id = %s AND book_id != %s"
             cursor.execute(clear_query, (selected_cot_id, selected_book_id,))
             
-            # Commit changes
             connection.commit()
             st.success(f"Booking {selected_book_id} confirmed and other bookings cleared.")
+            
+            # Refresh the bookings after confirmation
+            return fetch_bookings()
     except Error as e:
         st.error(f"Error during confirmation: {e}")
     except Exception as e:
@@ -65,23 +65,20 @@ def show_approve_management():
     st.subheader("Booking Management")
     st.write("Available Bookings (Pending Confirmation Will Be Listed Here)")
     
-    # Fetch and display bookings
     bookings_df = fetch_bookings()
     
     if bookings_df is not None and not bookings_df.empty:
-        # Display the grid view of all bookings
         st.dataframe(bookings_df)  # Show the bookings in a grid format
 
-        # Create a dropdown to select a book_id
         book_ids = bookings_df['book_id'].unique().tolist()
         selected_book_id = st.selectbox("Select a booking to confirm:", book_ids)
         
-        # Get the cot_id of the selected book_id
         selected_cot_id = bookings_df.loc[bookings_df['book_id'] == selected_book_id, 'cot_id'].values[0]
 
-        # Confirm button
         if st.button("Confirm Booking"):
-            confirm_booking(selected_book_id, selected_cot_id)
+            bookings_df = confirm_booking(selected_book_id, selected_cot_id)  # Refresh bookings after confirming
+            if bookings_df is not None:
+                st.dataframe(bookings_df)  # Show the updated bookings
     else:
         st.write("No bookings found with payment status = 1.")
 
