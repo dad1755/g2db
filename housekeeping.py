@@ -132,6 +132,7 @@ def show_housekeeping():
     housekeeping_data = st.session_state.housekeeping_data
     cottage_attributes_data = st.session_state.cottage_attributes_data
 
+    # Display booking data if available
     if not booking_data.empty and not housekeeping_data.empty:
         # Create a list of cot_id's from the housekeeping data
         existing_cot_ids = housekeeping_data['cot_id'].unique()
@@ -142,16 +143,14 @@ def show_housekeeping():
         if not filtered_booking_data.empty:
             st.dataframe(filtered_booking_data)
 
-            # Fetch staff data for assignment
-            staff_data = fetch_staff_data()
-
-            # Dropdown for assigning staff (showing only staff_id)
-            staff_options = staff_data['staff_id'].tolist()
-            selected_staff = st.selectbox("Select Staff ID", options=staff_options)
-
             # Get the selected booking information
             selected_booking = st.selectbox("Select Booking", options=filtered_booking_data['book_id'])
             selected_row = filtered_booking_data[filtered_booking_data['book_id'] == selected_booking].iloc[0]
+
+            # Fetch staff data for assignment
+            staff_data = fetch_staff_data()
+            staff_options = staff_data['staff_id'].tolist()
+            selected_staff = st.selectbox("Select Staff ID", options=staff_options)
 
             # Button to assign staff
             if st.button("Assign Staff"):
@@ -165,6 +164,8 @@ def show_housekeeping():
 
         else:
             st.warning("No booking data available that is not already assigned in housekeeping.")
+    else:
+        st.warning("No booking data or housekeeping data available.")
 
     # Display bookings related to ct_id_stat = 3
     st.subheader("Bookings Related to Cottage with ct_id_stat = 3")
