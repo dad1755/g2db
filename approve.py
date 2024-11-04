@@ -30,10 +30,17 @@ def fetch_bookings():
 # Function to confirm booking and clear others
 def confirm_booking(selected_book_id, selected_cot_id):
     try:
+        # Ensure the IDs are integers
+        selected_book_id = int(selected_book_id)
+        selected_cot_id = int(selected_cot_id)
+        
         connection = mysql.connector.connect(**DB_CONFIG)
         if connection.is_connected():
             cursor = connection.cursor()
             
+            # Debugging output
+            st.write(f"Confirming booking ID: {selected_book_id} for cottage ID: {selected_cot_id}")
+
             # Update selected booking to payment_status = 2
             update_query = "UPDATE BOOKING SET payment_status = 2 WHERE book_id = %s"
             cursor.execute(update_query, (selected_book_id,))
@@ -47,6 +54,8 @@ def confirm_booking(selected_book_id, selected_cot_id):
             st.success(f"Booking {selected_book_id} confirmed and other bookings cleared.")
     except Error as e:
         st.error(f"Error during confirmation: {e}")
+    except Exception as e:
+        st.error(f"Unexpected error: {e}")
     finally:
         if connection.is_connected():
             connection.close()
