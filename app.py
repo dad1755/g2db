@@ -1,58 +1,32 @@
-import streamlit as st
-import os
-import pymysql
-from google.cloud.sql.connector import Connector
-from google.auth import default
+import mysql.connector
+from mysql.connector import Error
 
-# Database configuration
-DB_CONFIG = {
-    'instance_connection_name': 'pro10-439001:us-central1:sql12741294',  # Google Cloud SQL instance connection name
-    'database': '12741294g10',
-    'user': 'sql12741294',
-    'password': 'Lvu9cg9kGm',
+# Define connection parameters
+db_config = {
+    'host': '34.67.211.206',  # Public IP address of the MySQL server
+    'database': '12741294g10',  # Database name
+    'user': 'sql12741294',  # MySQL username
+    'password': 'Lvu9cg9kGm'  # MySQL password
 }
 
-# Function to get a connection to Google Cloud SQL
-def get_db_connection():
-    connector = Connector()
+try:
+    # Establish the connection to the MySQL database
+    connection = mysql.connector.connect(**db_config)
+    
+    if connection.is_connected():
+        print("Connected to MySQL database")
+    
+    # Example: Execute a simple query to verify the connection
+    cursor = connection.cursor()
+    cursor.execute("SELECT DATABASE();")
+    record = cursor.fetchone()
+    print(f"You're connected to database: {record}")
 
-    # Use the default credentials (this will automatically use the Google Cloud SDK credentials)
-    _, project_id = default()
+except Error as e:
+    print(f"Error while connecting to MySQL: {e}")
 
-    # Use the connector to establish a connection to the Cloud SQL instance
-    connection = connector.connect(
-        DB_CONFIG['instance_connection_name'],
-        "pymysql",
-        user=DB_CONFIG['user'],
-        password=DB_CONFIG['password'],
-        database=DB_CONFIG['database']
-    )
-
-    return connection
-
-# Function to test database connection
-def test_db_connection():
-    try:
-        # Get the database connection
-        connection = get_db_connection()
-
-        # If the connection is successful, return a success message
-        if connection:
-            return "Connection Successful!"
-        else:
-            return "Connection Failed!"
-    except Exception as e:
-        return f"Error: {e}"
-    finally:
-        # Make sure the connection is closed after the operation
-        if connection:
-            connection.close()
-
-# Streamlit app layout
-st.title("Google Cloud SQL Database Connection Test")
-
-# Run the connection test
-status = test_db_connection()
-
-# Display the status of the connection
-st.write(status)
+finally:
+    if connection.is_connected():
+        cursor.close()
+        connection.close()
+        print("MySQL connection is closed.")
