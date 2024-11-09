@@ -1,32 +1,32 @@
-import mysql.connector
-from mysql.connector import Error
+from google.cloud.sql.connector import Connector
+import sqlalchemy
+import pymysql  # Required for MySQL connections
 
-# Define connection parameters
-db_config = {
-    'host': '34.67.211.206',  # Public IP address of the MySQL server
-    'database': '12741294g10',  # Database name
-    'user': 'sql12741294',  # MySQL username
-    'password': 'Lvu9cg9kGm'  # MySQL password
-}
+# Initialize the Google Cloud SQL Connector
+connector = Connector()
 
+# Function to return the database connection using the SQL Connector
+def getconn() -> pymysql.connections.Connection:
+    conn = connector.connect(
+        "pro10-439001:us-central1:sql12741294",  # Replace with your instance name in the format project:region:instance
+        "pymysql",  # Use pymysql for MySQL, psycopg2 for PostgreSQL
+        user="sql12741294",  # Your database username
+        password="Lvu9cg9kGm",  # Your database password
+        db="12741294g10"  # Your database name
+    )
+    return conn
+
+# Create a connection pool with SQLAlchemy
+pool = sqlalchemy.create_engine(
+    "mysql+pymysql://",  # Use 'mysql+pymysql' for MySQL, 'postgresql+psycopg2' for PostgreSQL
+    creator=getconn,  # Function to provide connection from Cloud SQL Connector
+)
+
+# Example query to test the connection
 try:
-    # Establish the connection to the MySQL database
-    connection = mysql.connector.connect(**db_config)
-    
-    if connection.is_connected():
-        print("Connected to MySQL database")
-    
-    # Example: Execute a simple query to verify the connection
-    cursor = connection.cursor()
-    cursor.execute("SELECT DATABASE();")
-    record = cursor.fetchone()
-    print(f"You're connected to database: {record}")
-
-except Error as e:
-    print(f"Error while connecting to MySQL: {e}")
-
-finally:
-    if connection.is_connected():
-        cursor.close()
-        connection.close()
-        print("MySQL connection is closed.")
+    # Example of interacting with the database using SQLAlchemy
+    with pool.connect() as connection:
+        result = connection.execute("SELECT 1")
+        print(f"Query result: {result.fetchone()}")
+except Exception as e:
+    print(f"Error: {e}")
