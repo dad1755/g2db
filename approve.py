@@ -5,7 +5,7 @@ import pandas as pd
 
 # Database configuration
 DB_CONFIG = {
-    'host': 'sql12.freemysqlhosting.net',
+    'host': 'pro10-439001:us-central1:sql12741294',
     'database': 'sql12741294',
     'user': 'sql12741294',
     'password': 'Lvu9cg9kGm',
