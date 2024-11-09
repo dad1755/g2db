@@ -1,3 +1,4 @@
 mysql-connector-python
 sqlalchemy
 streamlit
+cloud-sql-python-connector
