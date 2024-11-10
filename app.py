@@ -1,32 +1,48 @@
-from google.cloud.sql.connector import Connector
-import sqlalchemy
-import pymysql  # Required for MySQL connections
+import streamlit as st
+import mysql.connector
 
-# Initialize the Google Cloud SQL Connector
-connector = Connector()
+# Hard-coded database configuration
+DB_HOST = "34.67.211.206"         # e.g., "34.123.45.67" or a private IP if configured
+DB_USER = "sql12741294"         # e.g., "root"
+DB_PASSWORD = "Lvu9cg9kGm" # e.g., "yourpassword"
+DB_NAME = "12741294g10"         # e.g., "my_database"
 
-# Function to return the database connection using the SQL Connector
-def getconn() -> pymysql.connections.Connection:
-    conn = connector.connect(
-        "pro10-439001:us-central1:sql12741294",  # Replace with your instance name in the format project:region:instance
-        "pymysql",  # Use pymysql for MySQL, psycopg2 for PostgreSQL
-        user="sql12741294",  # Your database username
-        password="Lvu9cg9kGm",  # Your database password
-        db="12741294g10"  # Your database name
-    )
-    return conn
+# Function to create a connection
+def create_connection():
+    try:
+        connection = mysql.connector.connect(
+            host=DB_HOST,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            database=DB_NAME
+        )
+        return connection
+    except mysql.connector.Error as err:
+        st.error(f"Error: {err}")
+        return None
 
-# Create a connection pool with SQLAlchemy
-pool = sqlalchemy.create_engine(
-    "mysql+pymysql://",  # Use 'mysql+pymysql' for MySQL, 'postgresql+psycopg2' for PostgreSQL
-    creator=getconn,  # Function to provide connection from Cloud SQL Connector
-)
+# Function to run a query
+def run_query(query):
+    connection = create_connection()
+    if connection:
+        cursor = connection.cursor()
+        cursor.execute(query)
+        results = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return results
+    else:
+        return None
 
-# Example query to test the connection
-try:
-    # Example of interacting with the database using SQLAlchemy
-    with pool.connect() as connection:
-        result = connection.execute("SELECT 1")
-        print(f"Query result: {result.fetchone()}")
-except Exception as e:
-    print(f"Error: {e}")
+# Streamlit app
+st.title("My Streamlit App with Google Cloud MySQL (Hardcoded)")
+
+# Example query to fetch data
+query = "SELECT * FROM your_table LIMIT 5"  # Replace "your_table" with your actual table name
+data = run_query(query)
+
+# Display data
+if data:
+    st.write(data)
+else:
+    st.write("No data available or an error occurred.")
