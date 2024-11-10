@@ -1,54 +1,47 @@
-import os
-from google.cloud.sql.connector import Connector, IPTypes
-import sqlalchemy
-import pymysql
-import logging
+import streamlit as st
+import mysql.connector
+from mysql.connector import Error
 
-# Set the environment variable for Google Cloud credentials
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "pro10-439001-fe04c9810437.json"
-
-# Setup logging to display errors
-logging.basicConfig(level=logging.INFO)
-
-# Initialize Cloud SQL Connector
-connector = Connector()
-
-# SQLAlchemy database connection creator function
-def getconn():
+# Function to connect to Google Cloud SQL MySQL Database
+def create_connection():
     try:
-        logging.info("Attempting to connect to the Cloud SQL instance...")
-        conn = connector.connect(
-            "pro10-439001:us-central1:sql12741294",  # Cloud SQL Instance Connection Name
-            "pymysql",  # MySQL driver
-            user="sql12741294",  # Database user
-            password="Lvu9cg9kGm",  # Database password
-            db="12741294g10",  # Database name
-            ip_type=IPTypes.PUBLIC  # Use IPTypes.PRIVATE for private IP if needed
+        connection = mysql.connector.connect(
+            user='sql12741294',  # Change this to your username
+            password='Lvu9cg9kGm',  # Change this to your password
+            host='34.67.211.206',  # Replace with your Cloud SQL instance IP address
+            database='12741294g10',  # Replace with your database name
+            ssl_ca='path_to_your_server-ca.pem',  # Path to your server-ca.pem
+            ssl_cert='path_to_your_client-cert.pem',  # Path to your client-cert.pem
+            ssl_key='path_to_your_client-key.pem'  # Path to your client-key.pem
         )
-        logging.info("Successfully connected to the database!")
-        return conn
-    except Exception as e:
-        logging.error(f"Failed to connect to the database: {e}")
-        raise
+        if connection.is_connected():
+            st.success("Successfully connected to the database!")
+            return connection
+        else:
+            st.error("Failed to connect to the database.")
+    except Error as e:
+        st.error(f"Error: {e}")
+        return None
 
-# Create SQLAlchemy connection pool
-pool = sqlalchemy.create_engine(
-    "mysql+pymysql://",
-    creator=getconn,
-)
+# Function to query the database and fetch results
+def fetch_data(connection):
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM STAFF LIMIT 10;")  # Change to your query
+    rows = cursor.fetchall()
+    st.write("Query Results:", rows)
 
-# Interact with Cloud SQL database using connection pool
-try:
-    with pool.connect() as db_conn:
-        logging.info("Running SQL query...")
-        result = db_conn.execute("SELECT * FROM STAFF LIMIT 10").fetchall()  # Replace `your_table` with actual table name
+# Streamlit User Interface
+def main():
+    st.title("Connect to Google SQL Database")
+    
+    # Button to establish a connection
+    if st.button('Connect to Database'):
+        connection = create_connection()
+        if connection:
+            fetch_data(connection)
 
-        # Do something with the results
-        logging.info("Results fetched from the database:")
-        for row in result:
-            print(row)
-except Exception as e:
-    logging.error(f"Error while executing the query: {e}")
+    # Display info
+    st.info("Ensure you have the necessary SSL certificates for the connection.")
 
-# Close Cloud SQL Connector
-connector.close()
+if __name__ == '__main__':
+    main()
