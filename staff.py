@@ -88,9 +88,33 @@ def delete_staff(staff_id):
     query = "DELETE FROM STAFF WHERE staff_id = :staff_id"
     execute_query(query, {"staff_id": staff_id})
 
+def create_role(role_name):
+    """Create a new role."""
+    query = "INSERT INTO ROLES (role_name) VALUES (:role_name)"
+    execute_query(query, {"role_name": role_name})
+
+# Streamlit UI for Role Management
+def show_role_management():
+    """Streamlit UI for Role Management."""
+    st.subheader("Role Management 👥")
+
+    # Input field to add new role
+    new_role_name = st.text_input("New Role Name")
+
+    if st.button("Add Role"):
+        if new_role_name:
+            create_role(new_role_name)
+            st.success(f"Added New Role: {new_role_name}")
+        else:
+            st.warning("Please enter a role name.")
+
+# Streamlit UI for Staff Management
 def show_staff_management():
     """Streamlit UI for Staff Management."""
     st.subheader("Staff Management 🎤")
+
+    # Add Role Management section
+    show_role_management()
 
     # Fetch available roles
     roles_data = get_roles()
