@@ -44,7 +44,6 @@ engine = sqlalchemy.create_engine(
 def execute_query(query, params=None):
     """Execute a query with optional parameters."""
     try:
-        # Use the SQLAlchemy engine to create a connection
         with engine.connect() as connection:
             if params:
                 connection.execute(text(query), params)  # Execute parameterized queries
@@ -57,7 +56,6 @@ def execute_query(query, params=None):
 def fetch_data(query):
     """Fetch data from the database."""
     try:
-        # Use the SQLAlchemy engine to create a connection
         with engine.connect() as connection:
             result = connection.execute(text(query))
             rows = result.fetchall()
@@ -179,19 +177,19 @@ def show_role_management():
 
     # Add Role
     st.write("###### Function To Add New Role")
-    role_name = st.text_input("Role Name")
-    if st.button("Add Role"):
-        if role_name:
-            create_role(role_name)
-            st.success(f"Added Role: {role_name}")
+    role_name = st.text_input("Role Name")  # Input field to enter the role name
+    if st.button("Add Role"):  # Button to trigger role creation
+        if role_name:  # Check if the role name is not empty
+            create_role(role_name)  # Call function to create the role
+            st.success(f"Added Role: {role_name}")  # Show success message
         else:
-            st.warning("Please fill in the Role Name.")
+            st.warning("Please fill in the Role Name.")  # Show a warning if the role name is empty
 
     # View Roles
     st.write("###### Role List Available in Database")
     role_data = get_roles()
     if role_data:
-        st.dataframe(role_data)
+        st.dataframe(role_data)  # Display the roles in a table
 
         # Prepare to update and delete roles
         st.write("###### Update or Delete Existing Role")
@@ -229,7 +227,7 @@ def show_role_management():
     else:
         st.warning("No roles found.")
 
-# Call the show_staff_management function to display the UI
+# Call the functions to display the UI
 if __name__ == "__main__":
-    show_staff_management()  # This will display the staff management section
-    show_role_management()   # This will display the role management section
+    show_staff_management()  # Displays the staff management section
+    show_role_management()   # Displays the role management section
