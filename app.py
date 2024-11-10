@@ -10,9 +10,10 @@ def create_connection():
             password='Lvu9cg9kGm',  # Change this to your password
             host='34.67.211.206',  # Replace with your Cloud SQL instance IP address
             database='12741294g10',  # Replace with your database name
-            ssl_ca='path_to_your_server-ca.pem',  # Path to your server-ca.pem
-            ssl_cert='path_to_your_client-cert.pem',  # Path to your client-cert.pem
-            ssl_key='path_to_your_client-key.pem'  # Path to your client-key.pem
+            ssl_ca='./server-ca.pem',  # SSL certificate for the server
+            ssl_cert='./client-cert.pem',  # Client certificate
+            ssl_key='./client-key.pem'  # Client key
+
         )
         if connection.is_connected():
             st.success("Successfully connected to the database!")
