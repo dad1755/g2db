@@ -1,51 +1,69 @@
+import os
 import streamlit as st
-import mysql.connector
-from mysql.connector import Error
+from google.cloud.sql.connector import Connector
+import sqlalchemy
+from sqlalchemy import text
 from decimal import Decimal
 
-# Hardcoded database configuration (make sure to secure your credentials)
-DB_CONFIG = {
-    'host': 'sql12.freemysqlhosting.net',
-    'database': 'sql12741294',
-    'user': 'sql12741294',
-    'password': 'Lvu9cg9kGm',
-    'port': 3306
-}
+# Retrieve the service account JSON from st.secrets
+service_account_info = st.secrets["google_cloud"]["credentials"]
+
+# Write the JSON to a file
+with open("service_account.json", "w") as f:
+    f.write(service_account_info)
+
+# Set the GOOGLE_APPLICATION_CREDENTIALS environment variable
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"
+
+# Retrieve database credentials from st.secrets
+INSTANCE_CONNECTION_NAME = st.secrets["database"]["instance_connection_name"]
+DB_USER = st.secrets["database"]["db_user"]
+DB_PASSWORD = st.secrets["database"]["db_password"]
+DB_NAME = st.secrets["database"]["db_name"]
+
+# Initialize Connector object
+connector = Connector()
+
+# Function to return the database connection object
+def getconn():
+    conn = connector.connect(
+        INSTANCE_CONNECTION_NAME,
+        "pymysql",
+        user=DB_USER,
+        password=DB_PASSWORD,
+        db=DB_NAME
+    )
+    return conn
+
+# SQLAlchemy engine for creating database connection
+engine = sqlalchemy.create_engine(
+    "mysql+pymysql://",
+    creator=getconn,
+)
 
 def execute_query(query, params=None):
     """Execute a query with optional parameters."""
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        cursor = connection.cursor()
-        if params:
-            cursor.execute(query, params)  # Using parameterized queries is good for safety
-        else:
-            cursor.execute(query)
-        connection.commit()
-        return cursor  # Return cursor for further processing
-    except Error as e:
+        with engine.connect() as connection:
+            if params:
+                connection.execute(text(query), params)
+            else:
+                connection.execute(text(query))
+            connection.commit()
+    except Exception as e:
         st.error(f"Error: {e}")
         return None
-    finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
 
 def fetch_data(query):
     """Fetch data from the database."""
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        cursor = connection.cursor(dictionary=True)
-        cursor.execute(query)
-        rows = cursor.fetchall()
-        return rows  # Return fetched rows
-    except Error as e:
+        with engine.connect() as connection:
+            result = connection.execute(text(query))
+            rows = result.fetchall()
+            return rows  # Return fetched rows
+    except Exception as e:
         st.error(f"Error: {e}")
         return None
-    finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
 
 # Discount Management Functions
 def create_discount(cot_id, dis_amount, staff_id):
