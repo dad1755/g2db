@@ -176,11 +176,11 @@ def show_staff_management():
     """Streamlit UI for Staff Management."""
     st.subheader("Staff Management 🎤")
 
-    # Add Staff
+    # Add Staff only if roles are added
     st.write("###### Function To Add New Staff Member")
     staff_name = st.text_input("Staff Name")
     
-    # Get roles to assign
+    # Ensure roles are available before adding staff
     roles = get_roles()
     if roles:
         role_names = [f"{role['role_name']} (ID: {role['role_id']})" for role in roles]
