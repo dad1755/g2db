@@ -1,60 +1,75 @@
+import os
 import streamlit as st
-import mysql.connector
+from google.cloud.sql.connector import Connector
+import sqlalchemy
+from sqlalchemy import text
 from mysql.connector import Error
 
-# Database configuration (update as necessary)
-DB_CONFIG = {
-    'host': 'sql12.freemysqlhosting.net',
-    'database': 'sql12741294',
-    'user': 'sql12741294',
-    'password': 'Lvu9cg9kGm',
-    'port': 3306
-}
+# Retrieve the service account JSON from st.secrets
+service_account_info = st.secrets["google_cloud"]["credentials"]
 
+# Write the JSON to a file
+with open("service_account.json", "w") as f:
+    f.write(service_account_info)
+
+# Set the GOOGLE_APPLICATION_CREDENTIALS environment variable
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"
+
+# Retrieve database credentials from st.secrets
+INSTANCE_CONNECTION_NAME = st.secrets["database"]["instance_connection_name"]
+DB_USER = st.secrets["database"]["db_user"]
+DB_PASSWORD = st.secrets["database"]["db_password"]
+DB_NAME = st.secrets["database"]["db_name"]
+
+# Initialize Connector object
+connector = Connector()
+
+# Function to return the database connection object
+def getconn():
+    conn = connector.connect(
+        INSTANCE_CONNECTION_NAME,
+        "pymysql",
+        user=DB_USER,
+        password=DB_PASSWORD,
+        db=DB_NAME
+    )
+    return conn
+
+# SQLAlchemy engine for creating database connection
+engine = sqlalchemy.create_engine(
+    "mysql+pymysql://",
+    creator=getconn,
+)
+
+# Function to execute queries
 def execute_query(query, params=None):
     """Execute a query with optional parameters."""
     connection = None
-    cursor = None
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        cursor = connection.cursor()
-        if params:
-            cursor.execute(query, params)
-        else:
-            cursor.execute(query)
-        connection.commit()
-        st.success("Query executed successfully.")  # Inform the user of success
-        return cursor  # Return cursor for further processing if needed
-    except Error as e:
-        st.error(f"Error executing query: {query} with params: {params} | Error: {e}")
-        return None
-    finally:
-        if cursor:
-            cursor.close()  # Close cursor if it was created
-        if connection and connection.is_connected():
-            connection.close()  # Close connection if it was created
+        with engine.connect() as connection:
+            if params:
+                connection.execute(text(query), params)
+            else:
+                connection.execute(text(query))
+            st.success("Query executed successfully.")  # Inform the user of success
+    except Exception as e:
+        st.error(f"Error executing query: {query} | Error: {e}")
 
-def fetch_data(query):
+# Function to fetch data from the database
+def fetch_data(query, params=None):
     """Fetch data from the database."""
     connection = None
-    cursor = None
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        cursor = connection.cursor(dictionary=True)  # Use dictionary to fetch rows as dict
-        cursor.execute(query)
-        rows = cursor.fetchall()  # Fetch all results
-        return rows  # Return fetched rows
-    except Error as e:
+        with engine.connect() as connection:
+            result = connection.execute(text(query), params)
+            rows = result.fetchall()
+            return rows
+    except Exception as e:
         st.error(f"Error: {e}")
         return None
-    finally:
-        if cursor:
-            cursor.close()
-        if connection and connection.is_connected():
-            connection.close()
 
+# Fetch cottages with their attributes
 def fetch_cottages_with_attributes():
-    """Fetch cottages along with their attributes from COTTAGE_ATTRIBUTES_RELATION."""
     query = """
     SELECT 
         CAR.id,
@@ -68,10 +83,10 @@ def fetch_cottages_with_attributes():
     FROM COTTAGE_ATTRIBUTES_RELATION CAR
     JOIN COTTAGE C ON CAR.cot_id = C.cot_id
     """
-    return fetch_data(query) or []  # Return empty list if fetching fails
+    return fetch_data(query) or []
 
+# Edit cottage attributes
 def edit_cottage_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_room_id, new_max_pax_id, new_ct_id, new_ct_stat_id):
-    """Edit attributes of a cottage in the COTTAGE_ATTRIBUTES_RELATION table."""
     query = """
     UPDATE COTTAGE_ATTRIBUTES_RELATION 
     SET pool_id = %s, loc_id = %s, room_id = %s, max_pax_id = %s, ct_id = %s, ct_id_stat = %s 
@@ -82,127 +97,103 @@ def edit_cottage_attributes(selected_cottage_id, new_pool_id, new_loc_id, new_ro
 
 # CRUD Functions for Pool
 def create_pool(pool_detail):
-    """Create a new pool."""
     query = "INSERT INTO POOL (pool_detail) VALUES (%s)"
     execute_query(query, (pool_detail,))
 
 def get_pool():
-    """Fetch all pools."""
     query = "SELECT * FROM POOL"
-    return fetch_data(query) or []  # Return empty list if fetching fails
+    return fetch_data(query) or []
 
 def update_pool(pool_id, pool_detail):
-    """Update pool information."""
     query = "UPDATE POOL SET pool_detail = %s WHERE pool_id = %s"
     execute_query(query, (pool_detail, pool_id))
 
 def delete_pool(pool_id):
-    """Delete a pool by ID."""
     query = "DELETE FROM POOL WHERE pool_id = %s"
     execute_query(query, (pool_id,))
 
 # CRUD Functions for Location
 def create_location(loc_detail):
-    """Create a new location."""
     query = "INSERT INTO LOCATION (loc_details) VALUES (%s)"
     execute_query(query, (loc_detail,))
 
 def get_locations():
-    """Fetch all locations."""
     query = "SELECT * FROM LOCATION"
-    return fetch_data(query) or []  # Return empty list if fetching fails
+    return fetch_data(query) or []
 
 def update_location(loc_id, loc_detail):
-    """Update location information."""
     query = "UPDATE LOCATION SET loc_details = %s WHERE loc_id = %s"
     execute_query(query, (loc_detail, loc_id))
 
 def delete_location(loc_id):
-    """Delete a location by ID."""
     query = "DELETE FROM LOCATION WHERE loc_id = %s"
     execute_query(query, (loc_id,))
 
 # CRUD Functions for Room
 def create_room(room_detail):
-    """Create a new room."""
     query = "INSERT INTO ROOM (room_details) VALUES (%s)"
     execute_query(query, (room_detail,))
 
 def get_rooms():
-    """Fetch all rooms."""
     query = "SELECT * FROM ROOM"
-    return fetch_data(query) or []  # Return empty list if fetching fails
+    return fetch_data(query) or []
 
 def update_room(room_id, room_detail):
-    """Update room information."""
     query = "UPDATE ROOM SET room_details = %s WHERE room_id = %s"
     execute_query(query, (room_detail, room_id))
 
 def delete_room(room_id):
-    """Delete a room by ID."""
     query = "DELETE FROM ROOM WHERE room_id = %s"
     execute_query(query, (room_id,))
 
 # CRUD Functions for Maximum Pax
 def create_maximum_pax(max_pax_detail):
-    """Create a new maximum pax detail."""
     query = "INSERT INTO MAXIMUM_PAX (max_pax_details) VALUES (%s)"
     execute_query(query, (max_pax_detail,))
 
 def get_maximum_pax():
-    """Fetch all maximum pax details."""
     query = "SELECT * FROM MAXIMUM_PAX"
-    return fetch_data(query) or []  # Return empty list if fetching fails
+    return fetch_data(query) or []
 
 def update_maximum_pax(max_pax_id, max_pax_detail):
-    """Update maximum pax information."""
     query = "UPDATE MAXIMUM_PAX SET max_pax_details = %s WHERE max_pax_id = %s"
     execute_query(query, (max_pax_detail, max_pax_id))
 
 def delete_maximum_pax(max_pax_id):
-    """Delete maximum pax detail by ID."""
     query = "DELETE FROM MAXIMUM_PAX WHERE max_pax_id = %s"
     execute_query(query, (max_pax_id,))
 
 # CRUD Functions for Cottage Types
 def create_cottage_type(ct_detail):
-    """Create a new cottage type."""
     query = "INSERT INTO COTTAGE_TYPES (ct_details) VALUES (%s)"
     execute_query(query, (ct_detail,))
 
 def get_cottage_types():
-    """Fetch all cottage types."""
     query = "SELECT * FROM COTTAGE_TYPES"
-    return fetch_data(query) or []  # Return empty list if fetching fails
+    return fetch_data(query) or []
 
 def update_cottage_type(ct_id, ct_detail):
-    """Update cottage type information."""
     query = "UPDATE COTTAGE_TYPES SET ct_details = %s WHERE ct_id = %s"
     execute_query(query, (ct_detail, ct_id))
 
 def delete_cottage_type(ct_id):
-    """Delete cottage type by ID."""
     query = "DELETE FROM COTTAGE_TYPES WHERE ct_id = %s"
     execute_query(query, (ct_id,))
 
 # CRUD Functions for Cottage Status
 def create_cottage_status(cottage_status_detail):
-    """Create a new cottage status."""
     query = "INSERT INTO COTTAGE_STATUS (ct_status_details) VALUES (%s)"
     execute_query(query, (cottage_status_detail,))
 
 def get_cottage_statuses():
-    """Fetch all cottage statuses."""
     query = "SELECT * FROM COTTAGE_STATUS"
-    return fetch_data(query) or []  # Return empty list if fetching fails
+    return fetch_data(query) or []
 
 def update_cottage_status(cottage_status_id, cottage_status_detail):
-    """Update cottage status information."""
     query = "UPDATE COTTAGE_STATUS SET ct_status_details = %s WHERE cottage_status_id = %s"
     execute_query(query, (cottage_status_detail, cottage_status_id))
 
 def delete_cottage_status(cottage_status_id):
-    """Delete cottage status by ID."""
     query = "DELETE FROM COTTAGE_STATUS WHERE cottage_status_id = %s"
     execute_query(query, (cottage_status_id,))
 
