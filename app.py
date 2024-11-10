@@ -15,11 +15,11 @@ with open("service_account.json", "w") as f:
 # Set the GOOGLE_APPLICATION_CREDENTIALS environment variable
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"
 
-# Define your instance connection details and database credentials
-INSTANCE_CONNECTION_NAME = "pro10-439001:us-central1:sql12741294"
-DB_USER = "group2"
-DB_PASSWORD = "group2@2024"
-DB_NAME = "12741294g10"
+# Retrieve database credentials from st.secrets
+INSTANCE_CONNECTION_NAME = st.secrets["database"]["instance_connection_name"]
+DB_USER = st.secrets["database"]["db_user"]
+DB_PASSWORD = st.secrets["database"]["db_password"]
+DB_NAME = st.secrets["database"]["db_name"]
 
 # Initialize Connector object
 connector = Connector()
