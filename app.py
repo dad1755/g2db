@@ -1,48 +1,59 @@
+import os
 import streamlit as st
-import mysql.connector
-from mysql.connector import Error
+from google.cloud.sql.connector import Connector
+import sqlalchemy
+from sqlalchemy import text
 
-# Function to connect to Google Cloud SQL MySQL Database
-def create_connection():
-    try:
-        connection = mysql.connector.connect(
-            user='sql12741294',  # Change this to your username
-            password='Lvu9cg9kGm',  # Change this to your password
-            host='34.67.211.206',  # Replace with your Cloud SQL instance IP address
-            database='12741294g10',  # Replace with your database name
-            ssl_ca='./server-ca.pem',  # SSL certificate for the server
-            ssl_cert='./client-cert.pem',  # Client certificate
-            ssl_key='./client-key.pem'  # Client key
+# Set the path to the service account key JSON file
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "pro10-439001-dc966978b9d3.json"
 
-        )
-        if connection.is_connected():
-            st.success("Successfully connected to the database!")
-            return connection
-        else:
-            st.error("Failed to connect to the database.")
-    except Error as e:
-        st.error(f"Error: {e}")
-        return None
+# Define your instance connection details and database credentials
+INSTANCE_CONNECTION_NAME = "pro10-439001:us-central1:sql12741294"
+DB_USER = "group2"
+DB_PASSWORD = "group2@2024"
+DB_NAME = "12741294g10"
 
-# Function to query the database and fetch results
-def fetch_data(connection):
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM STAFF LIMIT 10;")  # Change to your query
-    rows = cursor.fetchall()
-    st.write("Query Results:", rows)
+# Initialize Connector object
+connector = Connector()
 
-# Streamlit User Interface
+# Function to return the database connection object
+def getconn():
+    conn = connector.connect(
+        INSTANCE_CONNECTION_NAME,
+        "pymysql",
+        user=DB_USER,
+        password=DB_PASSWORD,
+        db=DB_NAME
+    )
+    return conn
+
+# SQLAlchemy engine for creating database connection
+engine = sqlalchemy.create_engine(
+    "mysql+pymysql://",
+    creator=getconn,
+)
+
+# Streamlit app
 def main():
-    st.title("Connect to Google SQL Database")
-    
-    # Button to establish a connection
-    if st.button('Connect to Database'):
-        connection = create_connection()
-        if connection:
-            fetch_data(connection)
+    st.title("Database Table Viewer")
+    st.write("This app connects to the Google Cloud SQL database and lists all tables.")
 
-    # Display info
-    st.info("Ensure you have the necessary SSL certificates for the connection.")
+    # Connect to the database and retrieve all tables
+    try:
+        with engine.connect() as connection:
+            # Query to get all tables in the database
+            result = connection.execute(text("SHOW TABLES"))
+            tables = [row[0] for row in result]
 
-if __name__ == '__main__':
+            # Display tables in the Streamlit app
+            if tables:
+                st.write("Tables in the database:")
+                for table in tables:
+                    st.write(f"- {table}")
+            else:
+                st.write("No tables found in the database.")
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+
+if __name__ == "__main__":
     main()
