@@ -1,48 +1,52 @@
 import streamlit as st
-import mysql.connector
+from google.cloud.sql.connector import Connector
+import sqlalchemy
+import pandas as pd
 
-# Hard-coded database configuration
-DB_HOST = "34.67.211.206"         # e.g., "34.123.45.67" or a private IP if configured
-DB_USER = "sql12741294"         # e.g., "root"
-DB_PASSWORD = "Lvu9cg9kGm" # e.g., "yourpassword"
-DB_NAME = "12741294g10"         # e.g., "my_database"
+# Database connection parameters
+INSTANCE_CONNECTION_NAME = "pro10-439001:us-central1:sql12741294"
+DB_USER = "sql12741294"
+DB_PASS = "Lvu9cg9kGm"
+DB_NAME = "12741294g10"
 
-# Function to create a connection
-def create_connection():
+# Initialize Connector object
+connector = Connector()
+
+# Function to return the database connection object
+def getconn():
+    conn = connector.connect(
+        INSTANCE_CONNECTION_NAME,
+        "pymysql",
+        user=DB_USER,
+        password=DB_PASS,
+        db=DB_NAME
+    )
+    return conn
+
+# Setup SQLAlchemy engine
+engine = sqlalchemy.create_engine(
+    "mysql+pymysql://",
+    creator=getconn,
+)
+
+# Streamlit app title
+st.title("Google Cloud SQL Database Connection")
+
+# Basic query form
+st.subheader("Execute SQL Query")
+
+# Text input for SQL query
+query = st.text_area("Enter SQL Query", "SELECT * FROM your_table LIMIT 10")
+
+# Button to run query
+if st.button("Run Query"):
     try:
-        connection = mysql.connector.connect(
-            host=DB_HOST,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            database=DB_NAME
-        )
-        return connection
-    except mysql.connector.Error as err:
-        st.error(f"Error: {err}")
-        return None
+        # Execute the query and display the results
+        with engine.connect() as connection:
+            result = pd.read_sql(query, connection)
+            st.write(result)
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
 
-# Function to run a query
-def run_query(query):
-    connection = create_connection()
-    if connection:
-        cursor = connection.cursor()
-        cursor.execute(query)
-        results = cursor.fetchall()
-        cursor.close()
-        connection.close()
-        return results
-    else:
-        return None
-
-# Streamlit app
-st.title("My Streamlit App with Google Cloud MySQL (Hardcoded)")
-
-# Example query to fetch data
-query = "SELECT * FROM your_table LIMIT 5"  # Replace "your_table" with your actual table name
-data = run_query(query)
-
-# Display data
-if data:
-    st.write(data)
-else:
-    st.write("No data available or an error occurred.")
+# Close the connector when the app stops
+connector.close()
