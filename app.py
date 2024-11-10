@@ -23,7 +23,7 @@ def getconn():
     )
     return conn
 
-# Setup SQLAlchemy engine
+# Create SQLAlchemy engine using the getconn function
 engine = sqlalchemy.create_engine(
     "mysql+pymysql://",
     creator=getconn,
@@ -32,21 +32,18 @@ engine = sqlalchemy.create_engine(
 # Streamlit app title
 st.title("Google Cloud SQL Database Connection")
 
-# Basic query form
-st.subheader("Execute SQL Query")
-
-# Text input for SQL query
+# Text area for SQL query input
 query = st.text_area("Enter SQL Query", "SELECT * FROM your_table LIMIT 10")
 
-# Button to run query
+# Button to execute query
 if st.button("Run Query"):
     try:
-        # Execute the query and display the results
+        # Connect and run query using SQLAlchemy engine
         with engine.connect() as connection:
             result = pd.read_sql(query, connection)
             st.write(result)
     except Exception as e:
         st.error(f"An error occurred: {e}")
 
-# Close the connector when the app stops
+# Close the Connector when the app stops
 connector.close()
