@@ -1,22 +1,52 @@
+import os
 import streamlit as st
 import pandas as pd
-import mysql.connector
+from google.cloud.sql.connector import Connector
+import sqlalchemy
+from sqlalchemy import text
 
-# Database configuration
-DB_CONFIG = {
-    'host': 'sql12.freemysqlhosting.net',
-    'database': 'sql12741294',
-    'user': 'sql12741294',
-    'password': 'Lvu9cg9kGm',
-    'port': 3306
-}
+# Retrieve the service account JSON from st.secrets
+service_account_info = st.secrets["google_cloud"]["credentials"]
+
+# Write the JSON to a file
+with open("service_account.json", "w") as f:
+    f.write(service_account_info)
+
+# Set the GOOGLE_APPLICATION_CREDENTIALS environment variable
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"
+
+# Retrieve database credentials from st.secrets
+INSTANCE_CONNECTION_NAME = st.secrets["database"]["instance_connection_name"]
+DB_USER = st.secrets["database"]["db_user"]
+DB_PASSWORD = st.secrets["database"]["db_password"]
+DB_NAME = st.secrets["database"]["db_name"]
+
+# Initialize Connector object
+connector = Connector()
+
+# Function to return the database connection object
+def getconn():
+    conn = connector.connect(
+        INSTANCE_CONNECTION_NAME,
+        "pymysql",
+        user=DB_USER,
+        password=DB_PASSWORD,
+        db=DB_NAME
+    )
+    return conn
+
+# SQLAlchemy engine for creating database connection
+engine = sqlalchemy.create_engine(
+    "mysql+pymysql://",
+    creator=getconn,
+)
 
 def connect_to_database():
     """Establish a connection to the database."""
     try:
-        conn = mysql.connector.connect(**DB_CONFIG)
+        conn = engine.connect()
         return conn
-    except mysql.connector.Error as e:
+    except Exception as e:
         st.error(f"Error connecting to database: {e}")
         return None
 
@@ -47,7 +77,6 @@ def delete_record(table_name, record_id):
                 query = f"DELETE FROM {table_name} WHERE book_id = %s"
             elif table_name == "COTTAGE_ATTRIBUTES_RELATION":
                 query = f"DELETE FROM {table_name} WHERE id = %s"
-
             else:
                 st.error("Unknown table for deletion.")
                 return
@@ -68,7 +97,6 @@ def delete_record(table_name, record_id):
             conn.close()
 
 def show_database_management():
-    
     """Display the database management section with grids for all tables."""
     st.subheader("Database Management")
     st.write("View records from various tables in the database.")
