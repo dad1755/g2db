@@ -4,8 +4,16 @@ from google.cloud.sql.connector import Connector
 import sqlalchemy
 from sqlalchemy import text
 
-# Set the path to the service account key JSON file
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "pro10-439001-dc966978b9d3.json"
+
+# Retrieve the service account JSON from st.secrets
+service_account_info = st.secrets["google_cloud"]["credentials"]
+
+# Write the JSON to a file
+with open("service_account.json", "w") as f:
+    f.write(service_account_info)
+
+# Set the GOOGLE_APPLICATION_CREDENTIALS environment variable
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"
 
 # Define your instance connection details and database credentials
 INSTANCE_CONNECTION_NAME = "pro10-439001:us-central1:sql12741294"
