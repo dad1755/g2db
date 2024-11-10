@@ -1,88 +1,117 @@
+import os
 import streamlit as st
-import mysql.connector
-from mysql.connector import Error
+from google.cloud.sql.connector import Connector
+import sqlalchemy
+from sqlalchemy import text
 
-# Hardcoded database configuration (make sure to secure your credentials)
-DB_CONFIG = {
-    'host': 'sql12.freemysqlhosting.net',
-    'database': 'sql12741294',
-    'user': 'sql12741294',
-    'password': 'Lvu9cg9kGm',
-    'port': 3306
-}
+# Retrieve the service account JSON from st.secrets
+service_account_info = st.secrets["google_cloud"]["credentials"]
+
+# Write the JSON to a file
+with open("service_account.json", "w") as f:
+    f.write(service_account_info)
+
+# Set the GOOGLE_APPLICATION_CREDENTIALS environment variable
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"
+
+# Retrieve database credentials from st.secrets
+INSTANCE_CONNECTION_NAME = st.secrets["database"]["instance_connection_name"]
+DB_USER = st.secrets["database"]["db_user"]
+DB_PASSWORD = st.secrets["database"]["db_password"]
+DB_NAME = st.secrets["database"]["db_name"]
+
+# Initialize Connector object
+connector = Connector()
+
+# Function to return the database connection object
+def getconn():
+    conn = connector.connect(
+        INSTANCE_CONNECTION_NAME,
+        "pymysql",
+        user=DB_USER,
+        password=DB_PASSWORD,
+        db=DB_NAME
+    )
+    return conn
+
+# SQLAlchemy engine for creating database connection
+engine = sqlalchemy.create_engine(
+    "mysql+pymysql://",
+    creator=getconn,
+)
 
 def execute_query(query, params=None):
     """Execute a query with optional parameters."""
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        cursor = connection.cursor()
-        if params:
-            cursor.execute(query, params)  # Using parameterized queries is good for safety
-        else:
-            cursor.execute(query)
-        connection.commit()
-        return cursor  # Return cursor for further processing
-    except Error as e:
+        with engine.connect() as connection:
+            if params:
+                connection.execute(text(query), params)  # Use parameterized queries
+            else:
+                connection.execute(text(query))
+    except Exception as e:
         st.error(f"Error: {e}")
-        return None
-    finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
 
-def fetch_data(query):
+def fetch_data(query, params=None):
     """Fetch data from the database."""
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        cursor = connection.cursor(dictionary=True)
-        cursor.execute(query)
-        rows = cursor.fetchall()
-        return rows  # Return fetched rows
-    except Error as e:
+        with engine.connect() as connection:
+            result = connection.execute(text(query), params)
+            rows = result.fetchall()
+            return rows  # Return fetched rows
+    except Exception as e:
         st.error(f"Error: {e}")
         return None
-    finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
 
 # Staff Management Functions
-def create_staff(staff_name):
+def create_staff(staff_name, role_id):
     """Create a new staff member."""
-    query = "INSERT INTO STAFF (staff_name) VALUES (%s)"  # Use staff_name instead of name
-    execute_query(query, (staff_name,))
+    query = "INSERT INTO STAFF (staff_name, role_id) VALUES (:staff_name, :role_id)"
+    execute_query(query, {"staff_name": staff_name, "role_id": role_id})
 
 def get_staff():
     """Fetch all staff members."""
     query = "SELECT * FROM STAFF"
-    data = fetch_data(query)
-    if data is None:
-        return []  # Return an empty list
-    return data
+    return fetch_data(query)
 
-def update_staff(staff_id, staff_name):
+def get_roles():
+    """Fetch all roles from the ROLES table."""
+    query = "SELECT * FROM ROLES"
+    return fetch_data(query)
+
+def update_staff(staff_id, staff_name, role_id):
     """Update staff member information."""
-    query = "UPDATE STAFF SET staff_name = %s WHERE staff_id = %s"  # Use staff_name instead of name
-    execute_query(query, (staff_name, staff_id))
+    query = "UPDATE STAFF SET staff_name = :staff_name, role_id = :role_id WHERE staff_id = :staff_id"
+    execute_query(query, {"staff_name": staff_name, "role_id": role_id, "staff_id": staff_id})
 
 def delete_staff(staff_id):
     """Delete a staff member by ID."""
-    query = "DELETE FROM STAFF WHERE staff_id = %s"
-    execute_query(query, (staff_id,))
+    query = "DELETE FROM STAFF WHERE staff_id = :staff_id"
+    execute_query(query, {"staff_id": staff_id})
 
 def show_staff_management():
     """Streamlit UI for Staff Management."""
     st.subheader("Staff Management 🎤")
 
+    # Fetch available roles
+    roles_data = get_roles()
+    if not roles_data:
+        st.warning("No roles available in the system. Please add roles first.")
+        return
+
+    roles_dict = {role['role_id']: role['role_name'] for role in roles_data}
+
     # Add Staff
     st.write("###### Function To Add New Staff Member")
     staff_name = st.text_input("Staff Name")
+    role_name = st.selectbox("Select Role", options=[role['role_name'] for role in roles_data])
+    role_id = next((role['role_id'] for role in roles_data if role['role_name'] == role_name), None)
+
     if st.button("Add Staff"):
-        if staff_name:
-            create_staff(staff_name)
-            st.success(f"Added Staff Member: {staff_name}")
+        if staff_name and role_id:
+            create_staff(staff_name, role_id)
+            st.success(f"Added Staff Member: {staff_name} with Role: {role_name}")
         else:
-            st.warning("Please fill in the Staff Name.")
+            st.warning("Please fill in the Staff Name and Role.")
 
     # View Staff
     st.write("###### Staff List Available in Database")
@@ -92,19 +121,23 @@ def show_staff_management():
 
         # Prepare to update a staff member
         st.write("###### Update Existing Staff Member")
-        staff_names = [f"{staff['staff_name']} (ID: {staff['staff_id']})" for staff in staff_data]  # Use staff_name
+        staff_names = [f"{staff['staff_name']} (ID: {staff['staff_id']}, Role: {staff['role_id']})" for staff in staff_data]
         staff_name_to_update = st.selectbox("Select Staff Member to Update", options=staff_names)
 
         if staff_name_to_update:
-            staff_id_to_update = int(staff_name_to_update.split("(ID: ")[-1][:-1])  # Extract ID
+            staff_id_to_update = int(staff_name_to_update.split("(ID: ")[-1].split(",")[0])
             selected_staff = next((staff for staff in staff_data if staff['staff_id'] == staff_id_to_update), None)
 
             if selected_staff:
-                updated_name = st.text_input("Updated Name", value=selected_staff['staff_name'])  # Use staff_name
+                updated_name = st.text_input("Updated Name", value=selected_staff['staff_name'])
+                updated_role_name = st.selectbox(
+                    "Updated Role", options=[role['role_name'] for role in roles_data], index=list(roles_dict.values()).index(selected_staff['role_id'])
+                )
+                updated_role_id = next((role['role_id'] for role in roles_data if role['role_name'] == updated_role_name), None)
 
                 if st.button("Update Staff"):
-                    update_staff(staff_id_to_update, updated_name)
-                    st.success(f"Updated Staff Member: {updated_name}")
+                    update_staff(staff_id_to_update, updated_name, updated_role_id)
+                    st.success(f"Updated Staff Member: {updated_name} with Role: {updated_role_name}")
 
         # Prepare to delete a staff member
         st.write("###### Delete Staff Member")
@@ -112,7 +145,7 @@ def show_staff_management():
 
         if st.button("Delete Staff"):
             if staff_name_to_delete:
-                staff_id_to_delete = int(staff_name_to_delete.split("(ID: ")[-1][:-1])  # Extract ID
+                staff_id_to_delete = int(staff_name_to_delete.split("(ID: ")[-1].split(",")[0])
                 delete_staff(staff_id_to_delete)
                 st.success(f"Deleted Staff Member: {staff_name_to_delete}")
             else:
