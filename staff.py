@@ -76,7 +76,12 @@ def get_staff():
 def get_roles():
     """Fetch all roles from the ROLES table."""
     query = "SELECT * FROM ROLES"
-    return fetch_data(query)
+    roles = fetch_data(query)
+    if roles is None:
+        st.error("Failed to fetch roles from the database.")
+    else:
+        st.write("Roles retrieved successfully:", roles)
+    return roles
 
 def update_staff(staff_id, staff_name, role_id):
     """Update staff member information."""
@@ -91,7 +96,11 @@ def delete_staff(staff_id):
 def create_role(role_name):
     """Create a new role."""
     query = "INSERT INTO ROLES (role_name) VALUES (:role_name)"
-    execute_query(query, {"role_name": role_name})
+    try:
+        execute_query(query, {"role_name": role_name})
+        st.success(f"Added New Role: {role_name}")
+    except Exception as e:
+        st.error(f"Error adding role: {e}")
 
 # Streamlit UI for Role Management
 def show_role_management():
@@ -122,6 +131,7 @@ def show_staff_management():
         st.warning("No roles available in the system. Please add roles first.")
         return
 
+    # Display roles in the UI
     roles_dict = {role['role_id']: role['role_name'] for role in roles_data}
 
     # Add Staff
