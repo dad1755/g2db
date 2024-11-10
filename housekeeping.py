@@ -1,22 +1,51 @@
-import mysql.connector
-import pandas as pd
+import os
 import streamlit as st
-from mysql.connector import Error
+import pandas as pd
+from google.cloud.sql.connector import Connector
+import sqlalchemy
+from sqlalchemy import text
 
-# Database configuration
-DB_CONFIG = {
-    'host': 'sql12.freemysqlhosting.net',
-    'database': 'sql12741294',
-    'user': 'sql12741294',
-    'password': 'Lvu9cg9kGm',
-    'port': 3306
-}
+# Retrieve the service account JSON from st.secrets
+service_account_info = st.secrets["google_cloud"]["credentials"]
 
+# Write the JSON to a file
+with open("service_account.json", "w") as f:
+    f.write(service_account_info)
+
+# Set the GOOGLE_APPLICATION_CREDENTIALS environment variable
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"
+
+# Retrieve database credentials from st.secrets
+INSTANCE_CONNECTION_NAME = st.secrets["database"]["instance_connection_name"]
+DB_USER = st.secrets["database"]["db_user"]
+DB_PASSWORD = st.secrets["database"]["db_password"]
+DB_NAME = st.secrets["database"]["db_name"]
+
+# Initialize Connector object
+connector = Connector()
+
+# Function to return the database connection object
+def getconn():
+    conn = connector.connect(
+        INSTANCE_CONNECTION_NAME,
+        "pymysql",
+        user=DB_USER,
+        password=DB_PASSWORD,
+        db=DB_NAME
+    )
+    return conn
+
+# SQLAlchemy engine for creating database connection
+engine = sqlalchemy.create_engine(
+    "mysql+pymysql://",
+    creator=getconn,
+)
+
+# Fetch housekeeping data function with the new connection method
 def fetch_housekeeping_data():
     """Fetch housekeeping booking data."""
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        if connection.is_connected():
+        with engine.connect() as connection:
             query = """
             SELECT b.book_id, b.cot_id, b.check_out_date, s.staff_id, s.staff_name
             FROM BOOKING b
@@ -26,12 +55,10 @@ def fetch_housekeeping_data():
             """
             df = pd.read_sql(query, connection)
             return df
-    except Error as e:
+    except Exception as e:
         st.error(f"Error fetching data: {e}")
-    finally:
-        if connection.is_connected():
-            connection.close()
 
+# Show housekeeping function for displaying data in Streamlit
 def show_housekeeping():
     """Display housekeeping booking data with payment_status = 2 in Streamlit."""
     df = fetch_housekeeping_data()
@@ -55,20 +82,14 @@ def show_housekeeping():
             
             # Placeholder logic for assigning staff
             try:
-                connection = mysql.connector.connect(**DB_CONFIG)
-                if connection.is_connected():
-                    cursor = connection.cursor()
-                    update_query = f"""
-                    UPDATE BOOKING SET staff_id = %s WHERE book_id = %s
-                    """
-                    cursor.execute(update_query, (selected_staff_id, selected_book_id))
-                    connection.commit()
+                with engine.connect() as connection:
+                    update_query = text("""
+                    UPDATE BOOKING SET staff_id = :staff_id WHERE book_id = :book_id
+                    """)
+                    connection.execute(update_query, {'staff_id': selected_staff_id, 'book_id': selected_book_id})
                     st.success(f"Staff {staff_dropdown} assigned to booking {selected_book_id}.")
-            except Error as e:
+            except Exception as e:
                 st.error(f"Error updating booking: {e}")
-            finally:
-                if connection.is_connected():
-                    connection.close()
     else:
         st.warning("No bookings available for display.")
 
