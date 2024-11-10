@@ -1,96 +1,98 @@
+import os
 import streamlit as st
-import mysql.connector
-from mysql.connector import Error
 import pandas as pd
+from google.cloud.sql.connector import Connector
+import sqlalchemy
+from sqlalchemy import text
 
-# Database configuration
-DB_CONFIG = {
-    'host': 'pro10-439001:us-central1:sql12741294',
-    'database': 'sql12741294',
-    'user': 'sql12741294',
-    'password': 'Lvu9cg9kGm',
-    'port': 3306
-}
+# Retrieve the service account JSON from st.secrets
+service_account_info = st.secrets["google_cloud"]["credentials"]
 
-# Function to connect to the database and execute queries
-def get_database_connection():
-    try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        if connection.is_connected():
-            return connection
-    except Error as e:
-        st.error(f"Error connecting to MySQL: {e}")
-        return None
+# Write the JSON to a file
+with open("service_account.json", "w") as f:
+    f.write(service_account_info)
 
-# Fetch all booking data from the database
+# Set the GOOGLE_APPLICATION_CREDENTIALS environment variable
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"
+
+# Retrieve database credentials from st.secrets
+INSTANCE_CONNECTION_NAME = st.secrets["database"]["instance_connection_name"]
+DB_USER = st.secrets["database"]["db_user"]
+DB_PASSWORD = st.secrets["database"]["db_password"]
+DB_NAME = st.secrets["database"]["db_name"]
+
+# Initialize Connector object
+connector = Connector()
+
+# Function to return the database connection object
+def getconn():
+    conn = connector.connect(
+        INSTANCE_CONNECTION_NAME,
+        "pymysql",
+        user=DB_USER,
+        password=DB_PASSWORD,
+        db=DB_NAME
+    )
+    return conn
+
+# SQLAlchemy engine for creating database connection
+engine = sqlalchemy.create_engine(
+    "mysql+pymysql://",
+    creator=getconn,
+)
+
+# Function to fetch booking data from the database
 def fetch_booking_data():
-    connection = get_database_connection()
-    if connection:
-        try:
+    try:
+        with engine.connect() as conn:
             query = "SELECT * FROM BOOKING"  # Fetch all bookings without filter
-            booking_data = pd.read_sql(query, connection)
+            booking_data = pd.read_sql(query, conn)
             return booking_data
-        except Error as e:
-            st.error(f"Error fetching data: {e}")
-            return pd.DataFrame()
-        finally:
-            connection.close()
-    return pd.DataFrame()
+    except Exception as e:
+        st.error(f"Error fetching booking data: {e}")
+        return pd.DataFrame()
 
 # Fetch all staff data from the STAFF table
 def fetch_staff_data():
-    connection = get_database_connection()
-    if connection:
-        try:
+    try:
+        with engine.connect() as conn:
             query = "SELECT staff_id, staff_name FROM STAFF"
-            staff_data = pd.read_sql(query, connection)
+            staff_data = pd.read_sql(query, conn)
             return staff_data
-        except Error as e:
-            st.error(f"Error fetching staff data: {e}")
-            return pd.DataFrame()
-        finally:
-            connection.close()
-    return pd.DataFrame()
+    except Exception as e:
+        st.error(f"Error fetching staff data: {e}")
+        return pd.DataFrame()
 
 # Function to update payment_status and assign staff_id for a specific booking
 def confirm_booking(book_id, staff_id):
-    connection = get_database_connection()
-    if connection:
-        try:
-            cursor = connection.cursor()
-
+    try:
+        with engine.connect() as conn:
             # Update payment_status to 2 and assign staff_id for the selected booking
             update_query = """
                 UPDATE BOOKING 
-                SET payment_status = 2, staff_id = %s 
-                WHERE book_id = %s
+                SET payment_status = 2, staff_id = :staff_id 
+                WHERE book_id = :book_id
             """
-            cursor.execute(update_query, (staff_id, book_id))
-            connection.commit()
+            conn.execute(text(update_query), {"staff_id": staff_id, "book_id": book_id})
 
             # Get cot_id for the confirmed booking
-            cot_query = "SELECT cot_id FROM BOOKING WHERE book_id = %s"
-            cursor.execute(cot_query, (book_id,))
-            cot_id = cursor.fetchone()[0]  # Fetch cot_id of the current booking
+            cot_query = "SELECT cot_id FROM BOOKING WHERE book_id = :book_id"
+            result = conn.execute(text(cot_query), {"book_id": book_id})
+            cot_id = result.fetchone()[0]  # Fetch cot_id of the current booking
 
             # Delete other bookings with the same cot_id and payment_status = 1
-            delete_query = "DELETE FROM BOOKING WHERE cot_id = %s AND payment_status = 1 AND book_id != %s"
-            cursor.execute(delete_query, (cot_id, book_id))
-            connection.commit()
+            delete_query = "DELETE FROM BOOKING WHERE cot_id = :cot_id AND payment_status = 1 AND book_id != :book_id"
+            conn.execute(text(delete_query), {"cot_id": cot_id, "book_id": book_id})
 
             # Update ct_id_stat to 3 in COTTAGE_ATTRIBUTES_RELATION
-            update_cottage_query = "UPDATE COTTAGE_ATTRIBUTES_RELATION SET ct_id_stat = 3 WHERE cot_id = %s"
-            cursor.execute(update_cottage_query, (cot_id,))
-            connection.commit()
+            update_cottage_query = "UPDATE COTTAGE_ATTRIBUTES_RELATION SET ct_id_stat = 3 WHERE cot_id = :cot_id"
+            conn.execute(text(update_cottage_query), {"cot_id": cot_id})
 
             st.success(f"Booking ID {book_id} has been confirmed! Staff ID {staff_id} has been assigned.")
             st.rerun()  # Refresh the app
 
-        except Error as e:
-            st.error(f"Error updating booking: {e}")
-        finally:
-            cursor.close()
-            connection.close()
+    except Exception as e:
+        st.error(f"Error updating booking: {e}")
 
 # Streamlit UI for displaying and managing booking confirmation
 def show_approve_management():
