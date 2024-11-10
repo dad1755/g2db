@@ -66,30 +66,6 @@ def fetch_data(query, params=None):
         st.error(f"Error: {e}")
         return None
 
-# Staff Management Functions
-def create_staff(staff_name):
-    """Create a new staff member."""
-    query = "INSERT INTO STAFF (staff_name) VALUES (:staff_name)"  # Use :staff_name as a placeholder
-    execute_query(query, {'staff_name': staff_name})
-
-def get_staff():
-    """Fetch all staff members."""
-    query = "SELECT * FROM STAFF"
-    data = fetch_data(query)
-    if data is None:
-        return []  # Return an empty list if no data is found
-    return data
-
-def update_staff(staff_id, staff_name):
-    """Update staff member information."""
-    query = "UPDATE STAFF SET staff_name = :staff_name WHERE staff_id = :staff_id"
-    execute_query(query, {'staff_name': staff_name, 'staff_id': staff_id})
-
-def delete_staff(staff_id):
-    """Delete a staff member by ID."""
-    query = "DELETE FROM STAFF WHERE staff_id = :staff_id"
-    execute_query(query, {'staff_id': staff_id})
-
 # Role Management Functions
 def create_role(role_name):
     """Create a new role."""
@@ -114,67 +90,29 @@ def delete_role(role_id):
     query = "DELETE FROM ROLES WHERE role_id = :role_id"
     execute_query(query, {'role_id': role_id})
 
-def assign_role_to_staff(staff_id, role_id):
-    """Assign a role to a staff member."""
-    query = "UPDATE STAFF SET role_id = :role_id WHERE staff_id = :staff_id"
-    execute_query(query, {'staff_id': staff_id, 'role_id': role_id})
+# Staff Management Functions
+def create_staff(staff_name, role_id):
+    """Create a new staff member with a role."""
+    query = "INSERT INTO STAFF (staff_name, role_id) VALUES (:staff_name, :role_id)"  
+    execute_query(query, {'staff_name': staff_name, 'role_id': role_id})
 
-# Streamlit UI to manage staff
-def show_staff_management():
-    """Streamlit UI for Staff Management."""
-    st.subheader("Staff Management 🎤")
+def get_staff():
+    """Fetch all staff members."""
+    query = "SELECT * FROM STAFF"
+    data = fetch_data(query)
+    if data is None:
+        return []  # Return an empty list if no data is found
+    return data
 
-    # Add Staff
-    st.write("###### Function To Add New Staff Member")
-    staff_name = st.text_input("Staff Name")
-    if st.button("Add Staff"):
-        if staff_name:
-            create_staff(staff_name)
-            st.success(f"Added Staff Member: {staff_name}")
-        else:
-            st.warning("Please fill in the Staff Name.")
+def update_staff(staff_id, staff_name, role_id):
+    """Update staff member information."""
+    query = "UPDATE STAFF SET staff_name = :staff_name, role_id = :role_id WHERE staff_id = :staff_id"
+    execute_query(query, {'staff_name': staff_name, 'role_id': role_id, 'staff_id': staff_id})
 
-    # View Staff
-    st.write("###### Staff List Available in Database")
-    staff_data = get_staff()
-    if staff_data:
-        st.dataframe(staff_data)
-
-        # Prepare to update and delete staff members side by side
-        st.write("###### Update or Delete Existing Staff Member")
-        staff_names = [f"{staff['staff_name']} (ID: {staff['staff_id']})" for staff in staff_data]  # Use staff_name
-
-        # Create two columns
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.write("**Update Existing Staff Member**")
-            staff_name_to_update = st.selectbox("Select Staff Member to Update", options=staff_names)
-
-            if staff_name_to_update:
-                staff_id_to_update = int(staff_name_to_update.split("(ID: ")[-1][:-1])  # Extract ID
-                selected_staff = next((staff for staff in staff_data if staff['staff_id'] == staff_id_to_update), None)
-
-                if selected_staff:
-                    updated_name = st.text_input("Updated Name", value=selected_staff['staff_name'])  # Use staff_name
-
-                    if st.button("Update Staff"):
-                        update_staff(staff_id_to_update, updated_name)
-                        st.success(f"Updated Staff Member: {updated_name}")
-
-        with col2:
-            st.write("**Delete Staff Member**")
-            staff_name_to_delete = st.selectbox("Select Staff Member to Delete", options=staff_names)
-
-            if st.button("Delete Staff"):
-                if staff_name_to_delete:
-                    staff_id_to_delete = int(staff_name_to_delete.split("(ID: ")[-1][:-1])  # Extract ID
-                    delete_staff(staff_id_to_delete)
-                    st.success(f"Deleted Staff Member: {staff_name_to_delete}")
-                else:
-                    st.warning("Please select a Staff Member to delete.")
-    else:
-        st.warning("No staff members found.")
+def delete_staff(staff_id):
+    """Delete a staff member by ID."""
+    query = "DELETE FROM STAFF WHERE staff_id = :staff_id"
+    execute_query(query, {'staff_id': staff_id})
 
 # Streamlit UI to manage roles
 def show_role_management():
@@ -233,40 +171,81 @@ def show_role_management():
     else:
         st.warning("No roles found.")
 
-# Streamlit UI to assign roles to staff
-def show_assign_role_to_staff():
-    """Streamlit UI for assigning roles to staff."""
-    st.subheader("Assign Role to Staff 👥")
+# Streamlit UI to manage staff
+def show_staff_management():
+    """Streamlit UI for Staff Management."""
+    st.subheader("Staff Management 🎤")
 
-    # Get staff and roles
-    staff_data = get_staff()
-    role_data = get_roles()
-
-    if staff_data and role_data:
-        staff_names = [f"{staff['staff_name']} (ID: {staff['staff_id']})" for staff in staff_data]
-        role_names = [f"{role['role_name']} (ID: {role['role_id']})" for role in role_data]
-
-        # Allow user to select staff member and role
-        staff_name_to_assign = st.selectbox("Select Staff Member", options=staff_names)
-        role_name_to_assign = st.selectbox("Select Role", options=role_names)
-
-        if st.button("Assign Role"):
-            if staff_name_to_assign and role_name_to_assign:
-                staff_id_to_assign = int(staff_name_to_assign.split("(ID: ")[-1][:-1])  # Extract Staff ID
-                role_id_to_assign = int(role_name_to_assign.split("(ID: ")[-1][:-1])  # Extract Role ID
-                assign_role_to_staff(staff_id_to_assign, role_id_to_assign)
-                st.success(f"Assigned Role: {role_name_to_assign} to Staff Member: {staff_name_to_assign}")
+    # Add Staff
+    st.write("###### Function To Add New Staff Member")
+    staff_name = st.text_input("Staff Name")
+    
+    # Get roles to assign
+    roles = get_roles()
+    if roles:
+        role_names = [f"{role['role_name']} (ID: {role['role_id']})" for role in roles]
+        role_id = st.selectbox("Select Role for Staff", options=role_names)
+        
+        if role_id:
+            role_id = int(role_id.split("(ID: ")[-1][:-1])  # Extract role_id from the selection
+        
+        if st.button("Add Staff"):
+            if staff_name and role_id:
+                create_staff(staff_name, role_id)
+                st.success(f"Added Staff Member: {staff_name} with Role: {role_id}")
             else:
-                st.warning("Please select both Staff Member and Role.")
+                st.warning("Please fill in the Staff Name and select a Role.")
     else:
-        st.warning("No staff members or roles found.")
+        st.warning("Please add roles first.")
 
-# Combine the functions to display role management and staff-role assignment
+    # View Staff
+    st.write("###### Staff List Available in Database")
+    staff_data = get_staff()
+    if staff_data:
+        st.dataframe(staff_data)
+
+        # Prepare to update and delete staff members side by side
+        st.write("###### Update or Delete Existing Staff Member")
+        staff_names = [f"{staff['staff_name']} (ID: {staff['staff_id']})" for staff in staff_data]  # Use staff_name
+
+        # Create two columns
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.write("**Update Existing Staff Member**")
+            staff_name_to_update = st.selectbox("Select Staff Member to Update", options=staff_names)
+
+            if staff_name_to_update:
+                staff_id_to_update = int(staff_name_to_update.split("(ID: ")[-1][:-1])  # Extract ID
+                selected_staff = next((staff for staff in staff_data if staff['staff_id'] == staff_id_to_update), None)
+
+                if selected_staff:
+                    updated_name = st.text_input("Updated Name", value=selected_staff['staff_name'])  # Use staff_name
+                    role_to_update = st.selectbox("Select Role", options=role_names)
+
+                    if st.button("Update Staff"):
+                        update_staff(staff_id_to_update, updated_name, int(role_to_update.split("(ID: ")[-1][:-1]))
+                        st.success(f"Updated Staff Member: {updated_name}")
+
+        with col2:
+            st.write("**Delete Staff Member**")
+            staff_name_to_delete = st.selectbox("Select Staff Member to Delete", options=staff_names)
+
+            if st.button("Delete Staff"):
+                if staff_name_to_delete:
+                    staff_id_to_delete = int(staff_name_to_delete.split("(ID: ")[-1][:-1])  # Extract ID
+                    delete_staff(staff_id_to_delete)
+                    st.success(f"Deleted Staff Member: {staff_name_to_delete}")
+                else:
+                    st.warning("Please select a Staff Member to delete.")
+    else:
+        st.warning("No staff members found.")
+
+# Combine the functions to display role management and staff management
 def show_staff_and_role_management():
     """Streamlit UI for Staff and Role Management."""
-    show_staff_management()
     show_role_management()
-    show_assign_role_to_staff()
+    show_staff_management()
 
 # Call the function to display the UI
 if __name__ == "__main__":
