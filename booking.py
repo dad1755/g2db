@@ -1,109 +1,112 @@
+import os
 import streamlit as st
-import mysql.connector
-from mysql.connector import Error
+from google.cloud.sql.connector import Connector
+import sqlalchemy
+from sqlalchemy import text
 from datetime import timedelta
 
-# Database configuration
-DB_CONFIG = {
-    'host': 'sql12.freemysqlhosting.net',
-    'database': 'sql12741294',
-    'user': 'sql12741294',
-    'password': 'Lvu9cg9kGm',
-    'port': 3306
-}
+# Retrieve the service account JSON from st.secrets
+service_account_info = st.secrets["google_cloud"]["credentials"]
 
-# Function to establish database connection
-def create_connection():
-    try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        if connection.is_connected():
-            return connection
-    except Error as e:
-        st.error(f"Error connecting to database: {e}")
-        return None
+# Write the JSON to a file
+with open("service_account.json", "w") as f:
+    f.write(service_account_info)
 
+# Set the GOOGLE_APPLICATION_CREDENTIALS environment variable
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"
+
+# Retrieve database credentials from st.secrets
+INSTANCE_CONNECTION_NAME = st.secrets["database"]["instance_connection_name"]
+DB_USER = st.secrets["database"]["db_user"]
+DB_PASSWORD = st.secrets["database"]["db_password"]
+DB_NAME = st.secrets["database"]["db_name"]
+
+# Initialize Connector object
+connector = Connector()
+
+# Function to return the database connection object
+def getconn():
+    conn = connector.connect(
+        INSTANCE_CONNECTION_NAME,
+        "pymysql",
+        user=DB_USER,
+        password=DB_PASSWORD,
+        db=DB_NAME
+    )
+    return conn
+
+# SQLAlchemy engine for creating database connection
+engine = sqlalchemy.create_engine(
+    "mysql+pymysql://",
+    creator=getconn,
+)
+
+# Function to fetch cottages from the database
 def fetch_cottages():
-    connection = create_connection()
     cottages = []
-    if connection:
-        cursor = connection.cursor()
-        # Updated query to join COTTAGE and COTTAGE_ATTRIBUTES_RELATION
+    with engine.connect() as connection:
         query = """
             SELECT c.cot_id, c.cot_name, c.cot_price 
             FROM COTTAGE c
             JOIN COTTAGE_ATTRIBUTES_RELATION car ON c.cot_id = car.cot_id
             WHERE car.ct_id_stat = 2  -- Filter for available cottages
         """
-        cursor.execute(query)  # Execute the query
-        cottages = cursor.fetchall()  # Fetch all results
-        cursor.close()
-        connection.close()
+        result = connection.execute(text(query))
+        cottages = result.fetchall()
     return cottages
-
 
 # Function to fetch payment types from the database
 def fetch_payment_types():
-    connection = create_connection()
     payment_types = []
-    if connection:
-        cursor = connection.cursor()
-        cursor.execute("SELECT pt_id, pt_details FROM PAYMENT_TYPES")  # Fetching pt_id as well
-        payment_types = cursor.fetchall()  # Fetch all results
-        cursor.close()
-        connection.close()
+    with engine.connect() as connection:
+        query = "SELECT pt_id, pt_details FROM PAYMENT_TYPES"
+        result = connection.execute(text(query))
+        payment_types = result.fetchall()
     return payment_types
 
 # Function to insert customer into the database
 def insert_customer(name, email, phone):
-    connection = create_connection()
-    if connection:
-        cursor = connection.cursor()
-        insert_query = "INSERT INTO CUSTOMER (cust_name, cust_phone) VALUES (%s, %s)"
-        cursor.execute(insert_query, (name, phone))
-        connection.commit()
-        cust_id = cursor.lastrowid  # Get the newly inserted customer ID
-        cursor.close()
-        connection.close()
-        return cust_id
-    return None
+    cust_id = None
+    with engine.connect() as connection:
+        insert_query = "INSERT INTO CUSTOMER (cust_name, cust_phone) VALUES (:name, :phone)"
+        connection.execute(text(insert_query), {"name": name, "phone": phone})
+        # Retrieve the customer ID
+        result = connection.execute("SELECT LAST_INSERT_ID()")
+        cust_id = result.scalar()
+    return cust_id
 
 # Function to fetch discounts for a specific cottage
 def fetch_discounts(cottage_id):
-    connection = create_connection()
     discounts = []
-    if connection:
-        cursor = connection.cursor()
-        cursor.execute("SELECT dis_id, dis_amount FROM DISCOUNT WHERE cot_id = %s", (cottage_id,))
-        discounts = cursor.fetchall()  # Fetch all results
-        cursor.close()
-        connection.close()
+    with engine.connect() as connection:
+        query = "SELECT dis_id, dis_amount FROM DISCOUNT WHERE cot_id = :cottage_id"
+        result = connection.execute(text(query), {"cottage_id": cottage_id})
+        discounts = result.fetchall()
     return discounts
 
 # Function to fetch the price of a specific cottage
 def fetch_cottage_price(cottage_id):
-    connection = create_connection()
     price = None
-    if connection:
-        cursor = connection.cursor()
-        cursor.execute("SELECT cot_price FROM COTTAGE WHERE cot_id = %s", (cottage_id,))
-        price = cursor.fetchone()  # Fetch the price
-        cursor.close()
-        connection.close()
+    with engine.connect() as connection:
+        query = "SELECT cot_price FROM COTTAGE WHERE cot_id = :cottage_id"
+        result = connection.execute(text(query), {"cottage_id": cottage_id})
+        price = result.fetchone()
     return price[0] if price else None
 
 # Function to insert booking into the database
 def insert_booking(cust_id, cottage_id, check_in, check_out, payment_type_id):
-    connection = create_connection()
-    if connection:
-        cursor = connection.cursor()
+    with engine.connect() as connection:
         insert_query = """
             INSERT INTO BOOKING (cust_id, cot_id, check_in_date, check_out_date, payment_types, payment_status)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            VALUES (:cust_id, :cottage_id, :check_in, :check_out, :payment_type_id, 1)
         """
-        cursor.execute(insert_query, (cust_id, cottage_id, check_in, check_out, payment_type_id, 1))  # Assuming 1 for "pending"
-        connection.commit()
-        cursor.close()
-        connection.close()
+        connection.execute(text(insert_query), {
+            "cust_id": cust_id,
+            "cottage_id": cottage_id,
+            "check_in": check_in,
+            "check_out": check_out,
+            "payment_type_id": payment_type_id
+        })
 
 # Main booking function
 def show_booking():
