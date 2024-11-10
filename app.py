@@ -4,8 +4,8 @@ import sqlalchemy
 import pymysql
 import logging
 
-# Hardcode the path to your service account key (JSON) file for testing purposes
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(os.getcwd(), "pro10-439001-fe04c9810437.json")
+# Set the environment variable for Google Cloud credentials
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "pro10-439001-fe04c9810437.json"
 
 # Setup logging to display errors
 logging.basicConfig(level=logging.INFO)
